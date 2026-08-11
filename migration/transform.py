@@ -67,6 +67,22 @@ def strip_html(s):
     return re.sub(r"\n{3,}", "\n\n", s).strip()
 
 
+def norm_phone(raw):
+    """Return (number, callingCode, countryCode) or None if unparseable."""
+    if not raw:
+        return None
+    digits = re.sub(r"[^\d+]", "", raw)
+    plus = digits.startswith("+")
+    digits = digits.lstrip("+")
+    if len(digits) == 10 and not plus:
+        return (digits, "+1", "US")
+    if len(digits) == 11 and digits.startswith("1"):
+        return (digits[1:], "+1", "US")
+    if plus and 11 <= len(digits) <= 15:
+        return (digits[-10:], "+" + digits[:-10], "")
+    return None
+
+
 def money(v):
     try:
         return {"amountMicros": int(round(float(v) * 1_000_000)), "currencyCode": "USD"}
@@ -104,9 +120,13 @@ for r in rows("company"):
     if r.get("linkedin_company_page"):
         rec["linkedinLink"] = {"primaryLinkUrl": r["linkedin_company_page"]}
     if money(r.get("annualrevenue")):
-        rec["annualRecurringRevenue"] = money(r.get("annualrevenue"))
-    if r.get("phone"):
-        rec["phone"] = {"primaryPhoneNumber": r["phone"]}
+        rec["annualRevenue"] = money(r.get("annualrevenue"))
+    ph = norm_phone(r.get("phone"))
+    if ph:
+        rec["phone"] = {"primaryPhoneNumber": ph[0], "primaryPhoneCallingCode": ph[1],
+                        "primaryPhoneCountryCode": ph[2]}
+    elif r.get("phone"):
+        unmapped["company_phone_unparsed"].append({"company": hid, "value": r["phone"]})
     if r.get("description"):
         rec["companyDescription"] = r["description"][:5000]
     if r.get("industry"):
@@ -119,6 +139,17 @@ for r in rows("company"):
     for f in ("name", "domain", "phone", "city", "industry", "lifecyclestage", "hubspot_owner_id"):
         if r.get(f):
             report["company_coverage"][f] += 1
+seen_domains = {}
+for hid, rec in companies.items():
+    url = rec.get("domainName", {}).get("primaryLinkUrl")
+    if not url:
+        continue
+    if url in seen_domains:
+        del rec["domainName"]
+        unmapped["duplicate_domain_dropped"].append({"company": hid, "domain": url,
+                                                     "kept_on": seen_domains[url]})
+    else:
+        seen_domains[url] = hid
 report["counts"]["companies"] = len(companies)
 
 # ---------------- people ----------------
@@ -139,13 +170,17 @@ for r in rows("contact"):
     if r.get("email"):
         rec["emails"] = {"primaryEmail": r["email"]}
     phones = {}
-    if r.get("phone"):
-        phones["primaryPhoneNumber"] = r["phone"]
-    if r.get("mobilephone"):
-        if "primaryPhoneNumber" in phones:
-            phones["additionalPhones"] = [{"number": r["mobilephone"]}]
+    for raw in (r.get("phone"), r.get("mobilephone")):
+        ph = norm_phone(raw)
+        if ph is None:
+            if raw:
+                unmapped["person_phone_unparsed"].append({"person": hid, "value": raw})
+            continue
+        if "primaryPhoneNumber" not in phones:
+            phones.update({"primaryPhoneNumber": ph[0], "primaryPhoneCallingCode": ph[1],
+                           "primaryPhoneCountryCode": ph[2]})
         else:
-            phones["primaryPhoneNumber"] = r["mobilephone"]
+            phones["additionalPhones"] = [{"number": ph[0], "callingCode": ph[1], "countryCode": ph[2]}]
     if phones:
         rec["phones"] = phones
     if r.get("jobtitle"):

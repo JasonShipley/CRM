@@ -86,6 +86,7 @@ FIELDS = {
         {"name": "companyDescription", "label": "Description", "type": "TEXT"},
         {"name": "industry", "label": "Industry", "type": "TEXT"},
         {"name": "lifecycleStage", "label": "Lifecycle Stage", "type": "SELECT", "options": opts(LIFECYCLE)},
+        {"name": "employees", "label": "Employees", "type": "NUMBER"},
     ],
     "person": [
         {"name": "hubspotId", "label": "HubSpot ID", "type": "TEXT",
@@ -96,6 +97,7 @@ FIELDS = {
         {"name": "lifecycleStage", "label": "Lifecycle Stage", "type": "SELECT", "options": opts(LIFECYCLE)},
         {"name": "leadStatus", "label": "Lead Status", "type": "SELECT", "options": opts(LEAD_STATUS)},
         {"name": "affiliation", "label": "Affiliation", "type": "SELECT", "options": opts(AFFILIATION)},
+        {"name": "city", "label": "City", "type": "TEXT"},
     ],
     "opportunity": [
         {"name": "hubspotId", "label": "HubSpot ID", "type": "TEXT",

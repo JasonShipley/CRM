@@ -180,7 +180,7 @@ def main():
     # notes + targets
     note_ids = load_object(tok, "note", [strip_private(r) for r in data["notes"].values()], dry)
     existing_nt = set() if dry else {
-        (e["noteId"], e.get("personId"), e.get("companyId"), e.get("opportunityId"))
+        (e["noteId"], e.get("targetPersonId"), e.get("targetCompanyId"), e.get("targetOpportunityId"))
         for e in fetch_targets(tok, "noteTarget", "noteId")}
     nt = []
     for hid, r in data["notes"].items():
@@ -188,20 +188,20 @@ def main():
         t = r.get("_targets", {})
         if not nid:
             continue
-        for key, idmap, field in (("person", ppl_ids, "personId"), ("company", comp_ids, "companyId"),
-                                  ("opportunity", opp_ids, "opportunityId")):
+        for key, idmap, field in (("person", ppl_ids, "targetPersonId"), ("company", comp_ids, "targetCompanyId"),
+                                  ("opportunity", opp_ids, "targetOpportunityId")):
             for hub in (t.get(key) or []):
                 target = idmap.get(hub)
                 if target:
                     row = {"noteId": nid, field: target}
-                    sig = (nid, row.get("personId"), row.get("companyId"), row.get("opportunityId"))
+                    sig = (nid, row.get("targetPersonId"), row.get("targetCompanyId"), row.get("targetOpportunityId"))
                     if sig not in existing_nt:
                         nt.append(row)
     create_targets(tok, "noteTarget", "noteId", nt, dry)
 
     task_ids = load_object(tok, "task", [strip_private(r) for r in data["tasks"].values()], dry)
     existing_tt = set() if dry else {
-        (e["taskId"], e.get("personId"), e.get("companyId"), e.get("opportunityId"))
+        (e["taskId"], e.get("targetPersonId"), e.get("targetCompanyId"), e.get("targetOpportunityId"))
         for e in fetch_targets(tok, "taskTarget", "taskId")}
     tt = []
     for hid, r in data["tasks"].items():
@@ -209,13 +209,13 @@ def main():
         t = r.get("_targets", {})
         if not tid:
             continue
-        for key, idmap, field in (("person", ppl_ids, "personId"), ("company", comp_ids, "companyId"),
-                                  ("opportunity", opp_ids, "opportunityId")):
+        for key, idmap, field in (("person", ppl_ids, "targetPersonId"), ("company", comp_ids, "targetCompanyId"),
+                                  ("opportunity", opp_ids, "targetOpportunityId")):
             for hub in (t.get(key) or []):
                 target = idmap.get(hub)
                 if target:
                     row = {"taskId": tid, field: target}
-                    sig = (tid, row.get("personId"), row.get("companyId"), row.get("opportunityId"))
+                    sig = (tid, row.get("targetPersonId"), row.get("targetCompanyId"), row.get("targetOpportunityId"))
                     if sig not in existing_tt:
                         tt.append(row)
     create_targets(tok, "taskTarget", "taskId", tt, dry)
@@ -233,7 +233,7 @@ def fetch_targets(tok, kind, parent_field):
     while True:
         after = f', after: "{cursor}"' if cursor else ""
         q = (f"query {{ {plural}(first: 200{after}) {{ edges {{ cursor node "
-             f"{{ id {parent_field} personId companyId opportunityId }} }} pageInfo {{ hasNextPage }} }} }}")
+             f"{{ id {parent_field} targetPersonId targetCompanyId targetOpportunityId }} }} pageInfo {{ hasNextPage }} }} }}")
         d = gql(q, token=tok)["data"][plural]
         for e in d["edges"]:
             out.append(e["node"])
