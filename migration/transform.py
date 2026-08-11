@@ -78,8 +78,7 @@ def norm_phone(raw):
         return (digits, "+1", "US")
     if len(digits) == 11 and digits.startswith("1"):
         return (digits[1:], "+1", "US")
-    if plus and 11 <= len(digits) <= 15:
-        return (digits[-10:], "+" + digits[:-10], "")
+    # Anything else (international or malformed): don't guess a calling code.
     return None
 
 
@@ -123,8 +122,7 @@ for r in rows("company"):
         rec["annualRevenue"] = money(r.get("annualrevenue"))
     ph = norm_phone(r.get("phone"))
     if ph:
-        rec["phone"] = {"primaryPhoneNumber": ph[0], "primaryPhoneCallingCode": ph[1],
-                        "primaryPhoneCountryCode": ph[2]}
+        rec["phone"] = {"primaryPhoneNumber": ph[0], "primaryPhoneCallingCode": ph[1]}
     elif r.get("phone"):
         unmapped["company_phone_unparsed"].append({"company": hid, "value": r["phone"]})
     if r.get("description"):
@@ -144,6 +142,8 @@ for hid, rec in companies.items():
     url = rec.get("domainName", {}).get("primaryLinkUrl")
     if not url:
         continue
+    url = url.lower()
+    rec["domainName"]["primaryLinkUrl"] = url
     if url in seen_domains:
         del rec["domainName"]
         unmapped["duplicate_domain_dropped"].append({"company": hid, "domain": url,
@@ -177,10 +177,9 @@ for r in rows("contact"):
                 unmapped["person_phone_unparsed"].append({"person": hid, "value": raw})
             continue
         if "primaryPhoneNumber" not in phones:
-            phones.update({"primaryPhoneNumber": ph[0], "primaryPhoneCallingCode": ph[1],
-                           "primaryPhoneCountryCode": ph[2]})
+            phones.update({"primaryPhoneNumber": ph[0], "primaryPhoneCallingCode": ph[1]})
         else:
-            phones["additionalPhones"] = [{"number": ph[0], "callingCode": ph[1], "countryCode": ph[2]}]
+            phones["additionalPhones"] = [{"number": ph[0], "callingCode": ph[1]}]
     if phones:
         rec["phones"] = phones
     if r.get("jobtitle"):

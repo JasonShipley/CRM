@@ -91,9 +91,36 @@ def create_batch(tok, obj, records):
                     made[d[0]["hubspotId"]] = d[0]["id"]
                     report["created"][obj] += 1
                 except TwentyError as e2:
-                    report["failed"][obj].append({"hubspotId": rec.get("hubspotId"), "error": str(e2)[:300]})
+                    rec2 = dict(rec)
+                    dropped = strip_offender(rec2, e2)
+                    ok = False
+                    if dropped:
+                        try:
+                            d = gql(mut, {"data": [rec2]}, token=tok)["data"][CREATE[obj]]
+                            made[d[0]["hubspotId"]] = d[0]["id"]
+                            report["created"][obj] += 1
+                            report["failed"][obj + "_field_dropped"].append(
+                                {"hubspotId": rec.get("hubspotId"), "dropped": dropped, "error": str(e2)[:200]})
+                            ok = True
+                        except TwentyError as e3:
+                            e2 = e3
+                    if not ok:
+                        report["failed"][obj].append({"hubspotId": rec.get("hubspotId"), "error": str(e2)[:300]})
         time.sleep(0.05)
     return made
+
+
+def strip_offender(rec, err):
+    """Drop the field a validation error complains about; return field or None."""
+    s = str(err)
+    if "Domain Name value is already in use" in s and "domainName" in rec:
+        return rec.pop("domainName") and "domainName" or "domainName"
+    if ("PHONE" in s or "phone" in s):
+        for f in ("phone", "phones"):
+            if f in rec:
+                rec.pop(f)
+                return f
+    return None
 
 
 def update_one(tok, obj, twenty_id, rec):
@@ -103,6 +130,17 @@ def update_one(tok, obj, twenty_id, rec):
         gql(mut, {"id": twenty_id, "data": rec}, token=tok)
         report["updated"][obj] += 1
     except TwentyError as e:
+        rec2 = dict(rec)
+        dropped = strip_offender(rec2, e)
+        if dropped:
+            try:
+                gql(mut, {"id": twenty_id, "data": rec2}, token=tok)
+                report["updated"][obj] += 1
+                report["failed"][obj + "_field_dropped"].append(
+                    {"hubspotId": rec.get("hubspotId"), "dropped": dropped, "error": str(e)[:200]})
+                return
+            except TwentyError as e2:
+                e = e2
         report["failed"][obj].append({"hubspotId": rec.get("hubspotId"), "error": str(e)[:300]})
 
 
