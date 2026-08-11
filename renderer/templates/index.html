@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>MCE Quotes</title>
+<style>
+  body { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; color: #33475b;
+         max-width: 900px; margin: 40px auto; padding: 0 20px; }
+  h1 { color: #1f2f3d; }
+  table { border-collapse: collapse; width: 100%; margin-top: 16px; font-size: 14px; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #cbd6e2; }
+  th { border-bottom: 2px solid #33475b; }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  a { color: #d3641c; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .pill { font-size: 11px; border: 1px solid #cbd6e2; border-radius: 999px; padding: 1px 8px; }
+</style>
+</head>
+<body>
+<h1>MCE Quotes</h1>
+<p>Click a quote to view it; use the PDF link to download the branded document.</p>
+<table>
+  <tr><th>Quote</th><th>Ref</th><th>Status</th><th style="text-align:right">Amount</th><th></th></tr>
+  {% for r in rows %}
+  <tr>
+    <td><a href="/quote/{{ r.id }}">{{ r.name }}</a></td>
+    <td>{{ r.quoteNumber or "" }}</td>
+    <td><span class="pill">{{ r.status or "" }}</span></td>
+    <td class="num">{{ r._amount }}</td>
+    <td><a href="/quote/{{ r.id }}/pdf">PDF</a></td>
+  </tr>
+  {% endfor %}
+</table>
+</body>
+</html>

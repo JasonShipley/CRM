@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>{{ q.name }}</title>
+<style>
+  :root {
+    --ink: #33475b;        /* MCE quote body slate */
+    --ink-soft: #516f90;
+    --band: #425b76;       /* MCE header band slate (sampled from examples) */
+    --line: #cbd6e2;
+    --line-dark: #33475b;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: #fff; }
+  body {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    color: var(--ink);
+    font-size: 10.5px;
+    line-height: 1.5;
+  }
+  .page { max-width: 794px; margin: 0 auto; padding: 42px 54px 48px; }
+  @media screen { body { background: #eef2f6; }
+    .page { background: #fff; margin: 24px auto; box-shadow: 0 2px 14px rgba(51,71,91,.18); } }
+  @media print { .page { max-width: none; padding: 34px 44px; } }
+  @page { size: A4; margin: 0; }
+
+  h2.sec { font-size: 15px; color: #1f2f3d; margin: 26px 0 8px; letter-spacing: -.01em; }
+  .muted { color: var(--ink-soft); }
+
+  .cover p { max-width: 660px; margin: 4px 0; }
+
+  .quotehead { display: flex; justify-content: space-between; align-items: flex-start; margin: 30px 0 8px; }
+  .quotehead img { width: 220px; height: auto; }
+  .qmeta h1 { font-size: 26px; color: #1f2f3d; font-weight: 700; margin-bottom: 10px; }
+  .qmeta table td { padding: 2px 0; font-size: 10.5px; vertical-align: top; }
+  .qmeta table td:first-child { color: var(--ink-soft); padding-right: 26px; }
+
+  .parties { display: flex; gap: 60px; margin-top: 26px; }
+  .party { flex: 1; }
+  .party h3 { font-size: 15px; color: #1f2f3d; margin-bottom: 10px; }
+  .party b { display: block; margin-bottom: 2px; }
+  .party .label { font-weight: 700; margin-top: 10px; }
+
+  .stripe { display: flex; justify-content: space-between; border-top: 1px solid var(--line);
+    margin-top: 28px; padding-top: 10px; }
+  .stripe div b { display: block; font-size: 10.5px; margin-bottom: 6px; color: #1f2f3d; }
+
+  table.items { width: 100%; border-collapse: collapse; margin-top: 10px; }
+  table.items thead { display: table-header-group; }
+  table.items th { text-align: left; font-size: 10.5px; color: #1f2f3d; font-weight: 700;
+    padding: 8px 8px 8px 0; border-bottom: 2px solid var(--line-dark); }
+  table.items th.num, table.items td.num { text-align: right; }
+  table.items td { padding: 10px 8px 10px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+  table.items tr { page-break-inside: avoid; }
+  td.itemname b { display: block; font-size: 11px; color: #1f2f3d; }
+  .desc { color: var(--ink-soft); font-size: 10px; margin-top: 4px; white-space: pre-wrap; }
+  .sku { color: var(--ink-soft); font-size: 9.5px; margin-top: 2px; }
+
+  .totals { margin-top: 4px; margin-left: auto; width: 46%; min-width: 300px; }
+  .totals .row { display: flex; justify-content: space-between; padding: 7px 0;
+    border-bottom: 1px solid var(--line); }
+  .totals .row.note { border-bottom: none; padding-top: 2px; }
+  .totals .note-text { color: var(--ink-soft); font-size: 9.5px; max-width: 220px; }
+  .totals .grand { border-top: 2px solid var(--line-dark); border-bottom: none;
+    font-size: 13px; font-weight: 700; color: #1f2f3d; padding-top: 10px; }
+
+  .block { page-break-inside: avoid; }
+  .prose { white-space: pre-wrap; max-width: 680px; }
+
+  .sig { display: flex; gap: 70px; margin-top: 36px; }
+  .sig .cell { flex: 1; max-width: 260px; }
+  .sig .rule { border-bottom: 1px solid var(--ink); height: 34px; }
+  .sig .cap { color: var(--ink-soft); font-size: 9.5px; margin-top: 4px; }
+
+  .contactcard { margin-top: 40px; }
+  .contactcard h3 { font-size: 13px; color: #1f2f3d; margin-bottom: 8px; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  {% if q.comments %}
+  <div class="cover block">
+    <h2 class="sec" style="margin-top:0">Cover letter</h2>
+    <p class="prose">{{ q.comments }}</p>
+  </div>
+  {% endif %}
+
+  <div class="quotehead">
+    <img src="data:image/png;base64,{{ logo_b64 }}" alt="Midwest Custom Engineering">
+    <div class="qmeta">
+      <h1>Quote</h1>
+      <table>
+        <tr><td>Quote ref.</td><td>{{ ref }}</td></tr>
+        <tr><td>Issue date</td><td>{{ issue_date }}</td></tr>
+        <tr><td>Expires</td><td>{{ expires }}</td></tr>
+        <tr><td>Currency</td><td>USD</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="parties">
+    <div class="party">
+      <h3>Seller</h3>
+      <b>{{ seller.company }}</b>
+      {% for line in seller.address %}{{ line }}<br>{% endfor %}
+      <div class="label">Contact</div>
+      {{ seller_contact[0] }}{% if seller_contact[1] %} ({{ seller_contact[1] }}){% endif %}<br>
+      {{ seller_contact[2] }}
+    </div>
+    <div class="party">
+      <h3>Buyer</h3>
+      {% if q.company %}
+      <b>{{ q.company.name }}</b>
+      {% set a = q.company.address or {} %}
+      {% if a.addressStreet1 %}{{ a.addressStreet1 }}<br>{% endif %}
+      {% if a.addressStreet2 %}{{ a.addressStreet2 }}<br>{% endif %}
+      {% if a.addressCity or a.addressState %}{{ a.addressCity }}{% if a.addressCity and a.addressState %}, {% endif %}{{ a.addressState }} {{ a.addressPostcode or "" }}<br>{% endif %}
+      {% if a.addressCountry %}{{ a.addressCountry }}<br>{% endif %}
+      {% endif %}
+      {% if buyer_contact %}
+      <div class="label">Contacts</div>
+      {{ buyer_contact }}
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="stripe block">
+    <div><b>Effective date</b> On agreement</div>
+    <div><b>Total discount</b> {{ total_discount }}</div>
+    <div style="text-align:right"><b>Total contract value</b> {{ total }}</div>
+  </div>
+
+  <h2 class="sec">Line items</h2>
+  <table class="items">
+    <thead>
+      <tr>
+        <th style="width:44%">Name</th>
+        <th class="num" style="width:11%">Quantity</th>
+        <th class="num" style="width:15%">Unit price</th>
+        <th class="num" style="width:15%">Unit discount</th>
+        <th class="num" style="width:15%">Net price</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for it in items %}
+      <tr>
+        <td class="itemname">
+          <b>{{ it.name }}</b>
+          {% if it._desc_lines %}<div class="desc">{{ it._desc_lines | join('\n') }}</div>{% endif %}
+          {% if it.sku %}<div class="sku">SKU: {{ it.sku }}</div>{% endif %}
+        </td>
+        <td class="num">{{ it._qty }}</td>
+        <td class="num">{{ it._unit }}</td>
+        <td class="num">{{ it._unit_discount }}</td>
+        <td class="num">{{ it._net }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="totals block">
+    <div class="row"><span>Subtotal</span><span>{{ subtotal }}</span></div>
+    <div class="row"><span>Discount included in the subtotal</span><span>{{ total_discount }}</span></div>
+    <div class="row grand"><span>Total contract value</span><span>{{ total }}</span></div>
+  </div>
+
+  {% if q.terms %}
+  <div class="block">
+    <h2 class="sec">Terms</h2>
+    <p class="prose">{{ q.terms }}</p>
+  </div>
+  {% endif %}
+
+  <div class="block">
+    <h2 class="sec">Acceptance</h2>
+    <p class="muted" style="max-width:660px">This section is designated for the authorized representatives from both
+    parties involved in this agreement. By signing below, the signatories confirm their acceptance of the terms and
+    conditions outlined in this document.</p>
+    <div class="sig">
+      <div class="cell"><div class="rule"></div><div class="cap">Signature</div></div>
+      <div class="cell"><div class="rule"></div><div class="cap">Date</div></div>
+    </div>
+    <div class="sig">
+      <div class="cell"><div class="rule"></div><div class="cap">Printed name</div></div>
+    </div>
+  </div>
+
+  <div class="contactcard block">
+    <h3>Questions? Contact me</h3>
+    {{ seller_contact[0] }}<br>
+    {% if seller_contact[1] %}{{ seller_contact[1] }}<br>{% endif %}
+    {% if seller_contact[2] %}{{ seller_contact[2] }}<br>{% endif %}
+    <br>
+    {{ seller.company }}<br>
+    {% for line in seller.address %}{{ line }}<br>{% endfor %}
+  </div>
+
+</div>
+</body>
+</html>

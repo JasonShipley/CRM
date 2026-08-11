@@ -1,0 +1,15 @@
+# Overlay: adds the MCE quote renderer beside the official Twenty stack.
+# Usage: docker compose -f docker-compose.yml -f docker-compose.renderer.yml up -d
+services:
+  quote-renderer:
+    build: ../renderer
+    ports:
+      - "8090:8090"
+    environment:
+      TWENTY_URL: http://server:3000
+      TWENTY_EMAIL: ${TWENTY_EMAIL}
+      TWENTY_PASSWORD: ${TWENTY_PASSWORD}
+    depends_on:
+      server:
+        condition: service_healthy
+    restart: always

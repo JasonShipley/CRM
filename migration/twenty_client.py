@@ -27,8 +27,15 @@ def _post(endpoint, payload, token=None):
             **({"authorization": f"Bearer {token}"} if token else {}),
         },
     )
-    with urllib.request.urlopen(req, timeout=120) as r:
-        return json.load(r)
+    try:
+        with urllib.request.urlopen(req, timeout=120) as r:
+            return json.load(r)
+    except urllib.error.HTTPError as e:
+        body = e.read().decode(errors="replace")
+        try:
+            return json.loads(body)
+        except json.JSONDecodeError:
+            raise TwentyError(f"HTTP {e.code}: {body[:500]}")
 
 
 def gql(query, variables=None, token=None, endpoint="/graphql", allow_errors=False):
