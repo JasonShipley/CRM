@@ -190,12 +190,13 @@ def main():
             continue
         for key, idmap, field in (("person", ppl_ids, "personId"), ("company", comp_ids, "companyId"),
                                   ("opportunity", opp_ids, "opportunityId")):
-            target = idmap.get(t.get(key) or "")
-            if target:
-                row = {"noteId": nid, field: target}
-                sig = (nid, row.get("personId"), row.get("companyId"), row.get("opportunityId"))
-                if sig not in existing_nt:
-                    nt.append(row)
+            for hub in (t.get(key) or []):
+                target = idmap.get(hub)
+                if target:
+                    row = {"noteId": nid, field: target}
+                    sig = (nid, row.get("personId"), row.get("companyId"), row.get("opportunityId"))
+                    if sig not in existing_nt:
+                        nt.append(row)
     create_targets(tok, "noteTarget", "noteId", nt, dry)
 
     task_ids = load_object(tok, "task", [strip_private(r) for r in data["tasks"].values()], dry)
@@ -210,12 +211,13 @@ def main():
             continue
         for key, idmap, field in (("person", ppl_ids, "personId"), ("company", comp_ids, "companyId"),
                                   ("opportunity", opp_ids, "opportunityId")):
-            target = idmap.get(t.get(key) or "")
-            if target:
-                row = {"taskId": tid, field: target}
-                sig = (tid, row.get("personId"), row.get("companyId"), row.get("opportunityId"))
-                if sig not in existing_tt:
-                    tt.append(row)
+            for hub in (t.get(key) or []):
+                target = idmap.get(hub)
+                if target:
+                    row = {"taskId": tid, field: target}
+                    sig = (tid, row.get("personId"), row.get("companyId"), row.get("opportunityId"))
+                    if sig not in existing_tt:
+                        tt.append(row)
     create_targets(tok, "taskTarget", "taskId", tt, dry)
 
     out = {k: dict(v) if isinstance(v, defaultdict) else v for k, v in report.items()}

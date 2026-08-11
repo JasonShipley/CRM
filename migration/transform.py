@@ -219,18 +219,23 @@ report["counts"]["opps_with_company"] = sum(1 for o in opportunities.values() if
 report["counts"]["opps_with_contact"] = sum(1 for o in opportunities.values() if "_contactHubspotId" in o)
 
 # ---------------- notes (incl. calls) ----------------
-note_targets = defaultdict(lambda: {"person": None, "company": None, "opportunity": None})
-for n, cont, comp in tsv("note_assoc"):
-    t = note_targets[n]
-    t["person"], t["company"] = clean_id(cont), clean_id(comp)
-for n, d in tsv("note_deal"):
-    note_targets[n]["opportunity"] = clean_id(d)
-call_targets = defaultdict(lambda: {"person": None, "company": None, "opportunity": None})
-for c, cont, comp in tsv("call_assoc"):
-    t = call_targets[c]
-    t["person"], t["company"] = clean_id(cont), clean_id(comp)
-for c, d in tsv("call_deal"):
-    call_targets[c]["opportunity"] = clean_id(d)
+def collect_targets(assoc_name, deal_name):
+    out = defaultdict(lambda: {"person": [], "company": [], "opportunity": []})
+    for eng, cont, comp in tsv(assoc_name):
+        t = out[eng]
+        c1, c2 = clean_id(cont), clean_id(comp)
+        if c1 and c1 not in t["person"]:
+            t["person"].append(c1)
+        if c2 and c2 not in t["company"]:
+            t["company"].append(c2)
+    for eng, d in tsv(deal_name):
+        d = clean_id(d)
+        if d and d not in out[eng]["opportunity"]:
+            out[eng]["opportunity"].append(d)
+    return out
+
+note_targets = collect_targets("note_assoc", "note_deal")
+call_targets = collect_targets("call_assoc", "call_deal")
 
 notes = {}
 for r in rows("note"):
@@ -263,12 +268,7 @@ report["counts"]["notes_from_notes"] = len(rows("note"))
 report["counts"]["notes_from_calls"] = len(rows("call"))
 
 # ---------------- tasks ----------------
-task_targets = defaultdict(lambda: {"person": None, "company": None, "opportunity": None})
-for t_, cont, comp in tsv("task_assoc"):
-    t = task_targets[t_]
-    t["person"], t["company"] = clean_id(cont), clean_id(comp)
-for t_, d in tsv("task_deal"):
-    task_targets[t_]["opportunity"] = clean_id(d)
+task_targets = collect_targets("task_assoc", "task_deal")
 
 tasks = {}
 for r in rows("task"):

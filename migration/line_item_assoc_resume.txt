@@ -1,0 +1,51 @@
+RESUME PROCEDURE: line_item association extraction (buckets 2-9 of 9)
+=====================================================================
+Status when written (2026-08-11 ~23:05 UTC):
+- Bucket 1 (createdate 2023-09-21..2024-07-25) DONE: 398 rows appended to
+  /home/user/CRM/data/assoc/line_item_assoc.tsv (header: line_item_id\tquote_id\tdeal_id).
+  Validated: 398/398 distinct ids, all quote/deal ids exist in quote.jsonl/deal.jsonl,
+  zero duplicate rows, ids exactly equal the line_item.jsonl ids in that date range.
+- Remaining: 2,862 line items (buckets 2-9 below).
+- BLOCKER hit: HubSpot MCP daily limit of 15 cross-object queries per portal.
+  Limit resets ~2026-08-12 22:00 UTC. Single-object queries still worked.
+
+Tool: mcp__HubSpot__query_crm_data, verbosityLevel LOW,
+chatInsights {"userIntent": "CRM migration association extraction", "satisfaction": "NEUTRAL"}
+
+Run these 8 queries (one per bucket; each is 1 cross-object query, 8 of the 15/day):
+
+SELECT hs_object_id, QUOTE.hs_object_id, DEAL.hs_object_id FROM LINE_ITEM WHERE createdate BETWEEN '2024-07-26' AND '2024-11-14'
+SELECT hs_object_id, QUOTE.hs_object_id, DEAL.hs_object_id FROM LINE_ITEM WHERE createdate BETWEEN '2024-11-15' AND '2025-02-06'
+SELECT hs_object_id, QUOTE.hs_object_id, DEAL.hs_object_id FROM LINE_ITEM WHERE createdate BETWEEN '2025-02-11' AND '2025-12-05'
+SELECT hs_object_id, QUOTE.hs_object_id, DEAL.hs_object_id FROM LINE_ITEM WHERE createdate BETWEEN '2025-12-06' AND '2026-01-21'
+SELECT hs_object_id, QUOTE.hs_object_id, DEAL.hs_object_id FROM LINE_ITEM WHERE createdate BETWEEN '2026-01-22' AND '2026-04-18'
+SELECT hs_object_id, QUOTE.hs_object_id, DEAL.hs_object_id FROM LINE_ITEM WHERE createdate BETWEEN '2026-04-22' AND '2026-05-08'
+SELECT hs_object_id, QUOTE.hs_object_id, DEAL.hs_object_id FROM LINE_ITEM WHERE createdate BETWEEN '2026-05-11' AND '2026-07-09'
+SELECT hs_object_id, QUOTE.hs_object_id, DEAL.hs_object_id FROM LINE_ITEM WHERE createdate BETWEEN '2026-07-14' AND '2026-07-30'
+
+Expected line-item counts per bucket (from line_item.jsonl):
+393, 378, 384, 357, 399, 386, 386, 179. Ranges are non-overlapping by
+construction (gap days have zero line items). Row counts may exceed these
+only if a line item has 2+ quotes (fan-out); bucket 1 had zero fan-out.
+Every response MUST end "Showing X of X total results." with X < 500;
+if X < Y or X = 500, split that range further (e.g. AND hs_object_id <= N / > N).
+
+CRITICAL - COLUMN ORDER: the tool REORDERS columns. For bucket 1 the returned
+TSV columns were: line_item_id, DEAL_id, QUOTE_id (despite SELECT order
+line_item, quote, deal). Header line was:
+  Record ID [hs_object_id] \t Deal [hs_object_id] \t Record ID [hs_object_id]
+(col2 labeled "Deal"). Verified empirically: value 100311042 in col3 is a
+QUOTE (objectTypeId 0-14). DO NOT trust SELECT order — verify per response:
+every non-"Unassigned" value in the presumed quote column must be an id in
+/home/user/CRM/data/quote.jsonl, and deal column ids in deal.jsonl (both are
+complete id sets; bucket 1 validated 100% against them). Swap columns as
+needed, then append rows as: line_item_id \t quote_id \t deal_id
+(keep literal "Unassigned"), via python3 heredoc, to
+/home/user/CRM/data/assoc/line_item_assoc.tsv (header already present).
+
+Final validation after all buckets:
+- distinct line_item_id count == 3260 and == set of hs_object_id in
+  /home/user/CRM/data/line_item.jsonl (queries return a row even for
+  line items with no associations, as Unassigned/Unassigned — bucket 1
+  proved this — so ANY missing id means a dropped/failed range).
+- no duplicate rows; all quote/deal ids in quote.jsonl/deal.jsonl.
