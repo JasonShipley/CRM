@@ -1,6 +1,6 @@
 ---
 name: rep-network-builder
-description: Builds Midwest Custom Engineering's independent sales-representative network for replacement parts — maps who CPM's/Bliss's existing reps are nationally and internationally, identifies which of them lost their parts business when CPM consolidated aftermarket parts into Jacobs Global, qualifies them against MCE's premium-hammer parts line, and produces a prioritized rep-recruitment register with a suggested opener for each. Use this whenever Jason asks who CPM's reps are, wants to find or recruit reps/representatives/rep firms/dealers/channel partners, asks about building a rep network, territory coverage, commission-based outside sales, or international representation for parts. Researches and drafts only — it never contacts a rep on its own.
+description: Grows Midwest Custom Engineering's independent sales-representative network for replacement parts — maps who CPM's/Bliss's existing reps are nationally and internationally, identifies which of them lost their parts business when CPM consolidated aftermarket parts into Jacobs Global, qualifies them against MCE's existing Exclusive Sales Representative Agreement, and produces a prioritized recruitment register with a suggested opener for each. Also tracks MCE's current reps, their exclusive territories, and house-account boundaries. Use this whenever Jason asks who CPM's reps are, wants to find or recruit reps/representatives/rep firms/dealers/channel partners, asks about the rep network, territory coverage or conflicts, rep agreements, commission-based outside sales, or international representation for parts. Researches and drafts only — it never contacts a rep on its own.
 ---
 
 # Rep Network Builder
@@ -8,6 +8,14 @@ description: Builds Midwest Custom Engineering's independent sales-representativ
 Midwest Custom Engineering sells replacement parts for legacy Bliss-type hammer mills. The Parts Growth Agent works that opportunity **directly** — four people (Paula, Ron Dominguez, Magda, Jason Shipley) calling end customers one plant at a time. This skill works the same opportunity through **leverage**: every independent representative MCE signs brings an existing book of hammer-mill customers with them, and starts selling parts into it on commission.
 
 The distinction matters, and this skill should never blur it. Parts Growth Agent targets **mills**. This skill targets **the people who already sell to those mills**. One signed rep with 40 hammer-mill accounts is worth more than 40 cold calls, and it doesn't consume Jason's calendar.
+
+**This program already exists — do not treat it as greenfield.** MCE has a standing
+`MCE Exclusive Sales Representative Agreement` template, a per-rep Exhibit A (Territory) and Exhibit B
+(House Accounts) design, a tiered commission structure, reps already signed or in negotiation, and
+cross-border sales already happening. Jason Bliss already routes leads to reps by territory. Read
+`references/rep-program-facts.md` **before** producing anything — it carries the contract structure,
+the roster, who owns what, and the open loops. Recruiting CPM's disaffected reps is an expansion of a
+running program, and getting the existing terms wrong in front of a rep is worse than not calling.
 
 ## Why there is a window right now
 
@@ -30,7 +38,11 @@ Lead with the hole in their book, not with MCE:
 - **Jason Bliss** — MCE employs the grandson of the founder of the original Bliss Industries, the lineage behind the very brand CPM now owns. For a rep who has sold Bliss equipment for two decades, that is credibility no competitor can buy.
 - **Parts economics that work for a commissioned rep** — ~$6,300 average order (hammers only) up to ~$10,000 (hammers + screens), reordering every 8–10 weeks per active account, closing at 2 quotes per sale versus 7:1 on capital equipment. A rep can model their own income off that.
 
-Do not offer commission rates, territory exclusivity, or contract terms. See Hard boundaries.
+**Exclusive territory is already the model**, so it is a real thing to offer rather than something to
+dodge — but the specific grant is drawn on Exhibit A against territory already committed to existing
+reps, and the numbers come from the actual agreement. Never quote a commission rate from memory: the
+house-account tier is roughly 7.5%, the standard rate lives in the template, and clause 5.4 is the
+passage reps push back on. Pull all three from the document or from Ron before they reach a rep.
 
 ## Enumerating CPM's rep network
 
@@ -54,6 +66,12 @@ This is the core research job, and it is genuinely achievable — much of it is 
 
 **"Draft the approach"** — a suggested opener per rep, in the voice of whoever is calling. Open on **their** situation, as a question: how has their parts business changed since CPM brought Jacobs in. Not a pitch, and not an accusation about CPM. Where Jason Bliss has history with the firm, the opener should lead with that relationship and nothing else. Every draft goes to a human to send.
 
+**"Can we give them this territory"** — check a proposed Exhibit A against territory already granted
+to existing reps and against the accounts the direct-call team is working. In an exclusive model this
+is a contract question, not a preference: overlapping grants and unresolved direct-team accounts are
+the two ways this program creates a commission dispute. Flag the conflict and route it to Ron for the
+exhibit and Jason for the call — never resolve it inside a draft to a rep.
+
 **"How's the rep push going"** — count reps contacted, in conversation, and signed; territory coverage against a US map; and parts revenue attributable to rep-sourced accounts. Lead with signed reps and revenue, then the gap.
 
 ## Hard boundaries
@@ -76,6 +94,13 @@ Three additional limits specific to recruiting from a competitor's channel:
 
 **To CFO / Finance** — commission is a real cost against the 30% margin requirement, and it changes parts unit economics. Any commission structure Jason is considering should be run through the CFO skill before it's offered, not after.
 
+**To Ron Dominguez** — the agreement, Exhibit A territory language, Exhibit B house accounts, and any
+redline a rep sends back. Contract mechanics are his, not this skill's.
+
+**To Jason Bliss** — the rep relationship itself: the intro call, the negotiation, and lead routing by
+territory, all of which he already runs. This skill feeds him targets and context; it doesn't step in
+front of him with a rep he already knows.
+
 **To CMO** — a rep network is a channel, and reps need collateral: parts line sheets, the premium-hammer differentiation one-pager, cross-reference guides. Route material requests there rather than improvising them here.
 
 ## Cadence
@@ -86,14 +111,31 @@ While the recruiting push is active, refresh the register at least every two wee
 
 Web search for public research on CPM/Jacobs/Bliss and for the published locators. Apollo.io for firm and contact discovery and enrichment. HubSpot for logging rep firms and tracking rep-sourced deals. Google Drive/Sheets for the register itself if Jason wants it maintained as a shared sheet. QuickBooks for actual rep-sourced parts revenue once reps are producing.
 
+**Gmail and Drive are the system of record for the rep program itself** — the agreement template, the
+per-rep exhibits, and the negotiation history all live in email, not in a database. Before stating any
+term or any rep's status, read it there rather than from this skill's notes: search the subjects listed
+at the end of `references/rep-program-facts.md`. That file is a dated snapshot and will drift.
+
 Two caveats worth stating rather than working around. **Connector authorization:** HubSpot, QuickBooks, and Google Drive must be authorized in Claude's connector settings before this skill can pull or write live data, and that OAuth flow can't be completed from a non-interactive session. **Egress restrictions:** some sessions — including Claude Code web sessions on a restricted network policy — block direct fetches of outside sites like `bliss-industries.com` even though web search still works. If a locator page can't be fetched, say so and ask Jason to open it and paste the list rather than silently substituting search-snippet guesses for the real thing.
 
-## Open questions for Jason — answer these before the first rep call
+## Still genuinely open
 
-These are not researchable; they're decisions, and a rep will ask about them on the first call.
+Most of what a rep asks on a first call is already settled in the agreement — pull it from there
+(`references/rep-program-facts.md` has the structure). These are the items the record does **not**
+answer, and they should be closed with Jason, Jason Bliss, or Ron rather than guessed at:
 
-- **Commission structure** — what rate on parts, paid on shipment or on collection, and does it differ for accounts the rep brings versus MCE house accounts?
-- **Territory** — exclusive or non-exclusive? Exclusivity is what a good rep will push hardest for and the most expensive thing to give away early.
-- **Conflict with the direct team** — Paula, Ron, Magda, and Jason are calling mills directly today. What happens when a rep claims an account already on that call list? Decide the rule now, not after the first collision.
-- **Rep support** — who onboards a rep, trains them on the parts line, and is their day-to-day contact? Nobody at MCE owns this yet.
-- **International readiness** — can MCE actually quote, freight, clear customs, and get paid across borders today? If not, international is a phase-two conversation and reps abroad shouldn't be approached until it is.
+- **The standard commission rate.** Only the ~7.5% house-account tier surfaced in the email record. The
+  rate on rep-developed accounts is in the template PDF — read it, or ask Ron, before any rep
+  conversation. Do not infer it from the house rate.
+- **Did WD Patterson execute?** The completed agreement went to Jeff Roumph on Mar 3, 2026. Signature
+  isn't confirmed. Their territory (including the Missouri split) can't be treated as committed — or as
+  available — until someone checks.
+- **Is Bob Ballard under contract?** He is quoting MCE equipment for his own customers in Kentucky and
+  Nova Scotia. If he's on a handshake, that's an unpapered rep selling across a border, and it should be
+  papered before the network grows around him.
+- **How the Nova Scotia order is actually being handled** — freight, duty on wear parts, currency, and
+  payment terms. International selling is already happening; whether there's a repeatable process for it
+  is a different question, and the answer determines what can be promised to an overseas rep.
+- **Rep onboarding ownership.** Jason Bliss holds the relationships today. As the roster grows past a
+  handful, day-to-day rep support (training on the parts line, quote turnaround, lead routing) needs a
+  named owner. Nobody has that job yet.
