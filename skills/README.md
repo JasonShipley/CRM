@@ -34,3 +34,22 @@ know about this one yet. Add this entry to its "The team" section so generic req
 While editing the router, note that its "Not yet built" section is now out of date —
 it says the Engineering Manager agent doesn't exist, but `engineering-manager` and
 `senior-engineer` are both installed.
+
+## Stale references to fix in the installed skills
+
+**Ron Dominguez no longer works for MCE (as of Aug 2026), and two installed skills
+still treat him as active staff:**
+
+- `parts-growth-agent` names him in the daily calling roster ("Paula, Ron Dominguez,
+  Magda, and Jason") in both its description and its "calling team" section, and
+  points at the Salesperson Scorecard tab where all four are listed. It will keep
+  producing call lists assigned to someone who has left.
+- `mce-leadership-team` repeats the same roster in its Parts Growth Agent entry.
+
+Both need Ron removed and the remaining callers' capacity re-planned — three people,
+not four, with Jason's share still temporary until the next sales hire. The Midwest OS
+`Salesperson Scorecard` tab needs the same correction, or the activity targets will
+silently under-report against a roster that no longer exists.
+
+Separately, Ron owned the rep agreement and its exhibits. `rep-network-builder` flags
+that as unowned rather than reassigning it — see its "Still genuinely open" section.

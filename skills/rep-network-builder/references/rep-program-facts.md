@@ -23,12 +23,27 @@ without"* touching the body of the agreement.
   account (Feb 26, 2026), with Jason noting the designation may change if MCE acquires them.
 - **Body — fixed.** Do not renegotiate the body per rep; that's the whole point of the exhibit design.
 
-**Commission.** Jason Bliss's position, Feb 25, 2026: *"I feel we only give house accounts a 7.5%."*
-So the structure is tiered — a standard rate on rep-developed accounts and roughly **7.5% on house
-accounts**. The standard rate lives in the PDF and is **not confirmed in the email record**; get it
-from Ron or the template itself before quoting any number to a rep. **Clause 5.4** was the passage
-JB expected reps to push back on (*"I am not sure how they are going to take 5.4"*) — read it before
-any commission conversation so you know what the objection will be.
+**Commission — confirmed by Jason Shipley, Aug 2026:**
+
+| What sold | Rate |
+|---|---|
+| Capital equipment | **10%** — except house accounts |
+| Parts, first order to a new account | **10%** |
+| Parts, recurring reorders | **7.5%** |
+
+Read the incentive before pitching it: the structure **pays more to land an account than to keep one**
+(10% on the first parts order, 7.5% on every reorder after). That is a hunter's comp plan, and it is
+exactly the right thing to put in front of a CPM rep whose existing book just lost its parts line —
+every mill they convert pays the top rate on the way in, then annuitizes at 7.5% on an 8–10 week
+reorder cadence. Model it for them in their own territory rather than quoting percentages flat.
+
+The capital-equipment rate on **house accounts** is the one piece still unstated — "10% except house
+accounts" doesn't say what the exception is. Get the number from Jason before it comes up. (An earlier
+Feb 2026 note from Jason Bliss floated 7.5% for house accounts; treat that as superseded background,
+not the current rate.)
+
+Clause **5.4** was the passage Jason Bliss expected reps to push back on. Read it before any commission
+conversation so the objection isn't a surprise.
 
 **Insurance.** Reps carry general liability, reduced from $2M to **$1M** during the WD Patterson
 negotiation (Mar 2–3, 2026). That's a real barrier for a small rep firm and worth knowing early.
@@ -42,24 +57,46 @@ Nothing goes to a rep without Jason's sign-off — consistent with this skill's 
 |---|---|
 | **Jason Shipley** | Final approval on every contract and anything sent to a rep. Sends the template himself. |
 | **Jason Bliss (jb@)** | Owns the rep relationships. Negotiates terms, takes the intro calls, and already routes leads to reps by territory. The relationship layer runs through him. |
-| **Ron Dominguez (ron@)** | Drafts and maintains the agreement, Exhibits A/B, and redline turnaround. Contract questions go to Ron. |
+| ~~Ron Dominguez~~ | **No longer with MCE (as of Aug 2026).** He drafted and maintained the agreement, Exhibits A/B, and redline turnaround. **That role is now unowned** — see the open items below. |
 | **Magda Baptista (magda@)** | Prepares the documents for sending. |
 
 Jason Bliss, Mar 30, 2026, on the 284-lead list: *"I will start contacting all these guys and sending
 leads to the Reps for the customers in their area."* Lead-to-rep routing by territory is already an
 established practice, not something this skill needs to invent.
 
-## Roster — signed, in flight, and unconfirmed
+## Roster — confirmed by Jason Shipley, Aug 2026
 
-| Rep firm | Contact | Territory | Status | Confidence |
-|---|---|---|---|---|
-| **WD Patterson** | Jeff Roumph (jeffr@wdpatterson.com); also Tracy E (tracye@), Mike K (mikek@) | Included Missouri, split sub-state | Agreement negotiated Feb 23 – Mar 3, 2026; JB sent the completed agreement Mar 3 stating *"we have completed everything you requested."* Execution not confirmed in the email record. | confirmed-in-negotiation |
-| **Alves Equipment Co LLC** | Brian Alves, alves.brian@hotmail.com, 209-276-3524 | Area code 209 = California Central Valley (dairy, feed, almond hulls) | **Active.** Template sent Aug 9, 2026; Brian responded same day; call with Jason Bliss set for Wed Aug 12, 2026. | confirmed |
-| **Bob Ballard** | bobballard91@gmail.com | Customers in **Kentucky** and **Nova Scotia, Canada** | Quoting through MCE on his own customers' behalf (4TPH cooler, Aug 10–11, 2026) — behaves like a rep. Whether he is under the agreement is **unconfirmed**. | inferred — verify |
+| Rep firm | Contact | Territory (Exhibit A) | Status |
+|---|---|---|---|
+| **WD Patterson** | Jeff Roumph (jeffr@wdpatterson.com); Tracy E (tracye@), Mike K (mikek@) | **Kansas, Western Missouri, Nebraska, Iowa** | **Signed.** Negotiated Feb 23 – Mar 3, 2026. Exclusive and committed. |
+| **Alves Equipment Co LLC** | Brian Alves, alves.brian@hotmail.com, 209-276-3524 | **Proposed: all of California + Arizona** — Jason's expectation, not yet executed | **In negotiation.** Template sent Aug 9, 2026; call with Jason Bliss Aug 12, 2026. |
+| **Bob Ballard** | bobballard91@gmail.com | Selling to customers in **Kentucky** and **Nova Scotia, Canada** | **Contract status unknown.** Quoting MCE equipment for his own customers (4TPH cooler, Aug 2026). Verify whether he is under agreement. |
 
-**Two things to check before doing anything else:** whether WD Patterson actually executed, and
-whether Bob Ballard is under contract or operating on a handshake. An unpapered rep quoting MCE
-equipment to customers in two countries is a loose end worth closing.
+**Eastern Missouri is deliberately open.** WD Patterson holds *Western* Missouri only — the split was
+negotiated. Do not treat Missouri as covered.
+
+## Territory map — what is taken and what is open
+
+**Committed (exclusive):** KS, W. MO, NE, IA.
+**Pending (do not promise to anyone else):** CA, AZ.
+
+Everything else is open, which means the recruiting target list should be driven by where the
+hammer mills are, not by whoever answers first. The highest-value uncovered ground, given MCE's
+verticals (feed, pet food, biomass/wood pellet, ethanol/biofuel, recycling):
+
+- **Southeast poultry belt** — GA, AL, AR, MS, NC, TN. The densest feed-mill concentration in the
+  country and completely uncovered.
+- **Texas / Oklahoma** — large feed and biomass base. Note this is CSE Bliss's home turf (Ponca City,
+  OK), so expect a defended market and pick a rep accordingly.
+- **Eastern Corn Belt** — IL, IN, OH, plus Eastern MO. Ethanol density, and it adjoins WD Patterson's
+  territory so a neighboring rep is a natural next hire.
+- **Upper Midwest** — MN, WI, ND, SD.
+- **Pacific Northwest** — OR, WA, ID. Wood pellet and biomass.
+- **Northeast / Canada** — thinner on mills, but Bob Ballard is already selling into Nova Scotia, so
+  there is a live thread to pull.
+
+When ranking recruited CPM reps, weight territory openness heavily: a strong rep whose book sits inside
+WD Patterson's four states cannot be signed without breaking an exclusive grant already made.
 
 ## International is already live
 
@@ -77,7 +114,7 @@ international rep anything.
 - **Exclusivity makes territory conflicts real, not theoretical.** Every new rep's Exhibit A has to be
   drawn against territory already granted. Check the existing roster before promising any geography —
   granting overlapping exclusive territory is a contract problem, not a sales problem.
-- **The direct-call team is the other collision.** Paula, Ron, Magda, and Jason call mills directly. In
+- **The direct-call team is the other collision.** Paula, Magda, and Jason call mills directly. In
   an exclusive-territory model, a mill inside a rep's Exhibit A that the direct team is also calling is
   either a house account under Exhibit B or it's the rep's. Resolve it on paper, per account, before it
   becomes an argument over a commission check.
