@@ -27,6 +27,8 @@ from jinja2 import Environment  # noqa: F401  (flask uses jinja2)
 ROOT = pathlib.Path(__file__).resolve().parent
 REPO = ROOT.parent
 TWENTY_URL = os.environ.get("TWENTY_URL", "http://localhost:3000")
+# Origin presented during login (must match Twenty's SERVER_URL); defaults to TWENTY_URL
+TWENTY_ORIGIN = os.environ.get("TWENTY_ORIGIN", TWENTY_URL)
 
 SELLER = {
     "company": "Midwest Custom Engineering, Inc.",
@@ -72,10 +74,10 @@ def token():
         return _token["value"]
     email, password = _creds()
     d = gql(f'mutation {{ getLoginTokenFromCredentials(email: "{email}", '
-            f'password: "{password}", origin: "{TWENTY_URL}") {{ loginToken {{ token }} }} }}',
+            f'password: "{password}", origin: "{TWENTY_ORIGIN}") {{ loginToken {{ token }} }} }}',
             endpoint="/metadata")
     lt = d["getLoginTokenFromCredentials"]["loginToken"]["token"]
-    d = gql(f'mutation {{ getAuthTokensFromLoginToken(loginToken: "{lt}", origin: "{TWENTY_URL}") '
+    d = gql(f'mutation {{ getAuthTokensFromLoginToken(loginToken: "{lt}", origin: "{TWENTY_ORIGIN}") '
             '{ tokens { accessOrWorkspaceAgnosticToken { token } } } }', endpoint="/metadata")
     _token["value"] = d["getAuthTokensFromLoginToken"]["tokens"]["accessOrWorkspaceAgnosticToken"]["token"]
     _token["at"] = time.time()
