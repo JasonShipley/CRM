@@ -189,12 +189,13 @@
 
   <main>
     <div class="secbar"><h2>Summary</h2><note class="note"></note></div>
-    <p class="lead">A two-stage, fully sealed trommel system for chemical treatment of alfalfa, scaled to roughly half the linear size of our 105200100 cooler drum. Stage 1 is an indirectly fired 304SS trommel with methyltrichlorosilane (MTCS) injection. Stage 2 applies anhydrous ammonia through an internal spray bar. Three gas-tight rotary airlocks isolate the two chemical atmospheres from each other and from the room.</p>
+    <p class="lead">A two-stage, fully sealed trommel test unit for 1–5 TPH of alfalfa, at roughly half the linear size of our 105200100 cooler drum — two Ø48″ × 12′ drums, double-stacked. Stage 1 is an indirectly fired 304SS trommel with methyltrichlorosilane (MTCS) injection. Stage 2 applies anhydrous ammonia through an internal spray bar. Three gas-tight rotary airlocks isolate the two chemical atmospheres from each other and from the room.</p>
 
     <div class="figs">
       <div class="fig"><div class="n">$700,000</div><div class="l">Budgetary total, ex works</div></div>
       <div class="fig"><div class="n">$560–910K</div><div class="l">Class 5 range (−20% / +30%)</div></div>
-      <div class="fig"><div class="n">Ø54″ × 12′</div><div class="l">Each drum, 304SS</div></div>
+      <div class="fig"><div class="n">Ø48″ × 12′</div><div class="l">Each drum, 304SS, stacked</div></div>
+      <div class="fig"><div class="n">1–5 TPH</div><div class="l">Alfalfa test duty</div></div>
       <div class="fig"><div class="n">3</div><div class="l">Gas-tight rotary airlocks</div></div>
     </div>
     <p class="small">Pricing is conceptual and sized for budgeting only. A firm quote requires throughput, treatment temperature, and chemical dose rates — see “What firms this up.”</p>
@@ -203,14 +204,22 @@
     <p>The scale basis is the MCE cooler drum, 105200100. Key parameters taken from the drawings and BOM:</p>
     <div class="twrap"><table>
       <tr><th>Parameter</th><th>Reference — 105200100</th><th>Scaled unit (each of 2)</th></tr>
-      <tr><td>Drum shell</td><td>Ø106.1″ × 288.1″ (24′-0″), 10 GA 304SS</td><td>Ø54″ × 144″ (12′-0″), 10 GA 304SS</td></tr>
-      <tr><td>Drum weight</td><td>9,441 lb (drum weldment)</td><td>≈ 2,500 lb (est., same gauge)</td></tr>
-      <tr><td>Overall envelope</td><td>332.4″ L × 148.0″ H × 119.4″ W</td><td>≈ 176″ L × 78″ H × 64″ W per machine</td></tr>
+      <tr><td>Drum shell</td><td>Ø106.1″ × 288.1″ (24′-0″), 10 GA 304SS</td><td>Ø48″ × 144″ (12′-0″), 10 GA 304SS</td></tr>
+      <tr><td>Drum weight</td><td>9,441 lb (drum weldment)</td><td>≈ 2,100 lb (est., same gauge)</td></tr>
+      <tr><td>Overall envelope</td><td>332.4″ L × 148.0″ H × 119.4″ W</td><td>≈ 170″ L × 72″ H × 58″ W per machine</td></tr>
       <tr><td>Drive</td><td>20 HP, WINL97-254 reducer, #120 chain ring</td><td>7.5 HP w/ VFD, chain ring drive</td></tr>
       <tr><td>Support</td><td>4 trunnion roller sets + 4 thrust rollers, W12×35 frame</td><td>Same architecture, scaled sections</td></tr>
       <tr><td>Internals</td><td>Flights + tumbling plates, 10 GA / 3/16″ 304SS</td><td>Same, arranged for spray coverage</td></tr>
     </table></div>
-    <p class="small">Half linear scale means roughly one-eighth the swept volume of the reference drum. If a specific tons-per-hour is required, drum sizing should be re-run against residence time before detail design — capacity, not geometry, should set the final diameter.</p>
+    <h3>Capacity Check — 1–5 TPH Test Duty</h3>
+    <p>Each Ø48″ × 12′ drum sweeps about 150 ft³. At a 15% working fill (≈23 ft³ holdup) and chopped alfalfa at ~8 lb/ft³:</p>
+    <div class="twrap"><table>
+      <tr><th>Feed rate</th><th class="num">Residence time per drum</th><th>Read</th></tr>
+      <tr><td>1 TPH</td><td class="num">≈ 5.5 min</td><td>Comfortable for both spray contact and heat-up</td></tr>
+      <tr><td>3 TPH</td><td class="num">≈ 2 min</td><td>Fine for spray contact; adequate for moderate heat-up</td></tr>
+      <tr><td>5 TPH</td><td class="num">≈ 65 sec</td><td>Fine for spray contact; contact-time-limited for heating unless the feed is denser (meal ~16 lb/ft³ roughly doubles these times)</td></tr>
+    </table></div>
+    <p class="small">The Ø48″ × 12′ drum is well matched to a 1–5 TPH test unit. The heated stage is the constraint at the top of the range: the 1.5 MMBtu/h burner allowance covers sensible heat-up plus light moisture removal at 1–3 TPH; sustained 5 TPH with meaningful drying would call for ~2.5 MMBtu/h and a hotter shroud (&asymp; +$10,000, inside the estimate range). If treatment needs more dwell at 5 TPH, slowing drum RPM to run a deeper bed is the first lever — no geometry change required.</p>
 
     <div class="secbar"><h2>System Concept</h2></div>
     <div class="diagram">
@@ -245,7 +254,7 @@
         <rect class="drum" x="122" y="150" width="380" height="58" rx="10"/>
         <rect class="box" x="152" y="140" width="320" height="78" rx="6" fill="none" stroke-dasharray="7 4"/>
         <text class="lbl" x="238" y="185">Trommel 1 · 304SS · heated</text>
-        <text class="sub2" x="238" y="200">Ø54″ × 12′ · sealed ends, N₂-purged seals</text>
+        <text class="sub2" x="238" y="200">Ø48″ × 12′ · sealed ends, N₂-purged seals</text>
         <!-- burners -->
         <path d="M222 252 L240 230 L258 252 Z" fill="var(--orange)"/>
         <path d="M362 252 L380 230 L398 252 Z" fill="var(--orange)"/>
@@ -270,7 +279,7 @@
         <!-- Trommel 2 -->
         <rect class="drum" x="128" y="278" width="380" height="58" rx="10"/>
         <text class="lbl" x="196" y="305">Trommel 2 · 304SS · sealed</text>
-        <text class="sub2" x="196" y="320">Ø54″ × 12′ · internal spray bar</text>
+        <text class="sub2" x="196" y="320">Ø48″ × 12′ · internal spray bar</text>
         <!-- NH3 -->
         <path class="oline" d="M330 388 L330 338" marker-end="url(#arrO)"/>
         <text class="chem" x="284" y="410">NH₃ spray bar</text>
@@ -304,15 +313,15 @@
 
     <h3>Stage 1 — Heated MTCS Trommel</h3>
     <ul>
-      <li><strong>Drum:</strong> Ø54″ × 12′, 10 GA 304SS shell with 304SS flights and tumbling plates, chain-ring drive on trunnion rollers — same architecture as 105200100 at half scale.</li>
-      <li><strong>Indirect firing:</strong> the drum mid-section runs inside a stationary, insulated firing shroud. Two modulating burners (≈750 MBH each, 1.5 MMBtu/h total) fire into the annulus; flue gas never contacts the product. Refractory-lined floor, flue collar and stack connection on the shroud.</li>
+      <li><strong>Drum:</strong> Ø48″ × 12′, 10 GA 304SS shell with 304SS flights and tumbling plates, chain-ring drive on trunnion rollers — same architecture as 105200100 at half scale.</li>
+      <li><strong>Indirect firing:</strong> the drum mid-section runs inside a stationary, insulated firing shroud. Two modulating burners (≈750 MBH each, 1.5 MMBtu/h total) fire into the annulus; flue gas never contacts the product. This sizing covers heat-up plus light moisture removal across 1–3 TPH; see the capacity check for the 5 TPH case. Refractory-lined floor, flue collar and stack connection on the shroud.</li>
       <li><strong>Sealing:</strong> stationary end breechings with dual floating face seals at each drum end, N₂-purged interspace, and a silicone/PTFE O-ring land following the 105200211 detail. The vent fan holds the drum interior at roughly −0.5″ WC so any seal leakage is inward.</li>
       <li><strong>MTCS injection:</strong> metering pump skid, day-tank containment, and a 316SS/PTFE lance with atomizing nozzles entering through the feed breeching, dry-N₂ carrier and purge. MTCS hydrolyzes on the moist alfalfa surface and liberates HCl — which is why the drum is sealed, ventilated, and scrubbed.</li>
     </ul>
 
     <h3>Stage 2 — Ammonia Trommel</h3>
     <ul>
-      <li><strong>Drum:</strong> identical Ø54″ × 12′ 304SS trommel, unheated, same seal system.</li>
+      <li><strong>Drum:</strong> identical Ø48″ × 12′ 304SS trommel, unheated, same seal system.</li>
       <li><strong>NH₃ application:</strong> full-length internal spray bar fed from a vaporizer/regulation train, metered against feed rate. All wetted trim steel or stainless — no copper, brass, or zinc anywhere in the ammonia circuit.</li>
       <li><strong>Vent:</strong> dedicated water scrubber; ammonia detection at the seals and in the room.</li>
     </ul>
@@ -328,10 +337,10 @@
     <div class="secbar"><h2>Budgetary Cost Estimate</h2><span class="note">2026 USD, ex works — AACE Class 5</span></div>
     <div class="twrap"><table>
       <tr><th>Line</th><th>Scope</th><th class="num">Budgetary</th></tr>
-      <tr><td>Trommel 1, heated</td><td>Sealed 304SS drum Ø54″ × 12′, trunnions, 7.5 HP chain drive, insulated firing shroud, purged dual end seals, breechings</td><td class="num">$175,000</td></tr>
+      <tr><td>Trommel 1, heated</td><td>Sealed 304SS drum Ø48″ × 12′, trunnions, 7.5 HP chain drive, insulated firing shroud, purged dual end seals, breechings</td><td class="num">$175,000</td></tr>
       <tr><td>Combustion system</td><td>2 modulating burners (~1.5 MMBtu/h total), gas trains, flame safeguard, stack — NFPA 86</td><td class="num">$48,000</td></tr>
       <tr><td>MTCS injection package</td><td>Metering skid, day-tank containment, 316SS/PTFE lance + nozzles, N₂ carrier/purge valving</td><td class="num">$32,000</td></tr>
-      <tr><td>Trommel 2, ambient</td><td>Sealed 304SS drum Ø54″ × 12′, trunnions, 7.5 HP chain drive, purged dual end seals, breechings</td><td class="num">$118,000</td></tr>
+      <tr><td>Trommel 2, ambient</td><td>Sealed 304SS drum Ø48″ × 12′, trunnions, 7.5 HP chain drive, purged dual end seals, breechings</td><td class="num">$118,000</td></tr>
       <tr><td>NH₃ injection package</td><td>Vaporizer/regulation train, internal spray bar, SS piping and isolation</td><td class="num">$24,000</td></tr>
       <tr><td>Rotary airlocks (3)</td><td>Gas-tight 304SS, reduced clearance, purge ports, drives — feed / transfer / discharge</td><td class="num">$36,000</td></tr>
       <tr><td>Transfer chutes &amp; breechings</td><td>Sealed 304SS chute work, N₂-purged interstage isolation, flex connections</td><td class="num">$28,000</td></tr>
@@ -369,12 +378,12 @@
 
     <div class="secbar"><h2>Assumptions &amp; Confidence</h2></div>
     <p><strong>Inputs used:</strong> 105200100 drawing package and BOM (Rev A, 5/26/25) as the scale and architecture basis; your direction on 304SS, indirect firing, MTCS, NH₃ and sealing.</p>
-    <p><strong>Assumed, not confirmed:</strong> geometric half-scale (≈1/8 the reference swept volume) is acceptable for the duty; product temperature ≤300 °F; continuous operation; chemicals owner-supplied at the skid edge; non-classified room with classified zones local to the spray points.</p>
+    <p><strong>Assumed, not confirmed:</strong> chopped alfalfa at ~8 lb/ft³ bulk density; product temperature ≤300 °F; continuous operation across the 1–5 TPH test range; chemicals owner-supplied at the skid edge; non-classified room with classified zones local to the spray points.</p>
     <p><strong>Confidence:</strong> HIGH that the architecture is buildable on the 105200100 platform. LOW–MEDIUM on price at this stage — the seal system, scrubbers, and burner package carry the widest spread.</p>
     <h3>What firms this up</h3>
     <ul>
-      <li>Required throughput (lb/hr) and residence time per stage — this sets final drum size, and may move it off exact half scale</li>
-      <li>Treatment temperature and moisture in/out for Stage 1</li>
+      <li>Feed form and bulk density (chopped vs. ground vs. meal) — this drives residence time more than anything else</li>
+      <li>Treatment temperature and moisture in/out for Stage 1 — decides the 1.5 vs. 2.5 MMBtu/h burner sizing</li>
       <li>MTCS and NH₃ dose rates per ton — sizes the injection skids and scrubbers</li>
       <li>Batch vs. continuous, and the emission limit the scrubbers must meet</li>
       <li>Site electrical classification and the 316L decision</li>
