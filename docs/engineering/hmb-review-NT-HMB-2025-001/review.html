@@ -1,0 +1,173 @@
+<title>HMB Report NT-HMB-2025-001 Review</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600&family=Inter:wght@400;500;600&display=swap">
+<style>
+:root{--ink:#141617;--ink-2:#575D5E;--muted:#8A8F90;--ground:#F5F5F5;--paper:#FFFFFF;--line:#C8C7C7;--line-soft:#E4E4E4;--band:#000000;--band-ink:#FFFFFF;--orange:#FF6602;--head-fill:#E4E4E4;--crit:#B3261E;--maj:#C46A00;--min:#575D5E;--ok:#2F7D4F;--crit-bg:#FBEAE8;--maj-bg:#FFF1E0;--ok-bg:#E8F3EC}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--ink:#ECECEC;--ink-2:#C8C7C7;--muted:#8A8F90;--ground:#121415;--paper:#1B1E20;--line:#3A3F41;--line-soft:#2A2E30;--orange:#FF7A24;--head-fill:#24282A;--crit:#F28B82;--maj:#F5B96B;--min:#C8C7C7;--ok:#5DBB86;--crit-bg:#2E1B19;--maj-bg:#2E2314;--ok-bg:#16261C}}
+:root[data-theme="dark"]{--ink:#ECECEC;--ink-2:#C8C7C7;--muted:#8A8F90;--ground:#121415;--paper:#1B1E20;--line:#3A3F41;--line-soft:#2A2E30;--orange:#FF7A24;--head-fill:#24282A;--crit:#F28B82;--maj:#F5B96B;--min:#C8C7C7;--ok:#5DBB86;--crit-bg:#2E1B19;--maj-bg:#2E2314;--ok-bg:#16261C}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);font-family:Inter,"Helvetica Neue",Arial,sans-serif;font-size:14px;line-height:1.5}
+.band{background:var(--band);color:var(--band-ink);padding:22px 32px;display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap}
+.band .co{font-family:Oswald,sans-serif;font-weight:600;font-size:15px;letter-spacing:.14em;text-transform:uppercase}
+.band .tag{color:#C8C7C7;font-size:11px;letter-spacing:.12em;text-transform:uppercase;margin-top:2px}
+.band h1{margin:0;font-family:Oswald,sans-serif;font-weight:600;font-size:28px;line-height:1.1;text-align:right;text-wrap:balance}
+.band .sub{color:var(--orange);font-family:Oswald,sans-serif;font-size:14px;letter-spacing:.06em;text-transform:uppercase;text-align:right}
+.band .meta{color:#C8C7C7;font-size:11px;text-align:right;margin-top:4px}
+.rule{height:4px;background:var(--orange)}
+main{max-width:1180px;margin:0 auto;padding:24px 32px 48px;display:flex;flex-direction:column;gap:34px}
+.sec-bar{background:var(--ink-2);color:#fff;font-family:Oswald,sans-serif;font-size:13px;letter-spacing:.1em;text-transform:uppercase;padding:3px 10px 3px 14px;position:relative;margin:0 0 14px}
+.sec-bar::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--orange)}
+.sec-bar em{font-style:italic;font-family:Inter,sans-serif;text-transform:none;letter-spacing:0;font-weight:400;color:#C8C7C7;float:right}
+.verdict{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}
+.verdict > div{background:var(--paper);border:1px solid var(--line-soft);padding:14px 16px}
+.verdict .k{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2);font-weight:600}
+.verdict .v{font-family:Oswald,sans-serif;font-size:24px;font-weight:500;line-height:1.15;margin:4px 0 2px;font-variant-numeric:tabular-nums}
+.verdict .n{color:var(--muted);font-size:12px}
+.v.c{color:var(--crit)} .v.m{color:var(--maj)} .v.g{color:var(--ok)}
+p{max-width:76ch;margin:0 0 10px}
+table{border-collapse:collapse;width:100%;background:var(--paper);font-size:13px;font-variant-numeric:tabular-nums}
+th{background:var(--head-fill);text-align:left;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);padding:7px 10px;border-bottom:1px solid var(--line)}
+td{padding:7px 10px;border-bottom:1px solid var(--line-soft);vertical-align:top}
+td.n,th.n{text-align:right}
+.scroll{overflow-x:auto}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;background:var(--head-fill);padding:0 4px;border-radius:2px;white-space:nowrap}
+.sev{display:inline-block;font-size:10px;letter-spacing:.08em;text-transform:uppercase;padding:1px 6px;border-radius:2px;font-weight:600;white-space:nowrap}
+.s-c{background:var(--crit-bg);color:var(--crit)} .s-m{background:var(--maj-bg);color:var(--maj)} .s-n{background:var(--head-fill);color:var(--min)} .s-ok{background:var(--ok-bg);color:var(--ok)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+@media (max-width:820px){.two{grid-template-columns:1fr}}
+ol,ul{padding-left:20px;max-width:80ch} li{margin-bottom:7px}
+.foot{border-top:1px solid var(--line);margin-top:10px;padding-top:10px;display:flex;justify-content:space-between;font-size:11px;color:var(--muted);position:relative}
+.foot::before{content:"";position:absolute;left:0;top:-1px;width:48px;height:2px;background:var(--orange)}
+.foot b{color:var(--ink-2);letter-spacing:.08em;text-transform:uppercase}
+</style>
+
+<div class="band">
+  <div><div class="co">Midwest Custom Engineering</div><div class="tag">Precision. Quality. Integrity.</div></div>
+  <div>
+    <h1>Biomass Heat and Mass Balance Review</h1>
+    <div class="sub">Doc. NT-HMB-2025-001 Rev 0 · Prozus Inc, 17 Jan 2025</div>
+    <div class="meta">Rotary dryer + thermal reactor, 3,000 lb/hr biomass · Engineering internal review · 8 Sep 2026</div>
+  </div>
+</div>
+<div class="rule"></div>
+
+<main>
+
+<section>
+  <div class="sec-bar">Bottom line <em>the workbook holds two unrelated calculations and neither one closes</em></div>
+  <div class="verdict">
+    <div><div class="k">Prozus fuel figure</div><div class="v c">1.9× too high</div><div class="n">290 kg/h biomass fuel (21% of feed) comes from dividing flue-gas mass by a stoichiometric flue-gas yield while treating that gas as 1,100°C. 47% of the fuel energy vanishes. Consistent figure: about 150 kg/h before fixing the heat demand, about 110 kg/h after.</div></div>
+    <div><div class="k">MCE dryer sheet</div><div class="v c">Sized for 9,000 lb/hr, fed 1,333</div><div class="n">The CALC heat block is pasted values from an earlier 9,000 lb/hr-evaporation job. Burner 15.7 MMBtu/hr, fan 31,564 ACFM, 36 in duct and 157 hp all inherit a 6.5× error. The sheet even flags itself: "INLET TEMP IS NOT CORRECT."</div></div>
+    <div><div class="k">Product yield</div><div class="v m">67% is not credible</div><div class="n">The reactor sheet takes biomass to 350°C with no mass loss except water. Torrefaction at that temperature sheds 25–30% of dry mass, so 912 kg/h should read roughly 640–690 kg/h.</div></div>
+    <div><div class="k">Combustion chemistry</div><div class="v g">Sound in both tracks</div><div class="n">Stoichiometric air 5.85 kg/kg (Prozus) and 5.82 lb/lb (MCE) for the same wood analysis; flue gas 8.95 kg/kg at 30% excess air; emission factors and airlock tables are fine.</div></div>
+  </div>
+</section>
+
+<section>
+  <div class="sec-bar">What is in the workbook <em>sheets grouped by which calculation they belong to</em></div>
+  <div class="scroll"><table>
+    <tr><th>Track</th><th>Sheets</th><th>Basis</th><th>Status</th></tr>
+    <tr><td><b>A. Prozus HMB</b> (the report)</td><td>Index, Assumption, Combustion, Rotary dryer Cal, Thermal Reactor Cal</td><td>1,361 kg/h (3,000 lb/hr) biomass at 35% MC → dryer to 10% MC → thermal reactor to 350°C and 3% MC. Metric with an imperial mirror column.</td><td><span class="sev s-c">Energy balance does not close</span></td></tr>
+    <tr><td><b>B. MCE dryer calculator</b></td><td>Input, CALC, COMB, FLOW, FLOW (Metric), DESIGN, Burner, Emiss., Emiss. (Metric)</td><td>3,000 lb/hr wet shavings at 50% MC → 10% MC, 8,000 Btu/lb wood fuel, 130% excess air. Imperial.</td><td><span class="sev s-c">Stale hardcodes drive every output</span></td></tr>
+    <tr><td><b>C. Orphaned</b></td><td>Combustion rows 2–104 (coal/char/dust boiler at 277,810 kg/h steam), Cost Sheet ("100K TPY pellet plant"), Est. Cost Analysis, Sheet1, Module1 (hidden VBA)</td><td>Left over from other jobs. Nothing in tracks A or B reads them except one boiler-efficiency cell that goes nowhere.</td><td><span class="sev s-n">Delete or hide before this is a deliverable</span></td></tr>
+  </table></div>
+  <p style="margin-top:12px">The two tracks never meet. They use different feed moisture (35% vs 50%), different specific heats (0.23 vs 0.55 Btu/lb·°F), different excess air (30% vs 130%) and different fuel heating values (7,979 vs 8,000 Btu/lb), and no sheet compares their results. A "validation report" that does not reconcile the thing it validates has not validated it.</p>
+</section>
+
+<section>
+  <div class="sec-bar">Findings <em>cell references are to the sheet named; severity is by effect on the equipment decision</em></div>
+  <div class="scroll"><table>
+    <tr><th>#</th><th>Sev.</th><th>Where</th><th>What is wrong</th><th>What it should be</th><th>Effect</th></tr>
+
+    <tr><td>1</td><td><span class="sev s-c">Critical</span></td><td>Rotary dryer Cal <code>E50</code>, Thermal Reactor Cal <code>E51</code></td><td>Fuel = flue-gas mass ÷ <code>Combustion!D143</code> (8.95 kg flue/kg fuel). That yield is for 30% excess air, whose flue gas leaves the fire at about 1,750°C. The sheet then values that same gas at 1,100°C (<code>E24</code>). 210.7 kg/h fuel carries 3.91 GJ/h; only 2.04 GJ/h enters the mixer. 1.86 GJ/h (47%) is lost.</td><td>Fuel = flue-gas enthalpy in ÷ LHV: 110 kg/h dryer, 42 kg/h reactor. Or keep 8.95 kg/kg and use the matching 1,750°C enthalpy, which changes the air/flue split to about 84/16.</td><td>Reported fuel 290 kg/h (21% of feed) is 1.9× high. Net product "622 kg/h, 45.7%" is wrong on both sides of the subtraction.</td></tr>
+
+    <tr><td>2</td><td><span class="sev s-c">Critical</span></td><td>CALC <code>F4:F12, F15, H4, I39, I44, I45, B47, D48, G67</code></td><td>Pasted numbers, not formulas. <code>F7</code> = 8,732,700 = 9,000 lb/hr × 970.3 Btu/lb; <code>D48</code> = I45 ÷ 9,000. The Input sheet says 1,333 lb/hr evaporation. Every line is 3.8× to 6.8× the value the Input produces.</td><td>Rebuild with formulas on Input: product heating 1.62 MMBtu/hr; total dryer duty about 2.3 MMBtu/hr; fuel about 290 lb/hr; exhaust about 20,000 lb/hr.</td><td>Burner 15.7 (DESIGN says 20) MMBtu/hr vs ~2.5 needed. Fan 31,564 ACFM vs ~5,000. 36 in duct, 157 hp fan, 7,367 tons/yr fuel, and every Emiss. tonnage inherit the error. FLOW <code>G8</code> shows 11,788 Btu/lb evaporation, which should have stopped the sheet.</td></tr>
+
+    <tr><td>3</td><td><span class="sev s-c">Critical</span></td><td>Rotary dryer Cal <code>E8</code> (375°C), <code>E7</code> (100°C feed), <code>E21</code> (82°C gas out)</td><td>Dryer solids leave at 375°C while the gas leaves at 82°C. In a co-current dryer the solids cannot be hotter than the exit gas. The 375°C belongs to the reactor. Feed at 100°C is also not real; wet biomass arrives at ambient.</td><td>Solids out 70–90°C, feed at 16°C. Dryer demand becomes about 1.14 GJ/h (sheet 1.67), mixed gas 4,790 kg/h (sheet 6,956), fuel about 76 kg/h.</td><td>Dryer heat demand overstated 45%; the gas flow that sizes the drum, fan and ducts overstated the same.</td></tr>
+
+    <tr><td>4</td><td><span class="sev s-c">Critical</span></td><td>Rotary dryer Cal <code>F12, F16</code>; Thermal Reactor Cal <code>F12, F17</code></td><td>The imperial column is a different calculation from the metric one. <code>F12</code> = feed × (MC in − MC out) is the wet-basis shortcut the metric side already replaced ("Formula updated on dry basis" applies to <code>E12</code> only). <code>F16</code> carries sensible heat only; the evaporation term is missing entirely.</td><td>750 lb/hr should be 833 lb/hr; 341,606 Btu/hr should be 1,539,500 Btu/hr.</td><td><code>E45</code> mixed gas 3,380 lb/hr vs 15,336 lb/hr from the metric side of the same row. Any reader working in imperial gets a dryer 4.5× too small.</td></tr>
+
+    <tr><td>5</td><td><span class="sev s-m">Major</span></td><td>Thermal Reactor Cal <code>E4:E12</code>, Assumption item 3</td><td>Reactor is pure heating plus drying 10% → 3% MC. No volatile loss at 350°C, no reaction heat, and the product (912 kg/h) is 67% of feed.</td><td>Include 25–30% dry-mass loss and the volatiles' heating value (they are the fuel the ABTR design burns). Product about 640–690 kg/h.</td><td>Yield, fuel credit and reactor gas flow all wrong. This is the number a customer buys the system on.</td></tr>
+
+    <tr><td>6</td><td><span class="sev s-m">Major</span></td><td>Thermal Reactor Cal <code>E21, E22, E8</code></td><td>Gas in at 400°C, gas out at 100°C, solids out at 350°C. Not achievable co-current (solids above exit gas) or counter-current (zero driving force at the solids inlet, which is also 100°C). And "flue gas + air" at 400°C into a 350°C biomass bed is a fire, not torrefaction.</td><td>State the reactor's actual heating mode (indirect, or oxygen-depleted recycle gas) and use gas temperatures that bracket the solids.</td><td>The reactor gas quantity <code>E45</code> is arithmetic on an impossible temperature pair.</td></tr>
+
+    <tr><td>7</td><td><span class="sev s-m">Major</span></td><td>Input <code>A28</code>, CALC <code>F74, G67</code>, Burner <code>F8</code></td><td>Enthalpy iteration was never converged: available heat ratio 1.51, flag reads "INLET TEMP IS NOT CORRECT". Burner sheet computes 651°F inlet for the same case; CALC uses 588°F.</td><td>Converge <code>G67</code> after finding 2 is fixed; one inlet temperature for the case.</td><td>Two inlet temperatures in one report.</td></tr>
+
+    <tr><td>8</td><td><span class="sev s-m">Major</span></td><td>Assumption <code>C31, C34</code></td><td>"Heat required 211 kJ/h and 79 kJ/h, total 290 kJ/h" are the fuel kg/h numbers with the wrong unit. Actual sheet heat: 1,673 MJ/h and 621 MJ/h.</td><td>Correct units, and the values per finding 1 and 3.</td><td>Front-page outcome is mislabeled by six orders of magnitude.</td></tr>
+
+    <tr><td>9</td><td><span class="sev s-m">Major</span></td><td>FLOW <code>B5, R23, R24</code>; DESIGN <code>B2</code>; Emiss. <code>B4</code>; FLOW (Metric) <code>B5</code></td><td>One case, five dryers: "10x40 XD Series", drum 8 ft × 60 ft, "100-420 Z8 with 20 MMBtu CycloClean", "Z8 12x50", "MS Z8 8x40".</td><td>One model, chosen from Input's own size table after finding 2: ~5,000 ACFM points at 6'×24' (7,000 ACFM max), not 10'×40'.</td><td>The report does not actually size a dryer.</td></tr>
+
+    <tr><td>10</td><td><span class="sev s-m">Major</span></td><td>FLOW <code>R25:R28</code></td><td>Drum material load = product ÷ 60 × 1.5, i.e. 1.5 minutes of hold-up. Bulk head 0.11% against a 1.0–1.3% target, which reads as "drum 10× too big".</td><td>Hold-up = feed rate × residence time (15–25 min). At 15 min the same drum reads 1.06%, in range.</td><td>Wrong lever: the formula, not the drum, is off.</td></tr>
+
+    <tr><td>11</td><td><span class="sev s-m">Major</span></td><td>Rotary dryer Cal <code>E26, E38</code></td><td>Air enthalpy 2.17 kJ/kg at 16°C and 57.3 kJ/kg at 82°C implies cp = 0.83 kJ/kg·K (real 1.006). Mixed reference states between inlet and outlet.</td><td>One reference state (0°C): 16.1 and 82.5 kJ/kg.</td><td>Mixed-gas flow about 20% high on this term alone.</td></tr>
+
+    <tr><td>12</td><td><span class="sev s-m">Major</span></td><td>Emiss. <code>I31, L32, E31</code></td><td>Cyclone collection 99.965%; PM10 = 0.007% of PM; a ×1.5 on PM tons/yr with no note.</td><td>Cyclone 85–95% on wood dryer PM (multiclone to 98%); PM10 50–90% of PM per AP-42 for rotary wood dryers.</td><td>PM reported at 0.58 lb/hr is roughly 100× low. Permit exposure.</td></tr>
+
+    <tr><td>13</td><td><span class="sev s-n">Minor</span></td><td>Rotary dryer Cal <code>E44</code></td><td>Subtracts reactor flue-gas heat (<code>'Thermal Reactor Cal'!E55</code>) although the reactor-gas share <code>G33</code> is 0%, and uses the flue-only mass (711) rather than the mixed gas (2,007).</td><td>Either route the reactor gas through the dryer and set <code>G33</code>, or drop the term.</td><td>13.5 MJ/h, under 1%.</td></tr>
+
+    <tr><td>14</td><td><span class="sev s-n">Minor</span></td><td>Input <code>A4</code> vs Rotary dryer Cal <code>E6</code></td><td>Cp 0.55 Btu/lb·°F in one track, 0.23 in the other. Dry wood is 0.32–0.40.</td><td>0.35 Btu/lb·°F (1.5 kJ/kg·K) dry basis, water separately.</td><td>Sensible term ±15%.</td></tr>
+
+    <tr><td>15</td><td><span class="sev s-n">Minor</span></td><td>Combustion <code>E36</code> (−18.4% oxygen), <code>D6</code> (75 Btu/lb "dust"), rows 64–104</td><td>Orphaned boiler blend with a negative oxygen content and a fuel of 41 kcal/kg. Not used, but it is in the report.</td><td>Remove.</td><td>Credibility.</td></tr>
+
+    <tr><td>16</td><td><span class="sev s-n">Minor</span></td><td>Assumption <code>T28</code>; Est. Cost Analysis <code>AA7:AA11, P19:P45, F37:F48</code></td><td><code>#REF!</code>, <code>#DIV/0!</code> and <code>#VALUE!</code>: net output reads FLOW <code>J27</code> (0) and a text label (FLOW <code>J25</code>).</td><td>Point at the product cell.</td><td>Cost sheets are dead.</td></tr>
+
+    <tr><td>17</td><td><span class="sev s-n">Minor</span></td><td>Input <code>D6</code></td><td>Ambient humidity 0.002 lb/lb. That is desert-dry.</td><td>0.008–0.012 for Florida.</td><td>Negligible on the balance; wrong on the page.</td></tr>
+  </table></div>
+</section>
+
+<section>
+  <div class="sec-bar">What checks out <em>credit where the arithmetic is right</em></div>
+  <div class="two">
+    <div>
+      <ul>
+        <li><span class="sev s-ok">OK</span> Combustion stoichiometry, both tracks: O₂ demand 1.35 kg/kg, stoichiometric air 5.85 kg/kg (Prozus) and 5.82 lb/lb (MCE) on the same C 47.5 / H 5.4 / O 34.7 wood analysis. Flue gas 8.95 kg/kg at 30% excess. Dulong HHV 8,136 Btu/lb at 10% moisture is reasonable.</li>
+        <li><span class="sev s-ok">OK</span> Water removed on the metric side, <code>Rotary dryer Cal!E12</code>: 378 kg/h on a dry-solids basis. Correct, and the note says why.</li>
+        <li><span class="sev s-ok">OK</span> Mixed-gas mass from an enthalpy balance (<code>E44</code>) is the right method; only its inputs are wrong (findings 3, 11).</li>
+        <li><span class="sev s-ok">OK</span> VOC-as-fuel check, <code>Thermal Reactor Cal!K19:N19</code>: 2.17 MMBtu/hr ÷ 20,000 Btu/lb = 109 lb/h. Right arithmetic on the sheet's own (wrong) demand. It also quietly contradicts the 290 kg/h biomass fuel two rows away, which is 5.1 MMBtu/hr.</li>
+      </ul>
+    </div>
+    <div>
+      <ul>
+        <li><span class="sev s-ok">OK</span> Input sheet mass balance: 3,000 lb/hr at 50% → 1,667 lb/hr at 10%, 1,333 lb/hr evaporated. Elevation air density at 1,200 ft, 0.0724 lb/ft³.</li>
+        <li><span class="sev s-ok">OK</span> COMB sheet: products of combustion 14.36 lb/lb, matter in = matter out (14.38), NOₓ/CO/SO₂ potential-to-emit method. Emission factors in Emiss. columns O–T are AP-42 values correctly scaled.</li>
+        <li><span class="sev s-ok">OK</span> DESIGN sheet airlock and screw-conveyor capacity tables (cf/rev × rpm × fill).</li>
+        <li><span class="sev s-ok">OK</span> Unit conversions throughout (0.4299 Btu/kJ, 0.9478 Btu/kJ, °C to °F).</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="sec-bar">Corrected balance <em>same feed, same fuel, same 30% excess air; ambient feed, dryer solids out at 80°C, 25% devolatilization in the reactor</em></div>
+  <div class="scroll"><table>
+    <tr><th>Quantity</th><th class="n">Report (track A)</th><th class="n">Corrected</th><th>Basis</th></tr>
+    <tr><td>Dryer water removed</td><td class="n">378 kg/h</td><td class="n">378 kg/h</td><td>Unchanged; the metric formula was right.</td></tr>
+    <tr><td>Dryer heat demand</td><td class="n">1.67 GJ/h</td><td class="n">1.14 GJ/h</td><td>Findings 3, 11. Latent 2,609 kJ/kg from 16°C, solids and residual water to 80°C, 3% loss.</td></tr>
+    <tr><td>Dryer mixed gas 309°C → 82°C</td><td class="n">6,956 kg/h</td><td class="n">4,790 kg/h</td><td>Demand ÷ 238.5 kJ/kg.</td></tr>
+    <tr><td>Dryer fuel</td><td class="n">210.7 kg/h</td><td class="n">76 kg/h</td><td>Finding 1: flue-gas enthalpy ÷ LHV. 110 kg/h if only finding 1 is fixed.</td></tr>
+    <tr><td>Reactor fuel</td><td class="n">79.5 kg/h</td><td class="n">42 kg/h</td><td>Finding 1 only; reactor demand itself still needs findings 5 and 6.</td></tr>
+    <tr><td>Total fuel, % of feed</td><td class="n">290 kg/h · 21%</td><td class="n">~120 kg/h · 9%</td><td>Before crediting reactor volatiles as fuel, which the ABTR design does.</td></tr>
+    <tr><td>Finished product at 3% MC</td><td class="n">912 kg/h · 67%</td><td class="n">~685 kg/h · 50%</td><td>Finding 5, 25% dry-mass loss. 638 kg/h at 30%.</td></tr>
+    <tr><td colspan="4" style="background:var(--head-fill);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2)">Track B (MCE dryer calculator), 3,000 lb/hr at 50% → 10%</td></tr>
+    <tr><td>Product heating block</td><td class="n">10.51 MMBtu/hr</td><td class="n">1.62 MMBtu/hr</td><td>Finding 2, recomputed from Input with the sheet's own method.</td></tr>
+    <tr><td>Total dryer duty</td><td class="n">15.7 MMBtu/hr</td><td class="n">~2.3 MMBtu/hr</td><td>1,333 lb/hr × 1,750 Btu/lb (MCE basis).</td></tr>
+    <tr><td>Fuel at 8,000 Btu/lb</td><td class="n">1,965 lb/hr</td><td class="n">~290 lb/hr</td><td>17% of dry product, not 118%.</td></tr>
+    <tr><td>Exhaust</td><td class="n">31,564 ACFM</td><td class="n">~5,000 ACFM at 180°F</td><td>Hot gas 588°F → 180°F plus vapor and 10% leakage.</td></tr>
+    <tr><td>Dryer from Input size table</td><td class="n">10'×40' (32,000 ACFM)</td><td class="n">6'×24' (7,000 ACFM)</td><td>Input <code>K9:L18</code>.</td></tr>
+  </table></div>
+</section>
+
+<section>
+  <div class="sec-bar">What to do with it</div>
+  <div class="two">
+    <div>
+      <p><b>Send back to Prozus</b> with findings 1, 3, 4, 5, 6, 8 and 11. Ask for one calculation, metric, with an energy closure line (fuel in = delivered + exhaust + losses) on each sheet and a stated reactor heating mode. The report is "Issued for Review" and reviewed/approved are blank ("NR"), so it has not been accepted; keep it that way.</p>
+      <p><b>Fix the MCE calculator</b> (track B) before it is used on another quote: replace CALC <code>F4:F15</code>, <code>H4</code>, <code>I39:I45</code>, <code>B47</code>, <code>D48</code> with formulas on Input, converge <code>G67</code>, pick one dryer model, and add a sanity line "Btu per lb water evaporated" that flags anything outside 1,400–2,200. FLOW <code>G8</code> already computes it; it just does not shout.</p>
+    </div>
+    <div>
+      <p><b>Do not use any number from this file</b> for burner, fan, duct or emissions until the two fixes above are in. The only figures safe to quote today are the feed mass balance and the combustion stoichiometry.</p>
+      <p><b>Not verified here:</b> the hidden VBA module (not inspected), the Cost Sheet economics beyond noting they are dead, and whether the reactor is direct or indirect fired, which changes finding 6 from "impossible" to "mislabeled". Confidence in findings 1–4 is high; they are arithmetic. Findings 5 and 6 depend on what the ABTR reactor actually is.</p>
+    </div>
+  </div>
+  <div class="foot"><span><b>Midwest Custom Engineering</b> · Precision. Quality. Integrity.</span><span>ENG review of NT-HMB-2025-001 Rev 0 · 8 Sep 2026 · internal</span></div>
+</section>
+</main>
