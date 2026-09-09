@@ -55,7 +55,7 @@ System Commissioning
 - 1 man-week; equipment installation instructions for buyer's installation contractors
 - Start-up and operator training"""
 
-BURNER="""Burner oversized for this application per MCE engineering: 15 MMBtu/hr maximum with 10:1 turndown (normal fire 7.3 MMBtu/hr), sized to hold capacity if the press cake runs wetter than 70% or the plant runs 160 MT/day.
+BURNER="""Burner oversized for this application per MCE engineering: 10 MMBtu/hr maximum with 10:1 turndown (normal fire 7.3 MMBtu/hr, calculator 8.7 with margin), sized to hold capacity if the press cake runs wetter than 70% or the plant runs 160 MT/day.
 - Dual-fuel: biogas (55% CH4, ~195 scfm at 2 psig) and LPG, two independent NFPA 86 gas trains with automatic changeover on gas pressure
 - Combustion air blower, flame safeguard integrated with the BMS panel
 - Replaces the standard 435 MOP burner and single valve train included in line 1
@@ -66,7 +66,7 @@ PRICE: material adder to be added on request (A36 base is priced on line 1; the 
 
 lines=[
  dict(name='XD-96 Mk.2 Rotary Thermal Conditioning System', qty=1, unit=price('XD-96 Mk.2 Rotary Thermal Conditioning System'), desc=XD96),
- dict(name='Dual-fuel burner upgrade, 15 MMBtu/hr, LPG + biogas', qty=1, unit=0.0, desc=BURNER),
+ dict(name='Dual-fuel burner upgrade, 10 MMBtu/hr, LPG + biogas', qty=1, unit=0.0, desc=BURNER),
  dict(name='Stainless steel construction option', qty=1, unit=0.0, desc=SS),
  dict(name='XB 4.9 Live Bottom Storage Hopper', qty=1, unit=price('XB 4.9 Live Bottom Storage Hopper'), desc="Press cake surge ahead of the dryer feed screw, 2 hours at 6,430 lb/hr.\n"+rows['XB 4.9 Live Bottom Storage Hopper']['Product description']),
  dict(name='HD Screw Conveyor', qty=1, unit=price('HD Screw Conveyor'), desc="Cake transfer from live-bottom hopper to the dryer feed screw.\n"+rows['HD Screw Conveyor']['Product description']),
@@ -85,7 +85,7 @@ for i,l in enumerate(lines,1):
     items.append(dict(name=l['name'],sku='',_qty=l['qty'],_unit=money(l['unit']) if l['unit'] else 'TBD',_unit_discount='—',_net=money(net) if l['unit'] else ('TBD' if 'PRICE' in l['desc'] else 'not included'),_desc_lines=[x for x in l['desc'].splitlines() if x.strip()]))
 comments=("Bernardo, thank you for the revised requirements of 20 August. This budgetary proposal covers the 85% to 15% case at 120 to 160 MT/day. "
 "We recommend mechanical dewatering ahead of the dryer: a screw press removes roughly 60% of the water at a fraction of the cost of evaporating it, which brings the dryer duty to about 7.3 MMBtu/hr at 140 MT/day and lets your biogas cover about 83% of it (LPG make-up on the order of US$420/day at US$14.50/MMBtu; about US$2,500/day with the digester offline). "
-"The XD-96 Mk.2 drum is sized with margin for 160 MT/day and cake moisture variability; the burner is oversized to 15 MMBtu/hr for the same reason. "
+"The XD-96 Mk.2 drum is sized with margin for 160 MT/day and cake moisture variability; the burner is oversized to 10 MMBtu/hr for the same reason. "
 "Lines marked TBD are awaiting vendor quotes or your process data (effluent total solids, pH, chlorides, ammonia; biogas composition and pressure; site layout). A 5-gallon sample of the effluent to our Stuart, FL shop will let us confirm press performance and flight design. "
 "The attached process flow sheet is the mass and energy balance this proposal is built on.")
 terms=("50% down with order, 30% on approval drawings, 15% before shipment, 5% on start-up. Budgetary proposal, valid 60 days. "
