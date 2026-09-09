@@ -61,13 +61,14 @@ BURNER="""Burner oversized for this application per MCE engineering: 10 MMBtu/hr
 - Replaces the standard 435 MOP burner and single valve train included in line 1
 PRICE: burner vendor quote pending - to be added"""
 
-SS="""Recommended for digestate (ammonia, chlorides, pH to 8.2): 316L stainless drum shell and flights; 304 stainless drop-out box and ducting. Estimated equipment life 30-35 years for 316L versus 7-10 years for 3/8" A36.
-PRICE: material adder to be added on request (A36 base is priced on line 1; the 304 SS cyclone adder is priced on line 7)"""
+SS="""Recommended for digestate (ammonia, chlorides, pH to 8.2). In lieu of the A36 construction on line 1: 316L stainless drum shell (1/2" plate, sub-arc welded, X-ray shell) and flights, 316L feed screw and live bottom, 316L drop-out box (3/16" walls, 1/4" hopper), 316L airlock, R-15 mineral wool insulation with 26 ga 304 SS cladding on drum and drop-out box, Nomex inlet and discharge seals.
+Priced from MCE's 8' x 40' 316L XC Series system as built for a US animal-health customer (2022 pricing, not escalated); the exhaust fan, ducting and cyclone in 316L are quoted on request (the 304 SS cyclone adder is on line 7). Estimated equipment life 30-35 years for 316L versus 7-10 years for 3/8" A36.
+Adder over the line 1 price; not included in the total below."""
 
 lines=[
  dict(name='XD-96 Mk.2 Rotary Thermal Conditioning System', qty=1, unit=price('XD-96 Mk.2 Rotary Thermal Conditioning System'), desc=XD96),
  dict(name='Dual-fuel burner upgrade, 10 MMBtu/hr, LPG + biogas', qty=1, unit=0.0, desc=BURNER),
- dict(name='Stainless steel construction option', qty=1, unit=0.0, desc=SS),
+ dict(name='OPTION: 316L stainless steel construction (in lieu of line 1 A36)', qty=1, unit=1529000.0-price('XD-96 Mk.2 Rotary Thermal Conditioning System'), desc=SS),
  dict(name='XB 4.9 Live Bottom Storage Hopper', qty=1, unit=price('XB 4.9 Live Bottom Storage Hopper'), desc="Press cake surge ahead of the dryer feed screw, 2 hours at 6,430 lb/hr.\n"+rows['XB 4.9 Live Bottom Storage Hopper']['Product description']),
  dict(name='HD Screw Conveyor', qty=1, unit=price('HD Screw Conveyor'), desc="Cake transfer from live-bottom hopper to the dryer feed screw.\n"+rows['HD Screw Conveyor']['Product description']),
  dict(name='HE-74 Cyclone', qty=1, unit=price('HE-74 Cyclone'), desc="Dryer exhaust collector, 12,934 ACFM at 230 F (rated to 30,500 CFM).\n"+rows['HE-74 Cyclone']['Product description']),
@@ -86,7 +87,7 @@ for i,l in enumerate(lines,1):
 comments=("Bernardo, thank you for the revised requirements of 20 August. This budgetary proposal covers the 85% to 15% case at 120 to 160 MT/day. "
 "We recommend mechanical dewatering ahead of the dryer: a screw press removes roughly 60% of the water at a fraction of the cost of evaporating it, which brings the dryer duty to about 7.3 MMBtu/hr at 140 MT/day and lets your biogas cover about 83% of it (LPG make-up on the order of US$420/day at US$14.50/MMBtu; about US$2,500/day with the digester offline). "
 "The XD-96 Mk.2 drum is sized with margin for 160 MT/day and cake moisture variability; the burner is oversized to 10 MMBtu/hr for the same reason. "
-"Lines marked TBD are awaiting vendor quotes or your process data (effluent total solids, pH, chlorides, ammonia; biogas composition and pressure; site layout). A 5-gallon sample of the effluent to our Stuart, FL shop will let us confirm press performance and flight design. "
+"Line 3 prices the drum system in 316L stainless as an option (US$1,529,000 for the 316L system in place of the US$589,500 A36 system), which we recommend for this material. Lines marked TBD are awaiting vendor quotes or your process data (effluent total solids, pH, chlorides, ammonia; biogas composition and pressure; site layout). A 5-gallon sample of the effluent to our Stuart, FL shop will let us confirm press performance and flight design. "
 "The attached process flow sheet is the mass and energy balance this proposal is built on.")
 terms=("50% down with order, 30% on approval drawings, 15% before shipment, 5% on start-up. Budgetary proposal, valid 60 days. "
 "Delivery 18-22 weeks after approval drawings, to be confirmed by production at time of order. Installation, foundations, utilities, permits, biogas and LPG supply, effluent storage and pressate disposal by others. "

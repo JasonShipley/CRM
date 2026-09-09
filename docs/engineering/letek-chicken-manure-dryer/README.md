@@ -95,3 +95,53 @@ until priced. Not sent.
 - `case_letek_140tpd.json` + `../dryer-hmb-calculator/run_case.py` → `LETEK_140tpd_caseA.xlsx` and `LETEK_140tpd_caseA_Flow.pdf` (the PFD). The calculator selected the XD-96 8×40 on its own; burner oversized to 10 MMBtu/hr per Jason.
 - `make_quote.py <hubspot products csv>` → `MCE_Quote_20260909-LETEK-A_Chicken_Manure_Dryer.pdf`, rendered with the repo's branded quote template and priced from the HubSpot product export of 24 Aug 2026 (not committed). Priced subtotal $718,822; burner, stainless option, screw press and biogas skid are TBD lines.
 - QBO draft estimate 20260909-LETEK-A exists on customer LETEK DCG (created 8 Sep 2026); not sent.
+
+## Pricing basis for the open lines (9 Sep 2026, afternoon)
+
+### 316L stainless option: priced from the Phibro Animate North Dryer
+
+MCE's only built 8' x 40' 316L system is the Phibro Animal Health (Quincy, IL) "Animate North Dryer",
+quote ref 20220510-162131559 of 10 May 2022, accepted on Phibro PO 479135 (16 May 2022) and invoiced in full
+(invoices 1332-1, 1335-1, 2022-16-2). Same drum size as the XD-96, so it is the right precedent.
+
+| Phibro line (May 2022)                                             | Price        |
+|--------------------------------------------------------------------|-------------:|
+| XC Series 316L drum system, 8' x 40', 1/2" shell, sub-arc, X-ray; 316L live bottom, drop-out box, airlock; R-15 with 304 cladding | $1,529,000 |
+| Burner: Honeywell / Access RA2500, 25 MMBtu/hr, valve train, BMS, 316 SS NYB blower, inlet plate, muffler | $279,895 |
+| 2 x HE-47 cyclone, 10 ga 316L                                       | $43,900      |
+| 2 x VBS 14x10x10 airlock, 304L                                      | $31,930      |
+| FC41W42 fan, 316L, 200 hp, 25,000 CFM at 22 in WC                  | $114,521     |
+| **Total (PO value)**                                               | **$1,999,246** |
+| Not taken: 5/8" shell adder $59,855; enlarged drop-out box $56,000; 316L wet scrubber $241,500 | |
+
+Comparison of the three stainless bases MCE has used on this job:
+
+| Basis                                          | 316L dryer system | Adder over XD-96 Mk.2 A36 ($589,500) |
+|------------------------------------------------|------------------:|-------------------------------------:|
+| Phibro 2022 actual (same 8' x 40' drum)        | $1,529,000        | $939,500                             |
+| "316 doubles the price" (J. Shipley, Mar 2026) | $1,179,000        | $589,500                             |
+| L. Wilkinson quote to LETEK, 27 Mar 2026 (XD-72 basis, $489,000): 304 +$358,000, 316L +$422,500 | $911,500 (scaled) | $422,500 |
+
+The Phibro number is the only one backed by a built job and it is 2022 pricing, so it is a floor, not a
+ceiling. The quote (line 3) and QBO estimate 6476 now carry the 316L drum system as an **option at the
+Phibro basis: $1,529,000 for the system, a $939,500 adder over line 1, not in the total.** Fan, ducting and
+cyclone in 316L are "on request" (the 304 cyclone adder of $21,000 stays on line 7). A full 316L system on
+the Phibro basis with the smaller 10 MMBtu burner and 60 hp fan would land near $1.7-1.8M before the press
+and biogas skid; Phibro's $2.0M included a 25 MMBtu burner and a 200 hp 316L fan.
+
+### Burner, press and biogas skid: vendor RFQs drafted (not sent)
+
+No usable vendor pricing on file. Three Gmail drafts are in the Drafts folder for Jason to review and send:
+
+- **Vincent Corporation (Tampa), fred@vincentcorp.com** - screw press, 12,900 lb/hr digestate at 15% TS to
+  30% TS cake, 316 SS, options for tank, PC pump, polymer, spares; net dealer pricing FOB Tampa. Jason's
+  last contact with Fred was the May 2026 "Press for grain" inquiry (no reply on file).
+- **BDC (Hazelwood, MO), Joe Kovacs, joek@gobdc.com** - 10 MMBtu/hr dual-fuel LPG + biogas combustion system,
+  two NFPA 86 trains with changeover, parallel-positioning control like the 2024 Animate proposal (BDC
+  proposal 323581, 12 Jun 2024; BDC quoted the 2022 30 MMBtu Animate system at $115,170 on 0622-06 Rev-1,
+  which MCE sold at $279,895). The 323581 PDF is only in Gmail; its price was not extracted.
+- **Biogas conditioning skid** - recipient left blank (no vendor on file); 195 scfm, H2S 5,000 to under
+  200 ppm, moisture knockout, booster to 2 psig.
+
+MCE convention for these lines once vendor net pricing arrives: sell = vendor net / 0.8 (Jan 2026
+Roastamatic thread), then update lines 2, 10 and 11 in `make_quote.py` and QBO estimate 6476.
