@@ -124,7 +124,7 @@ inp('daysyr','Days per year',312,'d','',N0)
 inp('hrsyr','Annual operating hours','=C{0}*C{1}'.format(r-2,r-1),'h/yr','',N0,True)
 # Reference tables (right side)
 wi['G3']='DRYER TYPE'; wi['G3'].font=F_B; wi['H3']='Energy factor Btu/lb'; wi['H3'].font=F_B; wi['I3']='Note'; wi['I3'].font=F_B
-types=[('Single-pass rotary drum',1750,'MCE standard'),('Triple-pass rotary drum',1750,'MCE uses the same factor; confirm'),('Z8 eight-pass',1750,'Confirm'),('Infrared',1500,'7 Feb 2026 notes'),('Flash tube',1875,'1,850–1,900 per notes')]
+types=[('Single-pass rotary drum',1750,'MCE standard, confirmed J. Shipley 9 Sep 2026'),('Triple-pass rotary drum',1750,'MCE standard, confirmed J. Shipley 9 Sep 2026'),('Z8 eight-pass',1750,'MCE standard, confirmed J. Shipley 9 Sep 2026'),('Infrared',1500,'7 Feb 2026 notes'),('Flash tube',1875,'1,850–1,900 per notes')]
 for i,(a,b,c) in enumerate(types):
     wi.cell(5+i,7,a).font=F_LABEL; x=wi.cell(5+i,8,b); x.font=F_IN; x.number_format=N0; wi.cell(5+i,9,c).font=F_NOTE
 wi['G11']='FUEL TABLE'; wi['G11'].font=F_B
