@@ -9,6 +9,7 @@ from the Inputs sheet; nothing is pasted. `build_calculator.py` regenerates it.
 | Sheet | Purpose |
 |---|---|
 | README | How to use, what was wrong in the original, assumptions and sources |
+| Flow | Live schematic on one landscape page: burner, make-up air, mixed inlet gas, feed, drum, exhaust and cyclone, fan and stack, product, fines, optional reactor. |
 | Summary | One-page hand-off for quoting: process, heat, dryer model and length to quote, burner, fan, duct, airlocks, annual fuel. All links, no inputs. |
 | Flow | Live schematic on one landscape page: system heat, burner, make-up air, mixed inlet gas, wet feed, drum, evaporation, exhaust and cyclone, fan and stack, dried product, cyclone fines, optional biochar reactor. Every block shows its current numbers. |
 | Inputs | The job: feed, moistures, temperatures, site, dryer type, fuel, air-handling rules, margins, hours. Dryer-type and fuel tables live on the right. |

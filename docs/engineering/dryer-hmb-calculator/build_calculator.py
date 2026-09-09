@@ -257,7 +257,7 @@ for d,l in sizes:
     M.append(('Single-pass rotary drum',f"XD-{d*12} ({d}'×{l}')",d,l,None,None,'','','MCE standard size, J. Shipley 9 Sep 2026; burner sized to heat loading'))
 M.append(('Single-pass rotary drum','Custom single-pass (enter dia × length)',None,None,None,None,'','','Any size can be built; enter drum OD and length'))
 for d,l in sizes:
-    M.append(('Triple-pass rotary drum',f"TP-{d*12} ({d}'×{l}')",d,l,'F',None,'','','Same shell sizes as single-pass; ACFM = OD cross-section × face velocity × triple-pass factor until Baker-Rullman ratings are entered'))
+    M.append(('Triple-pass rotary drum',f"TP-{d*12} ({d}'×{l}')",d,l,'F',None,'','','MCE will match the Baker-Rullman triple-pass models; ACFM = OD cross-section × face velocity × triple-pass factor until their ratings are entered'))
 M.append(('Triple-pass rotary drum','Custom triple-pass (enter dia × length)',None,None,'F',None,'','','Any size can be built'))
 z8=[("6'x24'",6,24,7000),("8'x35'",8,35,18000),("10'x40'",10,40,32000),("10'x50'",10,50,40000),("12'x50'",12,50,55000),("12'x60'",12,60,65000),("12'x70'",12,70,75000),("13'x60'",13,60,80000),("14'x70'",14,70,90000),("15'x70'",15,70,100000)]
 for n,d,l,a in z8:
@@ -413,9 +413,9 @@ rin('tfeed','Feed temperature',150,'°F','Dryer product arrives hot; ambient if 
 rin('hhv','Feed heating value, dry basis',8000,'Btu/lb','Wood ~8,000–8,600 dry')
 rin('ash','Ash, dry basis',0.02,'','',P1)
 rin('treac','Reactor solids temperature',932,'°F','500 °C = 932 °F slow pyrolysis; torrefaction 480–570 °F')
-rin('yield','Char yield, dry basis',0.28,'fraction of dry feed','See table at right; Prozus report assumed 1.0, which is why its 67% product was wrong',P0)
+rin('yield','Char yield, dry basis',0.28,'fraction of dry feed','MCE default, confirmed J. Shipley 9 Sep 2026. See table at right; Prozus report assumed 1.0, which is why its 67% product was wrong',P0)
 rin('hhvchar','Char heating value',12500,'Btu/lb','Wood char 11,500–13,500 dry')
-rin('qrxn','Reaction heat',100,'Btu/lb dry feed','+ endothermic; wood slow pyrolysis roughly 0 to +200')
+rin('qrxn','Reaction heat',100,'Btu/lb dry feed','MCE default, confirmed J. Shipley 9 Sep 2026; + endothermic, wood slow pyrolysis roughly 0 to +200')
 rin('cps','Specific heat, dry feed',0.35,'Btu/lb·°F','',N2)
 rin('tgas','Volatile gas temperature leaving reactor',900,'°F','')
 rin('loss','Reactor shell loss',0.05,'fraction of demand','Indirect fired, insulated',P0)
@@ -426,7 +426,7 @@ rin('res','Residence time',30,'min','Slow pyrolysis 20–60 min; torrefaction 15
 rin('fillr','Reactor fill',0.15,'fraction','',P0)
 rin('bdr','Feed bulk density',8,'lb/ft³','',N1)
 rin('diar','Reactor drum diameter',5,'ft','Pick; length is sized below. Go up a size if L/D exceeds 10',N1)
-rin('flux','Allowable indirect shell heat flux',4000,'Btu/hr·ft²','Indirect rotary reactors 2,000–6,000; confirm with MCE shell design')
+rin('flux','Allowable indirect shell heat flux',4000,'Btu/hr·ft²','MCE default, confirmed J. Shipley 9 Sep 2026; indirect rotary reactors 2,000–6,000')
 # yield table
 wr['G4']='CHAR YIELD GUIDE (wood, dry basis)'; wr['G4'].font=F_B
 hdr(wr,5,['Solids temp °F','Yield'],7)
