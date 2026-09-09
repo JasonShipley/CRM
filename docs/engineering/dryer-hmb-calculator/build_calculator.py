@@ -549,6 +549,10 @@ M(58,46,68,46); T(58,46,'Page 1/1',F_U,'right')
 # logo (openpyxl creates the drawing part; shapes are appended after save)
 img=XLImage('/home/user/CRM/docs/engineering/dryer-hmb-calculator/mce_logo.png'); img.width=330; img.height=int(330*img.height/img.width) if False else 101
 img.anchor='C38'; wf.add_image(img)
+D='/home/user/CRM/docs/engineering/dryer-hmb-calculator/'
+im=XLImage(D+'img_dryer.png'); im.width=int(19*23); im.height=int(19*23*503/1245); im.anchor=get_column_letter(34)+'17'; wf.add_image(im)
+im=XLImage(D+'img_cyclone.png'); im.height=int(15*22); im.width=int(15*22*414/1288); im.anchor=get_column_letter(58)+'15'; wf.add_image(im)
+im=XLImage(D+'img_fan.png'); im.width=int(7.5*23); im.height=int(7.5*23*729/900); im.anchor=get_column_letter(44)+'4'; wf.add_image(im)
 wf.print_area='A1:BQ48'; wf.page_setup.orientation='landscape'; wf.page_setup.paperSize=1; wf.sheet_properties.pageSetUpPr.fitToPage=True; wf.page_setup.fitToWidth=1; wf.page_setup.fitToHeight=1
 wf.page_margins.left=0.4; wf.page_margins.right=0.4; wf.page_margins.top=0.4; wf.page_margins.bottom=0.4
 FLOW_SHAPES=dict(CW=CW,RH=RH)
@@ -687,23 +691,18 @@ S.append(sp(8,19.3,9,22.3,'rect',TAN)); S.append(sp(9,17,18,24.5,'rect',TAN,text
 S.append(ln(5,13,5,20.3,BLK)); S.append(ln(5,20.3,8,20.3,BLK,True))
 S.append(ln(4,25,4,21.5,BLUE)); S.append(ln(4,21.5,8,21.5,BLUE,True))
 # inlet gas main line and the two drops
-S.append(ln(18,20.8,32,20.8,BLUE,True)); S.append(ln(18.5,15,18.5,20.8,BLUE,True)); S.append(ln(32,15,32,20.8,BLUE,True))
+S.append(ln(18,20.8,33.2,20.8,BLUE,True)); S.append(ln(18.5,15,18.5,20.8,BLUE,True)); S.append(ln(32,15,32,20.8,BLUE,True))
 # wet feed into dryer
-S.append(ln(28,23,28,22.2,BLK)); S.append(ln(28,22.2,32,22.2,BLK,True))
-# dryer: stub, flanges, body, flanges, stub
-S.append(sp(32,18.6,33,22.6,'rect',DRUM)); S.append(sp(33,17.6,34,23.6,'rect',DRUM)); S.append(sp(35,17.6,36,23.6,'rect',DRUM))
-S.append(sp(36,16.6,48,24.6,'rect',DRUM,text='XD Series Rotary Dryer',sz=1400))
-S.append(sp(48,17.6,49,23.6,'rect',DRUM)); S.append(sp(50,17.6,51,23.6,'rect',DRUM)); S.append(sp(51,18.6,52,22.6,'rect',DRUM))
+S.append(ln(28,23,28,22.2,BLK)); S.append(ln(28,22.2,33.2,22.2,BLK,True))
+# dryer body is the XD render image (added below); keep small inlet/outlet stubs so the lines land on metal
 # dryer to cyclone
-S.append(ln(52,20.6,55,20.6,BLK)); S.append(ln(55,20.6,55,17.2,BLK)); S.append(ln(55,17.2,57,17.2,BLK,True))
+S.append(ln(51.6,20.6,55,20.6,BLK)); S.append(ln(55,20.6,55,17.8,BLK)); S.append(ln(55,17.8,57.6,17.8,BLK,True))
 # cyclone
-S.append(sp(57,16.2,58,18.4,'rect',CYC)); S.append(sp(58,15,63,21,'rect',CYC,text='Cyclone Collector',sz=1200,vert=True)); S.append(sp(58,21,63,27,'trapezoid',CYC,flipV=True)); S.append(sp(59.5,27,61.5,28.6,'rect',CYC))
 # cyclone top to fan, fan to exhaust
-S.append(ln(60.5,15,60.5,12,BLUE)); S.append(ln(60.5,12,45.5,12,BLUE)); S.append(ln(45.5,12,45.5,10.6,BLUE,True))
-S.append(sp(46.8,5,50.2,7.6,'rect',TAN)); S.append(sp(43,5.2,48.2,10.6,'ellipse',TAN,text='Dryer Fan',sz=1200))
-S.append(ln(50.2,6.3,52.5,6.3,BLUE)); S.append(ln(52.5,6.3,52.5,1.6,BLUE,True))
+S.append(ln(60.8,14.6,60.8,12,BLUE)); S.append(ln(60.8,12,47,12,BLUE)); S.append(ln(47,12,47,10.4,BLUE,True))
+S.append(ln(49.6,4.2,52.5,4.2,BLUE)); S.append(ln(52.5,4.2,52.5,1.6,BLUE,True))
 # cyclone bottom to dry material; dry material to fuel / net product
-S.append(ln(60.5,28.6,60.5,31,BLK,True)); S.append(ln(55,30.6,48,30.6,BLUE,True)); S.append(ln(55,34.6,48,34.6,BLUE,True))
+S.append(ln(60.8,29.2,60.8,31,BLK,True)); S.append(ln(55,30.6,48,30.6,BLUE,True)); S.append(ln(55,34.6,48,34.6,BLUE,True))
 SHAPES_XML=''.join(S)
 def inject_shapes(path):
     tmp=path+'.tmp'

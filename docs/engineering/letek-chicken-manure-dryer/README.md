@@ -78,3 +78,14 @@ gas train; LPG tank and vaporizer (by others) → gas train; both to B-101 with 
 High on the drum and the thermal duty for a given cake moisture. Medium on exhaust volume and cyclone
 size (first-principles, pending MCE calculator). Low on anything downstream of the press until a sample
 is tested. No prices or lead times in this document; those belong to the quote.
+
+## Calculator run and quote (9 Sep 2026)
+
+`case_letek_140tpd.json` is the case file for the MCE Dryer HMB Calculator (`../dryer-hmb-calculator/run_case.py`).
+`LETEK_140tpd_caseA.xlsx` is the run and `LETEK_140tpd_caseA_Flow.pdf` the customer Flow page. The calculator
+selected the XD-96 8 ft x 40 ft on airflow (12,934 ACFM at 230 F, 74% utilization), 7.28 MMBtu/hr on the MCE
+basis (6.61 rigorous), 50 hp fan at 12 in WC, 22 in duct, 366 lb/hr propane before biogas credit.
+
+QBO draft estimate 20260909-LETEK-A (customer LETEK DCG, created 9 Sep 2026): catalog-priced lines total
+$147,818.58; the XD-96 system, dual-fuel burner, screw press, biogas skid and XF-36 fan are $0 placeholders
+until priced. Not sent.
