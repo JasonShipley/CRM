@@ -36,7 +36,9 @@ rows=["MCE DRYER HEAT & MASS BALANCE CALCULATOR  ·  Rev A  ·  8 Sep 2026",
 "1. Enter the job on the Inputs sheet. Blue cells are inputs; black cells are formulas; green cells pull from another sheet; yellow cells are model data MCE still has to fill in.",
 "2. Read the HMB sheet: mass balance, MCE duty vs rigorous duty, combustion, airflow, energy closure (must be zero).",
 "3. Read the Equipment sheet: selected dryer model, burner, fan, duct, cyclone inlet, airlocks, annual fuel.",
-"4. Metric sheet mirrors the key results in SI units. Emissions sheet gives potential-to-emit.",
+"4. Summary sheet is the one-page hand-off for quoting. Metric sheet mirrors the key results in SI units. Emissions sheet gives potential-to-emit.",
+"4b. Biochar Reactor sheet sizes a slow-pyrolysis or torrefaction rotary reactor on the dryer product (or a manual feed): char yield, volatiles energy, autothermal check, auxiliary fuel or surplus heat, reactor length by residence time and by indirect heat flux. Set the coupling switch on Inputs to Yes to credit the surplus against dryer fuel.",
+"4c. Drum length is sized, not just checked: the HMB sheet gives the length required at the selected diameter for the residence-time and fill targets, and the Summary shows whether to extend past the standard length.",
 "5. Dryer Models: ten standard single-pass sizes plus a custom row; ten triple-pass rows on the same shells with a placeholder airflow factor (yellow) plus a custom row; Z8 eight-pass rows from the original workbook. A model is selected automatically as the smallest of the chosen type that meets both airflow and evaporation with the design margin. Burners are sized to the heat loading; a burner cap is optional per row.",
 "",
 "WHAT WAS WRONG IN THE ORIGINAL (kept here so it is not repeated)",
@@ -87,7 +89,8 @@ inp('tout','Product temperature out',200,'°F','Dried material discharge tempera
 inp('cp','Specific heat of dry solids',0.35,'Btu/lb·°F','Dry wood 0.32–0.40; original sheets used 0.55 (wet) and 0.23 (Prozus)',N2)
 inp('bd','Bulk density, dried product',8,'lb/ft³','Used for airlock and screw sizing',N1)
 inp('bdwet','Bulk density, wet feed',12,'lb/ft³','',N1)
-inp('restime','Drum residence time',15,'min','Hold-up check only; 10–30 min typical single pass',N0)
+inp('restime','Drum residence time target',15,'min','Sizes the drum length; 10–30 min single pass, longer for fluffy or sticky product',N0)
+inp('fill','Drum fill target',0.10,'fraction of drum volume','5–15% normal; sets the length needed for the residence time',P0)
 sec(wi,r,'SITE',2,5); r+=1
 inp('elev','Elevation',1200,'ft','')
 inp('tamb','Ambient temperature',60,'°F','')
@@ -120,6 +123,8 @@ inp('bmargin','Burner sizing margin',0.20,'fraction','',P0)
 inp('smargin','Model selection margin on airflow and evaporation',0.15,'fraction','',P0)
 inp('burnerflux','Burner face heat release',1200,'Btu/hr per in²','Drying Rates Calculator',N0)
 inp('tpfactor','Triple-pass airflow factor vs single-pass of same OD',1.0,'fraction','PLACEHOLDER until the Baker-Rullman spec table is loaded; 1.0 rates a triple-pass drum like a single-pass of the same OD',N2)
+sec(wi,r,'BIOCHAR REACTOR COUPLING',2,5); r+=1
+inp('couple','Credit reactor surplus heat against dryer fuel?','No','','Yes or No. Yes takes the surplus from the Biochar Reactor sheet off the purchased fuel')
 sec(wi,r,'OPERATION',2,5); r+=1
 inp('hrsday','Hours per day',24,'h','',N0)
 inp('daysyr','Days per year',312,'d','',N0)
@@ -147,6 +152,7 @@ for col in 'JKLM': wi.column_dimensions[col].width=13
 wi.column_dimensions['N'].width=60
 dv1=DataValidation(type='list',formula1='=$G$5:$G$9',allow_blank=False); wi.add_data_validation(dv1); dv1.add(I['dtype'].split('!')[1].replace('$',''))
 dv2=DataValidation(type='list',formula1='=$G$13:$G$18',allow_blank=False); wi.add_data_validation(dv2); dv2.add(I['fuel'].split('!')[1].replace('$',''))
+dv3=DataValidation(type='list',formula1='"Yes,No"',allow_blank=False); wi.add_data_validation(dv3); dv3.add(I['couple'].split('!')[1].replace('$',''))
 wi.freeze_panes='B3'
 
 # ===================== HMB =====================
@@ -190,7 +196,10 @@ row(wh,H,'btuchk','Check against MCE factor',f'=IF(ABS({H["btulb"]}/{H["efac"]}-
 row(wh,H,'qdesign','Design fired duty used downstream',f'=MAX({H["qmce"]},{H["qfired"]})','Btu/hr',bold=True,note='Larger of the two, by policy')
 sec(wh,r,'COMBUSTION',2,5); r+=1
 row(wh,H,'fuel','Fuel rate',f'={H["qdesign"]}/{L("hhv")}','lb/hr',N1,bold=True)
-row(wh,H,'fuelcf','Fuel volume',f'={H["fuel"]}/INDEX(Inputs!$I$13:$I$18,MATCH({L("fuel")},Inputs!$G$13:$G$18,0))/60','ft³/min',N1,note='Gas fuels: ft³/min at standard; solid fuels: bulk ft³/min')
+row(wh,H,'credit','Reactor surplus heat credited',f'=IF({L("couple")}="Yes",MAX(0,MIN({H["qdesign"]},\'Biochar Reactor\'!$C$40)),0)','Btu/hr',N0,note='From the Biochar Reactor sheet when coupling is Yes')
+row(wh,H,'qpurch','Purchased fuel duty',f'={H["qdesign"]}-{H["credit"]}','Btu/hr',N0,bold=True)
+row(wh,H,'fuelp','Purchased fuel rate',f'={H["qpurch"]}/{L("hhv")}','lb/hr',N1,bold=True)
+row(wh,H,'fuelcf','Fuel volume (all fired)',f'={H["fuel"]}/INDEX(Inputs!$I$13:$I$18,MATCH({L("fuel")},Inputs!$G$13:$G$18,0))/60','ft³/min',N1,note='Gas fuels: ft³/min at standard; solid fuels: bulk ft³/min')
 row(wh,H,'cair','Combustion air',f'={H["fuel"]}*{L("stoich")}*(1+{L("xs")})','lb/hr')
 row(wh,H,'poc','Products of combustion',f'={H["fuel"]}+{H["cair"]}','lb/hr')
 row(wh,H,'pocw','Water in products of combustion',f'={H["fuel"]}*{L("h2ofuel")}+{H["cair"]}*{L("hum")}','lb/hr')
@@ -225,8 +234,13 @@ sec(wh,r,'DRUM CHECKS (selected model from Equipment sheet)',2,5); r+=1
 row(wh,H,'model','Selected dryer',"=Equipment!$C$5",'',link=True)
 row(wh,H,'vol','Drum volume',"=Equipment!$C$8",'ft³',N0,link=True)
 row(wh,H,'load','Evaporative loading',f'=IF({H["vol"]}>0,{H["evap"]}/{H["vol"]},"n/a")','lb/hr·ft³',N2,bold=True,note='Single-pass practice 3–8 on biomass, 2–5 on sludge and manure')
-row(wh,H,'holdvol','Material in drum at residence time',f'={L("wet")}/60*{L("restime")}/{L("bdwet")}','ft³',N1)
-row(wh,H,'holdpct','Drum fill',f'=IF({H["vol"]}>0,{H["holdvol"]}/{H["vol"]},"n/a")','fraction',P1,note='Original FLOW used 1.5 minutes of product and read 0.1%; 5–15% is normal')
+row(wh,H,'holdvol','Material in drum at residence time target',f'={L("wet")}/60*{L("restime")}/{L("bdwet")}','ft³',N1)
+row(wh,H,'holdpct','Drum fill at standard length',f'=IF({H["vol"]}>0,{H["holdvol"]}/{H["vol"]},"n/a")','fraction',P1,note='Original FLOW used 1.5 minutes of product and read 0.1%; 5–15% is normal')
+row(wh,H,'restd','Residence time at standard length and fill target',f'=IF({H["vol"]}>0,{H["vol"]}*{L("fill")}/({L("wet")}/60/{L("bdwet")}),"n/a")','min',N1)
+row(wh,H,'volreq','Drum volume required for residence target at fill target',f'={H["holdvol"]}/{L("fill")}','ft³',N0)
+row(wh,H,'lenreq','Drum length required at selected diameter',"=IF(ISNUMBER(Equipment!$C$5),"+H["volreq"]+"/(PI()/4*Equipment!$C$5^2),\"n/a\")",'ft',N1,bold=True,note='Extend the drum past the standard length when this is longer')
+row(wh,H,'lensel','Drum length to quote',"=IF(ISNUMBER(Equipment!$C$6),MAX(Equipment!$C$6,CEILING("+H["lenreq"]+",1)),\"n/a\")",'ft',N0,bold=True)
+row(wh,H,'lennote','Length note',"=IF(ISNUMBER(Equipment!$C$6),IF("+H["lenreq"]+">Equipment!$C$6,\"EXTEND DRUM \"&TEXT("+H["lenreq"]+"-Equipment!$C$6,\"0.0\")&\" ft FOR RETENTION TIME\",\"STANDARD LENGTH GIVES THE RETENTION TIME\"),\"\")",'')
 wh.freeze_panes='B3'
 
 # ===================== DRYER MODELS =====================
@@ -294,6 +308,7 @@ row(we,E,'selacfm','Model design airflow',f'=IFERROR(INDEX({rng("H")},MATCH(MIN(
 row(we,E,'selevap','Model rated evaporation',f'=IFERROR(INDEX({rng("L")},MATCH(MIN({rng("M")}),{rng("M")},0)),"")','lb/hr',N0)
 row(we,E,'selburn','Model maximum burner',f'=IFERROR(IF(INDEX({rng("I")},MATCH(MIN({rng("M")}),{rng("M")},0))="","not entered",INDEX({rng("I")},MATCH(MIN({rng("M")}),{rng("M")},0))),"")','MMBtu/hr',N1)
 row(we,E,'selbrated','Burner at model rated evaporation',f'=IFERROR(INDEX({rng("N")},MATCH(MIN({rng("M")}),{rng("M")},0)),"")','MMBtu/hr',N1,note='What the drum can use at reference loading; the job burner below is what it needs')
+row(we,E,'lenq','Drum length to quote (standard or extended for retention)',f'={H["lensel"]}','ft',N0,bold=True,link=True)
 row(we,E,'useacfm','Airflow utilization',f'=IF(ISNUMBER({E["selacfm"]}),{H["acfm"]}/{E["selacfm"]},"")','',P0)
 row(we,E,'useevap','Evaporation utilization',f'=IF(ISNUMBER({E["selevap"]}),{H["evap"]}/{E["selevap"]},"")','',P0)
 sec(we,r,'BURNER',2,5); r+=1
@@ -325,8 +340,8 @@ sec(we,r,'ANNUAL',2,5); r+=1
 row(we,E,'hrs','Operating hours',f'={L("hrsyr")}','h/yr',N0,link=True)
 row(we,E,'prodyr','Dried product',f'={H["prod"]}*{E["hrs"]}/2000','tons/yr',N0)
 row(we,E,'wateryr','Water removed',f'={H["evap"]}*{E["hrs"]}/2000','tons/yr',N0)
-row(we,E,'fuelyr','Fuel',f'={H["fuel"]}*{E["hrs"]}/2000','tons/yr',N0)
-row(we,E,'mmbtuyr','Fuel energy',f'={H["qdesign"]}*{E["hrs"]}/1000000','MMBtu/yr',N0)
+row(we,E,'fuelyr','Purchased fuel',f'={H["fuelp"]}*{E["hrs"]}/2000','tons/yr',N0)
+row(we,E,'mmbtuyr','Purchased fuel energy',f'={H["qpurch"]}*{E["hrs"]}/1000000','MMBtu/yr',N0)
 row(we,E,'fuelcost','Fuel cost',f'={E["mmbtuyr"]}*{L("fuelcost")}','$/yr','$#,##0')
 row(we,E,'fuelton','Fuel cost per ton of product',f'=IF({E["prodyr"]}>0,{E["fuelcost"]}/{E["prodyr"]},0)','$/ton','$#,##0.00',bold=True)
 we.freeze_panes='B3'
@@ -379,6 +394,91 @@ for name,f in lines:
     for cc in (4,5,6,7): wx.cell(r,cc).border=BOX
     r+=1
 
+
+# ===================== BIOCHAR REACTOR =====================
+wr=wb.create_sheet('Biochar Reactor'); widths(wr,[2,50,16,14,62])
+wr['B1']='BIOCHAR REACTOR  ·  slow pyrolysis / torrefaction option  ·  imperial'; wr['B1'].font=F_H
+wr['B2']='Mass and energy balance for an indirect-fired rotary reactor. Blue = input. Volatiles are burned in an afterburner; surplus heat can be credited to the dryer (Inputs: coupling = Yes).'; wr['B2'].font=F_NOTE
+R={}; r=4
+def rin(name,label,val,unit,note='',fmt=N0):
+    global r
+    wr.cell(r,2,label).font=F_LABEL; c=wr.cell(r,3,val); c.font=F_IN; c.number_format=fmt; c.border=BOX; wr.cell(r,4,unit).font=F_LABEL
+    if note: wr.cell(r,5,note).font=F_NOTE
+    R[name]=f"'Biochar Reactor'!$C${r}"; r+=1
+sec(wr,r,'INPUTS',2,5); r+=1
+rin('src','Feed source','Dryer product','','Dryer product (takes rate and moisture from HMB) or Manual (enter below)')
+rin('feedm','Manual feed rate, wet',2000,'lb/hr','Used only when source = Manual')
+rin('mcm','Manual feed moisture, wet basis',0.10,'','',P1)
+rin('tfeed','Feed temperature',150,'°F','Dryer product arrives hot; ambient if from storage')
+rin('hhv','Feed heating value, dry basis',8000,'Btu/lb','Wood ~8,000–8,600 dry')
+rin('ash','Ash, dry basis',0.02,'','',P1)
+rin('treac','Reactor solids temperature',932,'°F','500 °C = 932 °F slow pyrolysis; torrefaction 480–570 °F')
+rin('yield','Char yield, dry basis',0.28,'fraction of dry feed','See table at right; Prozus report assumed 1.0, which is why its 67% product was wrong',P0)
+rin('hhvchar','Char heating value',12500,'Btu/lb','Wood char 11,500–13,500 dry')
+rin('qrxn','Reaction heat',100,'Btu/lb dry feed','+ endothermic; wood slow pyrolysis roughly 0 to +200')
+rin('cps','Specific heat, dry feed',0.35,'Btu/lb·°F','',N2)
+rin('tgas','Volatile gas temperature leaving reactor',900,'°F','')
+rin('loss','Reactor shell loss',0.05,'fraction of demand','Indirect fired, insulated',P0)
+rin('etaab','Afterburner combustion efficiency',0.90,'fraction','Share of volatile energy recovered as hot gas',P0)
+rin('tfg','Afterburner flue gas temperature',1600,'°F','Sets the gas volume available to the reactor jacket and dryer')
+rin('tjout','Jacket gas outlet temperature',700,'°F','Flue gas leaves the reactor jacket above the solids temperature')
+rin('res','Residence time',30,'min','Slow pyrolysis 20–60 min; torrefaction 15–30')
+rin('fillr','Reactor fill',0.15,'fraction','',P0)
+rin('bdr','Feed bulk density',8,'lb/ft³','',N1)
+rin('diar','Reactor drum diameter',5,'ft','Pick; length is sized below. Go up a size if L/D exceeds 10',N1)
+rin('flux','Allowable indirect shell heat flux',4000,'Btu/hr·ft²','Indirect rotary reactors 2,000–6,000; confirm with MCE shell design')
+# yield table
+wr['G4']='CHAR YIELD GUIDE (wood, dry basis)'; wr['G4'].font=F_B
+hdr(wr,5,['Solids temp °F','Yield'],7)
+for i,(t,y) in enumerate([(480,0.85),(570,0.70),(750,0.40),(840,0.33),(932,0.28),(1100,0.24),(1300,0.21)]):
+    wr.cell(6+i,7,t).font=F_IN; c=wr.cell(6+i,8,y); c.font=F_IN; c.number_format=P0
+wr.cell(13,7,'Torrefaction 480–570 °F keeps 70–85%; slow pyrolysis 840–1,100 °F gives 24–33%. Confirm on a sample.').font=F_NOTE
+wr.column_dimensions['G'].width=16; wr.column_dimensions['H'].width=10
+sec(wr,r,'MASS BALANCE',2,5); r+=1
+def rrow(name,label,f,unit,fmt=N0,bold=False,note=''):
+    global r
+    wr.cell(r,2,label).font=F_B if bold else F_LABEL; c=wr.cell(r,3,f); c.number_format=fmt; c.border=BOX; c.font=F_B if bold else F_LABEL; wr.cell(r,4,unit).font=F_LABEL
+    if note: wr.cell(r,5,note).font=F_NOTE
+    R[name]=f"'Biochar Reactor'!$C${r}"; r+=1
+rrow('feed','Feed, wet',f'=IF({R["src"]}="Dryer product",{H["prod"]},{R["feedm"]})','lb/hr')
+rrow('mc','Feed moisture',f'=IF({R["src"]}="Dryer product",{L("mcout")},{R["mcm"]})','',P1)
+rrow('dry','Dry feed',f'={R["feed"]}*(1-{R["mc"]})','lb/hr')
+rrow('water','Water in feed',f'={R["feed"]}*{R["mc"]}','lb/hr')
+rrow('char','Biochar out',f'={R["dry"]}*{R["yield"]}','lb/hr',bold=True)
+rrow('chartph','Biochar out',f'={R["char"]}/2000','TPH',N2)
+rrow('vol','Volatiles + gas',f'={R["dry"]}-{R["char"]}','lb/hr')
+rrow('yieldwet','Char as share of wet feed',f'={R["char"]}/{R["feed"]}','',P1)
+sec(wr,r,'ENERGY',2,5); r+=1
+rrow('qheat','Heat dry feed to reactor temperature',f'={R["dry"]}*{R["cps"]}*({R["treac"]}-{R["tfeed"]})','Btu/hr')
+rrow('qwat','Evaporate and superheat feed moisture',f'={R["water"]}*(1.01*(212-{R["tfeed"]})+970.4+0.45*({R["tgas"]}-212))','Btu/hr')
+rrow('qr','Reaction heat',f'={R["dry"]}*{R["qrxn"]}','Btu/hr')
+rrow('qvol','Heat volatiles to gas outlet temperature (above solids)',f'={R["vol"]}*0.45*MAX(0,{R["tgas"]}-{R["treac"]})','Btu/hr')
+rrow('qdem','Reactor heat demand incl. shell loss',f'=({R["qheat"]}+{R["qwat"]}+{R["qr"]}+{R["qvol"]})*(1+{R["loss"]})','Btu/hr',bold=True)
+rrow('qdemMM','Reactor heat demand',f'={R["qdem"]}/1000000','MMBtu/hr',N2)
+rrow('evol','Energy in volatiles (HHV basis)',f'={R["dry"]}*{R["hhv"]}*(1-{R["ash"]})-{R["char"]}*{R["hhvchar"]}','Btu/hr',note='Feed energy minus char energy; the standard estimate for pyrolysis gas plus tar')
+rrow('evolMM','Energy in volatiles',f'={R["evol"]}/1000000','MMBtu/hr',N2)
+rrow('eab','Hot gas from afterburner',f'={R["evol"]}*{R["etaab"]}','Btu/hr')
+rrow('jfrac','Share of afterburner heat usable in the jacket',f'=({R["tfg"]}-{R["tjout"]})/({R["tfg"]}-{L("tamb")})','fraction',N3,note='Gas cools from flue temperature to jacket outlet; the rest leaves with the gas')
+rrow('ejacket','Heat deliverable to reactor through jacket',f'={R["eab"]}*{R["jfrac"]}','Btu/hr')
+rrow('aux','Auxiliary fuel needed at reactor',f'=MAX(0,{R["qdem"]}-{R["ejacket"]})','Btu/hr',bold=True,note='Zero means autothermal on its own volatiles')
+rrow('surplus','Surplus heat available to dryer',f'=MAX(0,{R["eab"]}-{R["qdem"]})','Btu/hr',bold=True,note='Afterburner gas beyond reactor demand; credited on HMB when coupling = Yes')
+rrow('surplusMM','Surplus heat available to dryer',f'={R["surplus"]}/1000000','MMBtu/hr',N2)
+rrow('auto','Status',f'=IF({R["aux"]}=0,"AUTOTHERMAL: volatiles cover the reactor","NEEDS "&TEXT({R["aux"]}/1000000,"0.00")&" MMBtu/hr AUXILIARY FUEL")','')
+rrow('fg','Afterburner flue gas mass',f'={R["eab"]}/(0.27*({R["tfg"]}-{L("tamb")}))','lb/hr',note='Includes combustion and dilution air to hold the flue temperature')
+rrow('fgacfm','Afterburner flue gas volume at flue temperature',f'={R["fg"]}/(0.0765*530/(460+{R["tfg"]}))/60','ACFM')
+sec(wr,r,'REACTOR SIZING',2,5); r+=1
+rrow('vreq','Reactor volume for residence time at fill',f'={R["feed"]}/60/{R["bdr"]}*{R["res"]}/{R["fillr"]}','ft³',N0)
+rrow('area','Cross-section at chosen diameter',f'=PI()/4*{R["diar"]}^2','ft²',N1)
+rrow('lreq','Reactor length for residence time',f'={R["vreq"]}/{R["area"]}','ft',N1,bold=True)
+rrow('shell','Shell area at that length',f'=PI()*{R["diar"]}*{R["lreq"]}','ft²',N0)
+rrow('fluxa','Indirect heat flux at that shell area',f'={R["qdem"]}/{R["shell"]}','Btu/hr·ft²',N0,bold=True)
+rrow('lflux','Reactor length for allowable heat flux',f'={R["qdem"]}/{R["flux"]}/(PI()*{R["diar"]})','ft',N1,bold=True)
+rrow('lsel','Reactor length to quote (larger of the two)',f'=CEILING(MAX({R["lreq"]},{R["lflux"]}),1)','ft',N0,bold=True)
+rrow('ld','Length to diameter',f'={R["lsel"]}/{R["diar"]}','',N1,note='4–10 typical for rotary reactors; go up a diameter if above 10')
+rrow('fluxchk','Heat transfer check',f'=IF({R["fluxa"]}<={R["flux"]},"RESIDENCE TIME GOVERNS THE LENGTH","HEAT FLUX GOVERNS: length set by shell area")','')
+wr.freeze_panes='B4'
+_c=wh[H['credit'].split('!')[1].replace('$','')]; _c.value=_c.value.replace("'Biochar Reactor'!$C$40",R['surplus'])
+
 # ===================== METRIC =====================
 wmt=wb.create_sheet('Metric'); widths(wmt,[2,44,16,12,50])
 wmt['B1']='METRIC SUMMARY  ·  converted from the imperial sheets'; wmt['B1'].font=F_H
@@ -406,6 +506,60 @@ sec(wmt,r,'EQUIPMENT',2,5); r+=1
 mrow('Selected dryer',f'={E["sel"]}',''); mrow('Drum diameter × length',f'=IF(ISNUMBER({E["seldia"]}),TEXT({E["seldia"]}*0.3048,"0.00")&" × "&TEXT({E["sellen"]}*0.3048,"0.0"),"")','m')
 mrow('Burner size with margin',f'={E["bsize"]}*0.293071','MW',N2); mrow('Fan motor',f'={E["fhp"]}*0.7457','kW',N1); mrow('Exhaust duct',f'={E["ductsel"]}*25.4','mm',N0)
 mrow('Fan static pressure',f'={L("sp")}*249.09','Pa',N0)
+
+
+# ===================== SUMMARY =====================
+wsum=wb.create_sheet('Summary',1); widths(wsum,[2,44,18,12,52])
+wsum['B1']='DRYER SIZING SUMMARY  ·  for quoting'; wsum['B1'].font=F_H
+wsum['B2']=f'={L("job")}'; wsum['B2'].font=F_LINK
+r=4
+def srow(label,f,unit='',fmt=N0,bold=False,note=''):
+    global r
+    wsum.cell(r,2,label).font=F_B if bold else F_LABEL; c=wsum.cell(r,3,f); c.number_format=fmt; c.border=BOX; c.font=F_LINK; wsum.cell(r,4,unit).font=F_LABEL
+    if note: wsum.cell(r,5,note).font=F_NOTE
+    r+=1
+sec(wsum,r,'PROCESS',2,5); r+=1
+srow('Material',f'={L("material")}')
+srow('Wet feed',f'={L("wet")}','lb/hr')
+srow('Moisture in → out (wet basis)',f'=TEXT({L("mcin")},"0%")&" → "&TEXT({L("mcout")},"0%")')
+srow('Dried product',f'={H["prod"]}','lb/hr',bold=True)
+srow('Water evaporated',f'={H["evap"]}','lb/hr',bold=True)
+srow('Dryer type',f'={L("dtype")}')
+srow('Drum inlet / exhaust gas',f'=TEXT({L("tgin")},"0")&" / "&TEXT({L("tgout")},"0")','°F')
+sec(wsum,r,'HEAT',2,5); r+=1
+srow('Total Btu of system (MCE, '+'1,750 basis)',f'={H["qmceMM"]}','MMBtu/hr',N2,bold=True)
+srow('Rigorous check',f'={H["qfiredMM"]}','MMBtu/hr',N2,note='')
+srow('Btu per lb water, rigorous',f'={H["btulb"]}','Btu/lb')
+srow('Check',f'={H["btuchk"]}')
+srow('Fuel',f'={L("fuel")}')
+srow('Purchased fuel',f'={H["fuelp"]}','lb/hr',N1)
+srow('Reactor heat credited',f'={H["credit"]}/1000000','MMBtu/hr',N2)
+sec(wsum,r,'DRYER',2,5); r+=1
+srow('Model',f'={E["sel"]}',bold=True)
+srow('Drum diameter',f'={E["seldia"]}','ft',N1)
+srow('Standard length',f'={E["sellen"]}','ft',N1)
+srow('Length to quote',f'={H["lensel"]}','ft',N0,bold=True)
+srow('Length note',f'={H["lennote"]}')
+srow('Residence time at quoted length and fill target',f'=IF(ISNUMBER({H["lensel"]}),{H["lensel"]}*PI()/4*{E["seldia"]}^2*{L("fill")}/({L("wet")}/60/{L("bdwet")}),"")','min',N1)
+srow('Evaporative loading at standard length',f'={H["load"]}','lb/hr·ft³',N2)
+srow('Airflow utilization',f'={E["useacfm"]}','',P0)
+sec(wsum,r,'EQUIPMENT',2,5); r+=1
+srow('Burner, with margin',f'={E["bsize"]}','MMBtu/hr',N2,bold=True)
+srow('Burner face area',f'={E["bsqin"]}','in²')
+srow('Exhaust fan',f'={E["facfm"]}','ACFM',N0,bold=True)
+srow('Fan static / motor',f'=TEXT({L("sp")},"0.0")&" in WC / "&TEXT({E["fhp"]},"0")&" hp"')
+srow('Exhaust duct',f'={E["ductsel"]}','in')
+srow('Cyclone inlet area (for the cyclone calculator)',f'={E["cycin"]}','in²')
+srow('Discharge / infeed airlock',f'={E["alout"]}&" / "&{E["alin"]}')
+srow('Infeed screw',f'={E["screw"]}','in')
+sec(wsum,r,'ANNUAL',2,5); r+=1
+srow('Operating hours',f'={E["hrs"]}','h/yr')
+srow('Dried product',f'={E["prodyr"]}','tons/yr')
+srow('Purchased fuel energy',f'={E["mmbtuyr"]}','MMBtu/yr')
+srow('Fuel cost',f'={E["fuelcost"]}','$/yr','$#,##0')
+srow('Fuel cost per ton',f'={E["fuelton"]}','$/ton','$#,##0.00',bold=True)
+wsum.cell(r+1,2,'Every value on this page is a link to Inputs, HMB, Equipment or Biochar Reactor. Change nothing here.').font=F_NOTE
+wsum.print_area='B1:E'+str(r+1)
 
 # ===================== CASES =====================
 wc=wb.create_sheet('Cases'); widths(wc,[2,34,18,18,18,18])

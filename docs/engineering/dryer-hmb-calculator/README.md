@@ -9,12 +9,14 @@ from the Inputs sheet; nothing is pasted. `build_calculator.py` regenerates it.
 | Sheet | Purpose |
 |---|---|
 | README | How to use, what was wrong in the original, assumptions and sources |
+| Summary | One-page hand-off for quoting: process, heat, dryer model and length to quote, burner, fan, duct, airlocks, annual fuel. All links, no inputs. |
 | Inputs | The job: feed, moistures, temperatures, site, dryer type, fuel, air-handling rules, margins, hours. Dryer-type and fuel tables live on the right. |
 | HMB | Mass balance; MCE method (theoretical Btu/lb from product inlet temperature, 1,750 with losses); rigorous balance with a closed-form gas-mass calculation from the chosen inlet temperature; combustion; exhaust ACFM/SCFM; energy closure line that must read zero; drum loading and fill for the selected model. |
-| Dryer Models | One table, three types. Single-pass standard sizes 3x12, 3x20, 4x20, 5x25, 6x30, 7x35, 8x40, 10x50, 12x60, 13x60 plus a custom row (any size can be built). Triple-pass rows on the same shells with a placeholder airflow factor (yellow) until Baker-Rullman ratings are loaded, plus a custom row. Z8 eight-pass rows carry the ACFM table from the original workbook. Design ACFM for single pass = drum cross-section × 350 fpm. Burners are sized to the heat loading, so rated evaporation = volume × reference loading unless a burner cap is entered. Drum inlet gas limited to 900 °F. |
+| Dryer Models | One table, three types. Single-pass standard sizes 3x12, 3x20, 4x20, 5x25, 6x30, 7x35, 8x40, 10x50, 12x60, 13x60 plus a custom row (any size can be built). Triple-pass rows on the same shells with a placeholder airflow factor (yellow) until Baker-Rullman ratings are loaded, plus a custom row. Z8 eight-pass rows carry the ACFM table from the original workbook. Design ACFM for single pass = drum cross-section × 350 fpm. Burners are sized to the heat loading, so rated evaporation = volume × reference loading unless a burner cap is entered. Drum inlet gas limited to 900 °F. Drum length is sized: HMB gives the length required at the selected diameter for the residence-time and fill targets, and the Summary says whether to extend past the standard length. |
 | Equipment | Smallest model of the chosen type that meets airflow and evaporation with margin; burner with margin, face area at 1,200 Btu/in², burner counts; fan bhp and motor; duct at 5,000 fpm; cyclone inlet area; airlocks and infeed screw from the original DESIGN tables; annual product, fuel and fuel cost. |
 | Tables | Standard motor hp, airlock and screw capacity tables (from the original DESIGN sheet). |
 | Emissions | Potential to emit with factor inputs marked for confirmation against AP-42. |
+| Biochar Reactor | Slow-pyrolysis / torrefaction rotary reactor option on the dryer product or a manual feed: char yield (guide table by temperature), volatiles energy, autothermal check, auxiliary fuel or surplus heat, reactor length by residence time and by indirect shell heat flux. Coupling switch on Inputs credits the surplus against dryer fuel. |
 | Metric | SI mirror of the key results. |
 | Cases | Reference inputs for the original track B case, the Prozus case, the LETEK digestate case and the 2005 6×24 expected-performance file. |
 
@@ -27,7 +29,7 @@ from the Inputs sheet; nothing is pasted. `build_calculator.py` regenerates it.
 | Btu per lb water | 11,788 | 1,594 rigorous, 1,750 MCE governs |
 | Fuel | 1,965 lb/hr | 103 lb/hr natural gas |
 | Exhaust | 31,564 ACFM | 3,889 ACFM at 180 °F (900 °F inlet) |
-| Dryer | five different models named | XD-60 (5'×25'); the 4'×20' misses the airflow margin by 2% |
+| Dryer | five different models named | XD-60 5' dia, extended to 32 ft for 15 min retention at 10% fill; the 4'×20' misses the airflow margin by 2% |
 | Fan | 157 hp | 15 hp at 10 in WC |
 | Duct | 36 in | 12 in |
 
