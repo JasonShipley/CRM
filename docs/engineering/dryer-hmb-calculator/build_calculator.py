@@ -36,7 +36,7 @@ rows=["MCE DRYER HEAT & MASS BALANCE CALCULATOR  ·  Rev A  ·  8 Sep 2026",
 "1. Enter the job on the Inputs sheet. Blue cells are inputs; black cells are formulas; green cells pull from another sheet; yellow cells are model data MCE still has to fill in.",
 "2. Read the HMB sheet: mass balance, MCE duty vs rigorous duty, combustion, airflow, energy closure (must be zero).",
 "3. Read the Equipment sheet: selected dryer model, burner, fan, duct, cyclone inlet, airlocks, annual fuel.",
-"4. Summary sheet is the one-page hand-off for quoting. Metric sheet mirrors the key results in SI units. Emissions sheet gives potential-to-emit.",
+"4. Flow sheet is the live schematic: burner, make-up air, mixed inlet gas, feed, drum, exhaust and cyclone, fan and stack, product, fines and the optional reactor, each block showing its current numbers. Summary sheet is the one-page hand-off for quoting. Metric sheet mirrors the key results in SI units. Emissions sheet gives potential-to-emit.",
 "4b. Biochar Reactor sheet sizes a slow-pyrolysis or torrefaction rotary reactor on the dryer product (or a manual feed): char yield, volatiles energy, autothermal check, auxiliary fuel or surplus heat, reactor length by residence time and by indirect heat flux. Set the coupling switch on Inputs to Yes to credit the surplus against dryer fuel.",
 "4c. Drum length is sized, not just checked: the HMB sheet gives the length required at the selected diameter for the residence-time and fill targets, and the Summary shows whether to extend past the standard length.",
 "5. Dryer Models: ten standard single-pass sizes plus a custom row; ten triple-pass rows on the same shells with a placeholder airflow factor (yellow) plus a custom row; Z8 eight-pass rows from the original workbook. A model is selected automatically as the smallest of the chosen type that meets both airflow and evaporation with the design margin. Burners are sized to the heat loading; a burner cap is optional per row.",
@@ -478,6 +478,69 @@ rrow('ld','Length to diameter',f'={R["lsel"]}/{R["diar"]}','',N1,note='4–10 ty
 rrow('fluxchk','Heat transfer check',f'=IF({R["fluxa"]}<={R["flux"]},"RESIDENCE TIME GOVERNS THE LENGTH","HEAT FLUX GOVERNS: length set by shell area")','')
 wr.freeze_panes='B4'
 _c=wh[H['credit'].split('!')[1].replace('$','')]; _c.value=_c.value.replace("'Biochar Reactor'!$C$40",R['surplus'])
+
+# ===================== FLOW (live schematic) =====================
+wf=wb.create_sheet('Flow',2)
+for c in range(1,26): wf.column_dimensions[get_column_letter(c)].width=9.5
+wf.column_dimensions['A'].width=3
+wf['B1']='DEHYDRATION SYSTEM MASS-ENERGY BALANCE  ·  live view'; wf['B1'].font=F_H
+wf['B2']=f'={L("job")}'; wf['B2'].font=F_LINK
+FILL_BOX=PatternFill('solid',fgColor='F5F5F5'); FILL_HOT=PatternFill('solid',fgColor='FFE7D6'); FILL_WET=PatternFill('solid',fgColor='E3EEF7'); FILL_DRY=PatternFill('solid',fgColor='EAF3E6'); FILL_OPT=PatternFill('solid',fgColor='EFEFEF')
+med=Side(style='medium',color='575D5E')
+def box(r0,c0,title,lines,fill=FILL_BOX,w=4):
+    # title row + one row per line; label spans w-2 cols, value 1 col, unit 1 col
+    n=len(lines); r1=r0+n
+    wf.merge_cells(start_row=r0,start_column=c0,end_row=r0,end_column=c0+w-1)
+    t=wf.cell(r0,c0,title); t.font=F_S; t.fill=FILL_S; t.alignment=Alignment(horizontal='center')
+    for i,ln in enumerate(lines):
+        lab,f,unit,fmt=ln[:4]; wide=len(ln)>4
+        rr=r0+1+i
+        if wide:
+            wf.merge_cells(start_row=rr,start_column=c0,end_row=rr,end_column=c0+w-1)
+            v=wf.cell(rr,c0,f); v.font=Font(name='Arial',size=9,bold=True,color='008000'); v.alignment=Alignment(horizontal='center')
+        else:
+            wf.merge_cells(start_row=rr,start_column=c0,end_row=rr,end_column=c0+w-3)
+            a=wf.cell(rr,c0,lab); a.font=F_LABEL; a.alignment=Alignment(indent=1)
+            v=wf.cell(rr,c0+w-2,f); v.font=F_LINK; v.number_format=fmt; v.alignment=Alignment(horizontal='right')
+            u=wf.cell(rr,c0+w-1,unit); u.font=F_NOTE
+        for cc in range(c0,c0+w): wf.cell(rr,cc).fill=fill
+    for cc in range(c0,c0+w):
+        wf.cell(r0,cc).border=Border(top=med,left=med if cc==c0 else None,right=med if cc==c0+w-1 else None)
+        wf.cell(r1,cc).border=Border(bottom=med,left=med if cc==c0 else None,right=med if cc==c0+w-1 else None)
+    for rr in range(r0+1,r1):
+        wf.cell(rr,c0).border=Border(left=med); wf.cell(rr,c0+w-1).border=Border(right=med)
+    return r1
+def arrow(r,c,ch,rows=1):
+    for i in range(rows):
+        a=wf.cell(r+i,c,ch if i==rows//2 else ''); a.font=Font(name='Arial',size=18,bold=True,color='FF6602'); a.alignment=Alignment(horizontal='center',vertical='center')
+# ---- top row: system heat, feed, evaporation
+box(4,2,'SYSTEM HEAT',[('Total Btu of system (MCE)',f'={H["qmceMM"]}','MMBtu/hr',N2),('Rigorous check',f'={H["qfiredMM"]}','MMBtu/hr',N2),('Btu per lb water',f'={H["btulb"]}','Btu/lb',N0),('Design duty',f'={H["qdesign"]}/1000000','MMBtu/hr',N2),('Purchased fuel duty',f'={H["qpurch"]}/1000000','MMBtu/hr',N2)],FILL_HOT)
+box(4,12,'WET FEED IN',[('Wet feed',f'={L("wet")}','lb/hr',N0),('Moisture, wet basis',f'={L("mcin")}','',P1),('Dry solids',f'={H["solids"]}','lb/hr',N0),('Water',f'={H["win"]}','lb/hr',N0),('Temperature',f'={L("tin")}','°F',N0)],FILL_WET)
+box(4,17,'EVAPORATION',[('Water evaporated',f'={H["evap"]}','lb/hr',N0),('Water evaporated',f'={H["evapgal"]}','gal/hr',N1),('Loading, std length',f'={H["load"]}','lb/hr·ft³',N2),('Energy factor',f'={H["efac"]}','Btu/lb',N0)],FILL_WET)
+arrow(10,13,'↓',2)
+# ---- main line row 12
+box(12,2,'BURNER',[('Fuel',f'={L("fuel")}','',N0),('Fuel rate, all fired',f'={H["fuel"]}','lb/hr',N1),('Purchased fuel',f'={H["fuelp"]}','lb/hr',N1),('Burner with margin',f'={E["bsize"]}','MMBtu/hr',N2),('Combustion air',f'={H["cair"]}','lb/hr',N0),('Excess air',f'={L("xs")}','',P0),('Products of combustion',f'={H["poc"]}','lb/hr',N0)],FILL_HOT)
+arrow(15,6,'→')
+box(12,7,'MIXED INLET GAS',[('Hot gas to drum',f'={H["mgas"]}','lb/hr',N0),('Inlet temperature',f'={L("tgin")}','°F',N0),('Inlet volume',f'={H["acfmin"]}','ACFM',N0),('Furnace duct',f'={E["indd"]}','in',N0),('Inlet temp check',f'={H["tinchk"]}','',N0,'wide')],FILL_HOT)
+arrow(15,11,'→')
+box(12,12,'ROTARY DRUM DRYER',[('Model',f'={E["sel"]}','',N0),('Diameter',f'={E["seldia"]}','ft',N1),('Length to quote',f'={H["lensel"]}','ft',N0),('Length note',f'={H["lennote"]}','',N0,'wide'),('Residence at quoted length',f'=IF(ISNUMBER({H["lensel"]}),{H["lensel"]}*PI()/4*{E["seldia"]}^2*{L("fill")}/({L("wet")}/60/{L("bdwet")}),"")','min',N1),('Exhaust temperature',f'={L("tgout")}','°F',N0),('Airflow utilization',f'={E["useacfm"]}','',P0)],FILL_BOX)
+arrow(15,16,'→')
+box(12,17,'EXHAUST / CYCLONE',[('Exhaust gas',f'={H["extot"]}','lb/hr',N0),('Exhaust volume',f'={H["acfm"]}','ACFM',N0),('Humidity',f'={H["exww"]}','lb/lb',N3),('Cyclone inlet area',f'={E["cycin"]}','in²',N0),('Cyclone barrel class',f'={E["cycd"]}','in',N0),('Exhaust duct',f'={E["ductsel"]}','in',N0),('Duct velocity',f'={E["ductv"]}','fpm',N0)],FILL_BOX)
+arrow(15,21,'→')
+box(12,22,'FAN / STACK',[('Fan volume',f'={E["facfm"]}','ACFM',N0),('Static pressure',f'={L("sp")}','in WC',N1),('Brake hp',f'={E["fbhp"]}','bhp',N1),('Motor',f'={E["fhp"]}','hp',N0),('Standard volume',f'={H["scfm"]}','SCFM',N0),('Conveying check',f'={H["conveyc"]}','',N0,'wide')],FILL_BOX)
+# ---- below line
+box(22,2,'MAKE-UP AIR',[('Dilution air',f'={H["mdil"]}','lb/hr',N0),('Ambient',f'={L("tamb")}','°F',N0),('Humidity',f'={L("hum")}','lb/lb',N3),('In-leakage',f'={H["mleak"]}','lb/hr',N0),('Dilution check',f'={H["dilchk"]}','',N0,'wide')],FILL_BOX)
+arrow(21,8,'↑')
+arrow(20,13,'↓',2)
+box(22,12,'DRIED PRODUCT OUT',[('Product',f'={H["prod"]}','lb/hr',N0),('Product',f'={H["tph"]}','TPH',N2),('Moisture, wet basis',f'={L("mcout")}','',P1),('Temperature',f'={L("tout")}','°F',N0),('Discharge airlock',f'={E["alout"]}','',N0),('Infeed airlock / screw',f'={E["alin"]}&" / "&{E["screw"]}&" in"','',N0)],FILL_DRY)
+arrow(24,16,'←')
+box(22,17,'CYCLONE FINES',[('Fines collected, est.',"=Emissions!$C$8*("+H["solids"]+"/2000)*Emissions!$C$9",'lb/hr',N1),('Airlock under cyclone','RV','',N0),('Emissions: PM after cyclone',"=Emissions!$C$20",'lb/hr',N2),('Emissions: NOx',"=Emissions!$C$15",'lb/hr',N2)],FILL_BOX)
+arrow(29,13,'↓',2)
+box(31,12,'BIOCHAR REACTOR (option)',[('Coupling',f'={L("couple")}','',N0),('Feed source',f'={R["src"]}','',N0),('Feed to reactor',f'={R["feed"]}','lb/hr',N0),('Biochar out',f'={R["char"]}','lb/hr',N0),('Reactor demand',f'={R["qdemMM"]}','MMBtu/hr',N2),('Surplus heat to dryer',f'={R["surplusMM"]}','MMBtu/hr',N2),('Status',f'={R["auto"]}','',N0,'wide'),('Reactor size',f'=TEXT({R["diar"]},"0")&" ft × "&TEXT({R["lsel"]},"0")&" ft"','',N0)],FILL_OPT,w=8)
+wf.cell(31,21,'← surplus heat credited to burner when coupling = Yes').font=F_NOTE
+wf.cell(41,2,'Every value is a link to Inputs, HMB, Equipment, Emissions or Biochar Reactor. Change inputs on the Inputs sheet.').font=F_NOTE
+wf.sheet_view.showGridLines=False
+wf.print_area='A1:Y41'; wf.page_setup.orientation='landscape'; wf.sheet_properties.pageSetUpPr.fitToPage=True; wf.page_setup.fitToWidth=1; wf.page_setup.fitToHeight=1
 
 # ===================== METRIC =====================
 wmt=wb.create_sheet('Metric'); widths(wmt,[2,44,16,12,50])
