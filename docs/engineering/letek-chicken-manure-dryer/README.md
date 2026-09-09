@@ -89,3 +89,9 @@ basis (6.61 rigorous), 50 hp fan at 12 in WC, 22 in duct, 366 lb/hr propane befo
 QBO draft estimate 20260909-LETEK-A (customer LETEK DCG, created 9 Sep 2026): catalog-priced lines total
 $147,818.58; the XD-96 system, dual-fuel burner, screw press, biogas skid and XF-36 fan are $0 placeholders
 until priced. Not sent.
+
+## Calculator run and quote (9 Sep 2026)
+
+- `case_letek_140tpd.json` + `../dryer-hmb-calculator/run_case.py` → `LETEK_140tpd_caseA.xlsx` and `LETEK_140tpd_caseA_Flow.pdf` (the PFD). The calculator selected the XD-96 8×40 on its own; burner oversized to 15 MMBtu/hr per Jason.
+- `make_quote.py <hubspot products csv>` → `MCE_Quote_20260909-LETEK-A_Chicken_Manure_Dryer.pdf`, rendered with the repo's branded quote template and priced from the HubSpot product export of 24 Aug 2026 (not committed). Priced subtotal $718,822; burner, stainless option, screw press and biogas skid are TBD lines.
+- QBO draft estimate 20260909-LETEK-A exists on customer LETEK DCG (created 8 Sep 2026); not sent.

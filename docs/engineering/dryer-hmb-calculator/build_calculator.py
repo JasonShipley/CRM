@@ -127,6 +127,7 @@ inp('cycv','Cyclone inlet velocity',3300,'fpm','For the inlet-area line; final c
 inp('convey','Minimum conveying air',3,'lb air/lb product','Original Input A26',N1)
 inp('bmargin','Burner sizing margin',0.20,'fraction','',P0)
 inp('smargin','Model selection margin on airflow and evaporation',0.15,'fraction','',P0)
+inp('mindia','Minimum drum diameter (0 = automatic)',0,'ft','Force a larger drum than the automatic pick, e.g. 10 for an XD-120',N1)
 inp('burnerflux','Burner face heat release',1200,'Btu/hr per in²','Drying Rates Calculator',N0)
 inp('tpfactor','Triple-pass airflow factor vs single-pass of same OD',1.0,'fraction','PLACEHOLDER until the Baker-Rullman spec table is loaded; 1.0 rates a triple-pass drum like a single-pass of the same OD',N2)
 sec(wi,r,'BIOCHAR REACTOR COUPLING',2,5); r+=1
@@ -294,7 +295,7 @@ for i,(typ,model,dia,ln,acfm,burner,dims,fan,src) in enumerate(M):
     c=wm.cell(rr,10,f'=IF(I{rr}="","",I{rr}*1000000/{L("efactor")})'); c.number_format=N0; c.border=BOX
     c=wm.cell(rr,11,f'=IF(G{rr}="","",G{rr}*{ref})'); c.number_format=N0; c.border=BOX
     c=wm.cell(rr,12,f'=IF(K{rr}="","",IF(J{rr}="",K{rr},MIN(J{rr},K{rr})))'); c.number_format=N0; c.border=BOX
-    c=wm.cell(rr,13,f'=IF(AND(B{rr}={L("dtype")},H{rr}<>"",L{rr}<>"",H{rr}>=HMB!$C$52*(1+{L("smargin")}),L{rr}>={H["evap"]}*(1+{L("smargin")})),ROW(),99999)'); c.number_format=N0; c.border=BOX
+    c=wm.cell(rr,13,f'=IF(AND(B{rr}={L("dtype")},H{rr}<>"",L{rr}<>"",D{rr}>={L("mindia")},H{rr}>=HMB!$C$52*(1+{L("smargin")}),L{rr}>={H["evap"]}*(1+{L("smargin")})),ROW(),99999)'); c.number_format=N0; c.border=BOX
     c=wm.cell(rr,14,f'=IF(L{rr}="","",L{rr}*{L("efactor")}/1000000)'); c.number_format=N1; c.border=BOX
     wm.cell(rr,15,dims).font=F_IN; wm.cell(rr,16,fan).font=F_IN; wm.cell(rr,16).fill=FILL_Y
     wm.cell(rr,17,src).font=F_NOTE
