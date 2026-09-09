@@ -78,7 +78,13 @@ def inp(name,label,val,unit,note='',fmt=None,formula=False):
     if note: wi.cell(r,5,note).font=F_NOTE
     I[name]=f"Inputs!$C${r}"; r+=1
 sec(wi,r,'JOB',2,5); r+=1
-inp('job','Job / customer','Example: wood shavings dryer (case from NT-HMB-2025-001 track B)','', 'Text only')
+inp('job','Case name','Case 2 Reserve (example)','', 'Shows on the Flow sheet, top left')
+inp('customer','Customer','Stall Master','','Flow sheet header, centre')
+inp('location','Customer location','Spring Hill, Florida','','')
+inp('prep','Prepared by','NC','','')
+inp('docno','Document number','MCE-HMB-2026-001','','')
+inp('rev','Revision','0','','')
+inp('date','Date','=TODAY()','','Formula; overwrite with a fixed date when issued','mm/dd/yyyy',True)
 inp('material','Material','Wood shavings','','')
 sec(wi,r,'MATERIAL AND THROUGHPUT',2,5); r+=1
 inp('wet','Wet feed rate',3000,'lb/hr','Enter wet feed OR set to =C? from dry product below; this is the governing input',N0)
@@ -219,6 +225,11 @@ row(wh,H,'rhod','Dry gas density at exhaust temperature and elevation',f'=0.0765
 row(wh,H,'rhov','Water vapor density at exhaust temperature and elevation',f'=0.0476*530/(460+{L("tgout")})*{H["pratio"]}','lb/ft³',N4)
 row(wh,H,'acfm','Exhaust volume at exhaust temperature',f'={H["exdry"]}/{H["rhod"]}/60+{H["exw"]}/{H["rhov"]}/60','ACFM',N0,bold=True,note='Sizes the fan, cyclone and duct')
 row(wh,H,'scfm','Exhaust volume, standard',f'={H["exdry"]}/0.075/60+{H["exw"]}/0.0467/60','SCFM',N0)
+row(wh,H,'scfmin','Hot gas to dryer, standard volume',f'={H["mgas"]}/0.075/60','SCFM',N0)
+row(wh,H,'scfmdil','Make-up air, standard volume',f'={H["mdil"]}/0.075/60','SCFM',N0)
+row(wh,H,'cairacfm','Combustion air volume at ambient',f'={H["cair"]}/(0.0765*530/(460+{L("tamb")})*{H["pratio"]})/60','ACFM',N0)
+row(wh,H,'fuelburn','Product burned as fuel',f'=IF(OR({L("fuel")}="Dry Wood",{L("fuel")}="Biomass (wet, 8,500)"),{H["fuelp"]},0)','lb/hr',N1,note='When the dryer burns its own product')
+row(wh,H,'netprod','Net dry product after fuel',f'={H["prod"]}-{H["fuelburn"]}','lb/hr',N0)
 row(wh,H,'acfmin','Inlet gas volume at inlet temperature',f'=({H["mgas"]}/(0.0765*530/(460+{L("tgin")})*{H["pratio"]})+{H["pocw"]}/(0.0476*530/(460+{L("tgin")})*{H["pratio"]}))/60','ACFM',N0,note='Furnace outlet duct')
 row(wh,H,'conveyr','Conveying air ratio',f'={H["exdry"]}/{H["prod"]}','lb air/lb product',N1)
 row(wh,H,'conveyc','Conveying check',f'=IF({H["conveyr"]}>={L("convey")},"CONVEYING CAN OCCUR","CONVEYING CANNOT OCCUR: add recycle or raise airflow")','')
@@ -479,68 +490,68 @@ rrow('fluxchk','Heat transfer check',f'=IF({R["fluxa"]}<={R["flux"]},"RESIDENCE 
 wr.freeze_panes='B4'
 _c=wh[H['credit'].split('!')[1].replace('$','')]; _c.value=_c.value.replace("'Biochar Reactor'!$C$40",R['surplus'])
 
-# ===================== FLOW (live schematic) =====================
+# ===================== FLOW (customer schematic) =====================
+from openpyxl.drawing.image import Image as XLImage
 wf=wb.create_sheet('Flow',2)
-for c in range(1,26): wf.column_dimensions[get_column_letter(c)].width=9.5
-wf.column_dimensions['A'].width=3
-wf['B1']='DEHYDRATION SYSTEM MASS-ENERGY BALANCE  ·  live view'; wf['B1'].font=F_H
-wf['B2']=f'={L("job")}'; wf['B2'].font=F_LINK
-FILL_BOX=PatternFill('solid',fgColor='F5F5F5'); FILL_HOT=PatternFill('solid',fgColor='FFE7D6'); FILL_WET=PatternFill('solid',fgColor='E3EEF7'); FILL_DRY=PatternFill('solid',fgColor='EAF3E6'); FILL_OPT=PatternFill('solid',fgColor='EFEFEF')
-med=Side(style='medium',color='575D5E')
-def box(r0,c0,title,lines,fill=FILL_BOX,w=4):
-    # title row + one row per line; label spans w-2 cols, value 1 col, unit 1 col
-    n=len(lines); r1=r0+n
-    wf.merge_cells(start_row=r0,start_column=c0,end_row=r0,end_column=c0+w-1)
-    t=wf.cell(r0,c0,title); t.font=F_S; t.fill=FILL_S; t.alignment=Alignment(horizontal='center')
-    for i,ln in enumerate(lines):
-        lab,f,unit,fmt=ln[:4]; wide=len(ln)>4
-        rr=r0+1+i
-        if wide:
-            wf.merge_cells(start_row=rr,start_column=c0,end_row=rr,end_column=c0+w-1)
-            v=wf.cell(rr,c0,f); v.font=Font(name='Arial',size=9,bold=True,color='008000'); v.alignment=Alignment(horizontal='center')
-        else:
-            wf.merge_cells(start_row=rr,start_column=c0,end_row=rr,end_column=c0+w-3)
-            a=wf.cell(rr,c0,lab); a.font=F_LABEL; a.alignment=Alignment(indent=1)
-            v=wf.cell(rr,c0+w-2,f); v.font=F_LINK; v.number_format=fmt; v.alignment=Alignment(horizontal='right')
-            u=wf.cell(rr,c0+w-1,unit); u.font=F_NOTE
-        for cc in range(c0,c0+w): wf.cell(rr,cc).fill=fill
-    for cc in range(c0,c0+w):
-        wf.cell(r0,cc).border=Border(top=med,left=med if cc==c0 else None,right=med if cc==c0+w-1 else None)
-        wf.cell(r1,cc).border=Border(bottom=med,left=med if cc==c0 else None,right=med if cc==c0+w-1 else None)
-    for rr in range(r0+1,r1):
-        wf.cell(rr,c0).border=Border(left=med); wf.cell(rr,c0+w-1).border=Border(right=med)
-    return r1
-def arrow(r,c,ch,rows=1):
-    for i in range(rows):
-        a=wf.cell(r+i,c,ch if i==rows//2 else ''); a.font=Font(name='Arial',size=18,bold=True,color='FF6602'); a.alignment=Alignment(horizontal='center',vertical='center')
-# ---- top row: system heat, feed, evaporation
-box(4,2,'SYSTEM HEAT',[('Total Btu of system (MCE)',f'={H["qmceMM"]}','MMBtu/hr',N2),('Rigorous check',f'={H["qfiredMM"]}','MMBtu/hr',N2),('Btu per lb water',f'={H["btulb"]}','Btu/lb',N0),('Design duty',f'={H["qdesign"]}/1000000','MMBtu/hr',N2),('Purchased fuel duty',f'={H["qpurch"]}/1000000','MMBtu/hr',N2)],FILL_HOT)
-box(4,12,'WET FEED IN',[('Wet feed',f'={L("wet")}','lb/hr',N0),('Moisture, wet basis',f'={L("mcin")}','',P1),('Dry solids',f'={H["solids"]}','lb/hr',N0),('Water',f'={H["win"]}','lb/hr',N0),('Temperature',f'={L("tin")}','°F',N0)],FILL_WET)
-box(4,17,'EVAPORATION',[('Water evaporated',f'={H["evap"]}','lb/hr',N0),('Water evaporated',f'={H["evapgal"]}','gal/hr',N1),('Loading, std length',f'={H["load"]}','lb/hr·ft³',N2),('Energy factor',f'={H["efac"]}','Btu/lb',N0)],FILL_WET)
-arrow(10,13,'↓',2)
-# ---- main line row 12
-box(12,2,'BURNER',[('Fuel',f'={L("fuel")}','',N0),('Fuel rate, all fired',f'={H["fuel"]}','lb/hr',N1),('Purchased fuel',f'={H["fuelp"]}','lb/hr',N1),('Burner with margin',f'={E["bsize"]}','MMBtu/hr',N2),('Combustion air',f'={H["cair"]}','lb/hr',N0),('Excess air',f'={L("xs")}','',P0),('Products of combustion',f'={H["poc"]}','lb/hr',N0)],FILL_HOT)
-arrow(15,6,'→')
-box(12,7,'MIXED INLET GAS',[('Hot gas to drum',f'={H["mgas"]}','lb/hr',N0),('Inlet temperature',f'={L("tgin")}','°F',N0),('Inlet volume',f'={H["acfmin"]}','ACFM',N0),('Furnace duct',f'={E["indd"]}','in',N0),('Inlet temp check',f'={H["tinchk"]}','',N0,'wide')],FILL_HOT)
-arrow(15,11,'→')
-box(12,12,'ROTARY DRUM DRYER',[('Model',f'={E["sel"]}','',N0),('Diameter',f'={E["seldia"]}','ft',N1),('Length to quote',f'={H["lensel"]}','ft',N0),('Length note',f'={H["lennote"]}','',N0,'wide'),('Residence at quoted length',f'=IF(ISNUMBER({H["lensel"]}),{H["lensel"]}*PI()/4*{E["seldia"]}^2*{L("fill")}/({L("wet")}/60/{L("bdwet")}),"")','min',N1),('Exhaust temperature',f'={L("tgout")}','°F',N0),('Airflow utilization',f'={E["useacfm"]}','',P0)],FILL_BOX)
-arrow(15,16,'→')
-box(12,17,'EXHAUST / CYCLONE',[('Exhaust gas',f'={H["extot"]}','lb/hr',N0),('Exhaust volume',f'={H["acfm"]}','ACFM',N0),('Humidity',f'={H["exww"]}','lb/lb',N3),('Cyclone inlet area',f'={E["cycin"]}','in²',N0),('Cyclone barrel class',f'={E["cycd"]}','in',N0),('Exhaust duct',f'={E["ductsel"]}','in',N0),('Duct velocity',f'={E["ductv"]}','fpm',N0)],FILL_BOX)
-arrow(15,21,'→')
-box(12,22,'FAN / STACK',[('Fan volume',f'={E["facfm"]}','ACFM',N0),('Static pressure',f'={L("sp")}','in WC',N1),('Brake hp',f'={E["fbhp"]}','bhp',N1),('Motor',f'={E["fhp"]}','hp',N0),('Standard volume',f'={H["scfm"]}','SCFM',N0),('Conveying check',f'={H["conveyc"]}','',N0,'wide')],FILL_BOX)
-# ---- below line
-box(22,2,'MAKE-UP AIR',[('Dilution air',f'={H["mdil"]}','lb/hr',N0),('Ambient',f'={L("tamb")}','°F',N0),('Humidity',f'={L("hum")}','lb/lb',N3),('In-leakage',f'={H["mleak"]}','lb/hr',N0),('Dilution check',f'={H["dilchk"]}','',N0,'wide')],FILL_BOX)
-arrow(21,8,'↑')
-arrow(20,13,'↓',2)
-box(22,12,'DRIED PRODUCT OUT',[('Product',f'={H["prod"]}','lb/hr',N0),('Product',f'={H["tph"]}','TPH',N2),('Moisture, wet basis',f'={L("mcout")}','',P1),('Temperature',f'={L("tout")}','°F',N0),('Discharge airlock',f'={E["alout"]}','',N0),('Infeed airlock / screw',f'={E["alin"]}&" / "&{E["screw"]}&" in"','',N0)],FILL_DRY)
-arrow(24,16,'←')
-box(22,17,'CYCLONE FINES',[('Fines collected, est.',"=Emissions!$C$8*("+H["solids"]+"/2000)*Emissions!$C$9",'lb/hr',N1),('Airlock under cyclone','RV','',N0),('Emissions: PM after cyclone',"=Emissions!$C$20",'lb/hr',N2),('Emissions: NOx',"=Emissions!$C$15",'lb/hr',N2)],FILL_BOX)
-arrow(29,13,'↓',2)
-box(31,12,'BIOCHAR REACTOR (option)',[('Coupling',f'={L("couple")}','',N0),('Feed source',f'={R["src"]}','',N0),('Feed to reactor',f'={R["feed"]}','lb/hr',N0),('Biochar out',f'={R["char"]}','lb/hr',N0),('Reactor demand',f'={R["qdemMM"]}','MMBtu/hr',N2),('Surplus heat to dryer',f'={R["surplusMM"]}','MMBtu/hr',N2),('Status',f'={R["auto"]}','',N0,'wide'),('Reactor size',f'=TEXT({R["diar"]},"0")&" ft × "&TEXT({R["lsel"]},"0")&" ft"','',N0)],FILL_OPT,w=8)
-wf.cell(31,21,'← surplus heat credited to burner when coupling = Yes').font=F_NOTE
-wf.cell(41,2,'Every value is a link to Inputs, HMB, Equipment, Emissions or Biochar Reactor. Change inputs on the Inputs sheet.').font=F_NOTE
+NC,NR=70,48; CW=2.6; RH=16.5
+for c in range(1,NC+1): wf.column_dimensions[get_column_letter(c)].width=CW
+for r_ in range(1,NR+1): wf.row_dimensions[r_].height=RH
 wf.sheet_view.showGridLines=False
-wf.print_area='A1:Y41'; wf.page_setup.orientation='landscape'; wf.sheet_properties.pageSetUpPr.fitToPage=True; wf.page_setup.fitToWidth=1; wf.page_setup.fitToHeight=1
+F_T=Font(name='Arial',size=16,bold=True); F_V=Font(name='Arial',size=12,bold=True); F_U=Font(name='Arial',size=9); F_HDR=Font(name='Arial',size=9,bold=True); F_INFO=Font(name='Arial',size=11); F_INFOB=Font(name='Arial',size=11,bold=True)
+YEL=PatternFill('solid',fgColor='FFFF00'); thin_k=Side(style='thin',color='000000')
+def M(c0,r0,c1,r1): wf.merge_cells(start_row=r0+1,start_column=c0+1,end_row=r1+1,end_column=c1+1)
+def T(c,r,v,font=F_LABEL,al='left',fmt=None):
+    x=wf.cell(r+1,c+1,v); x.font=font; x.alignment=Alignment(horizontal=al,vertical='center'); 
+    if fmt: x.number_format=fmt
+    return x
+def vbox(c0,r0,w,title,lines):
+    # header row + one row per (formula,unit,fmt); value right-aligned bold over w-4 cols, unit over 4 cols
+    M(c0,r0,c0+w-1,r0); h=T(c0,r0,title,F_HDR,'center'); h.fill=YEL
+    for cc in range(c0,c0+w): wf.cell(r0+1,cc+1).fill=YEL
+    for i,(f,unit,fmt) in enumerate(lines):
+        rr=r0+1+i
+        M(c0,rr,c0+w-5,rr); T(c0,rr,f,F_V,'right',fmt); M(c0+w-4,rr,c0+w-1,rr); T(c0+w-4,rr,' '+unit,F_U,'left')
+    r1=r0+len(lines)
+    for rr in range(r0,r1+1):
+        for cc in range(c0,c0+w):
+            x=wf.cell(rr+1,cc+1); x.border=Border(top=thin_k if rr==r0 else None,bottom=thin_k if rr==r1 else None,left=thin_k if cc==c0 else None,right=thin_k if cc==c0+w-1 else None)
+# header / title
+T(2,0,'Prepared by:',F_U); M(6,0,16,0); T(6,0,f'={L("prep")}',F_U)
+M(26,0,44,0); T(26,0,f'={L("customer")}',Font(name='Arial',size=10,bold=True),'center'); M(26,1,44,1); T(26,1,f'={L("location")}',Font(name='Arial',size=10,bold=True),'center')
+M(58,0,68,0); T(58,0,f'={L("date")}',F_U,'right','mm/dd/yyyy')
+M(2,2,16,2); T(2,2,f'={L("job")}',Font(name='Arial',size=14,bold=True))
+M(20,2,52,2); T(20,2,'DEHYDRATION SYSTEM MASS-ENERGY BALANCE',F_T,'center')
+wf.row_dimensions[3].height=20
+# info lines
+M(4,4,7,4); T(4,4,f'={L("wet")}/2000',F_INFOB,'right',N2); M(9,4,26,4); T(9,4,f'=" TPH wet "&{L("material")}',F_INFO)
+M(4,5,7,5); T(4,5,f'={L("wet")}/({L("bdwet")}*27)',F_INFO,'right',N2); M(9,5,26,5); T(9,5,f'=" C.Y./hr @ "&TEXT({L("bdwet")}*27,"0")&" lb/C.Y. and "&TEXT({L("mcin")},"0%")&" moisture"',F_INFO)
+M(4,6,7,6); T(4,6,f'=IF(ISNUMBER({E["seldia"]}),TEXT({E["seldia"]},"0")&"x"&TEXT({H["lensel"]},"0"),"")',F_INFOB,'right'); M(9,6,26,6); T(9,6,f'=" "&{L("dtype")}&" · "&{E["sel"]}',F_INFO)
+T(2,7,'Elevation',Font(name='Arial',size=10,bold=True),'right'); M(4,7,7,7); T(4,7,f'={L("elev")}',F_INFO,'right',N0); M(9,7,26,7); T(9,7,' feet (above sea level)',F_INFO)
+# value boxes
+vbox(2,9,11,'Fuel to Burner',[(f'={L("fuel")}','',None),(f'={L("hhv")}','Btu/lb',N0),(f'={H["fuelp"]}','lb/hr',N0),(f'={H["qpurch"]}/1000000','MMBtu/hr',N2)])
+M(26,9,31,9); T(26,9,f'={H["btulb"]}',Font(name='Arial',size=12,bold=True,italic=True),'right',N0); M(32,9,44,9); T(32,9," Btu's/lb evaporation (rigorous)",Font(name='Arial',size=12,bold=True,italic=True))
+vbox(14,12,9,'Make-Up Air',[(f'={H["scfmdil"]}','SCFM',N0),(f'={L("tamb")}','deg F',N0)])
+vbox(27,12,10,'Mixed Inlet Gases',[(f'={H["scfmin"]}','SCFM',N0),(f'={L("tgin")}','deg F',N0)])
+vbox(2,25,11,'Combustion Air',[(f'={H["cairacfm"]}','ACFM',N0),(f'={L("tamb")}','deg F',N0),(f'={L("xs")}','X-S air',P0)])
+vbox(23,23,11,'Wet Feed',[(f'={L("mcin")}','moisture',P1),(f'={H["solids"]}','lb/hr solids',N0),(f'={H["win"]}','lb/hr water',N0),(f'={L("wet")}','lb/hr total',N0)])
+M(37,25,47,25); T(37,25,'EVAPORATION RATE',Font(name='Arial',size=10,bold=True),'center')
+M(37,26,41,26); T(37,26,f'={H["evap"]}',F_V,'right',N0); M(42,26,47,26); T(42,26,' LB/HR H2O',F_U)
+M(36,28,52,28); T(36,28,f'={E["sel"]}&"  ·  "&TEXT({H["lensel"]},"0")&" ft long  ·  "&TEXT({E["bsize"]},"0.0")&" MMBtu/hr burner"',Font(name='Arial',size=9,italic=True),'center')
+vbox(55,3,11,'Exhaust Gases',[(f'={H["acfm"]}','ACFM',N0),(f'={E["fhp"]}','hp fan',N0)])
+vbox(55,7,11,'Dryer Outlet Gases',[(f'={H["acfm"]}','ACFM',N0),(f'={L("tgout")}','deg F',N0)])
+vbox(55,31,11,'Dry Material',[(f'={L("mcout")}','moisture',P1),(f'={H["solids"]}','lb/hr solids',N0),(f'={H["wout"]}','lb/hr water',N0),(f'={H["prod"]}','lb/hr total',N0),(f'={L("tout")}','deg F',N0)])
+vbox(38,29,10,'Dry Fuel (product burned)',[(f'={H["fuelburn"]}','lb/hr total',N0)])
+vbox(38,33,10,'Net Dry Product',[(f'={H["netprod"]}','lb/hr total',N0)])
+# footer
+M(2,46,30,46); T(2,46,f'={L("docno")}&"  Rev "&{L("rev")}&"   ·   FLOW"',F_U)
+M(31,46,50,46); T(31,46,'MIDWEST CUSTOM ENGINEERING, INC.  ·  Stuart, FL  ·  usemce.com',Font(name='Arial',size=9,bold=True),'center')
+M(58,46,68,46); T(58,46,'Page 1/1',F_U,'right')
+# logo (openpyxl creates the drawing part; shapes are appended after save)
+img=XLImage('/home/user/CRM/docs/engineering/dryer-hmb-calculator/mce_logo.png'); img.width=330; img.height=int(330*img.height/img.width) if False else 101
+img.anchor='C38'; wf.add_image(img)
+wf.print_area='A1:BQ48'; wf.page_setup.orientation='landscape'; wf.page_setup.paperSize=1; wf.sheet_properties.pageSetUpPr.fitToPage=True; wf.page_setup.fitToWidth=1; wf.page_setup.fitToHeight=1
+wf.page_margins.left=0.4; wf.page_margins.right=0.4; wf.page_margins.top=0.4; wf.page_margins.bottom=0.4
+FLOW_SHAPES=dict(CW=CW,RH=RH)
 
 # ===================== METRIC =====================
 wmt=wb.create_sheet('Metric'); widths(wmt,[2,44,16,12,50])
@@ -640,4 +651,82 @@ for i,rowv in enumerate(cases):
 
 wb.calculation.fullCalcOnLoad=True
 wb.save(OUT); print('saved',OUT)
+
+# ===================== POST-SAVE: SHAPES ON THE FLOW SHEET =====================
+import zipfile, shutil, re, os
+COL_EMU=int((FLOW_SHAPES['CW']*7+5)*9525); ROW_EMU=int(FLOW_SHAPES['RH']*12700)
+def anc(c,r):
+    ci=int(c); ri=int(r); return f'<xdr:col>{ci}</xdr:col><xdr:colOff>{int((c-ci)*COL_EMU)}</xdr:colOff><xdr:row>{ri}</xdr:row><xdr:rowOff>{int((r-ri)*ROW_EMU)}</xdr:rowOff>'
+_id=[300]
+def nid():
+    _id[0]+=1; return _id[0]
+def sp(c0,r0,c1,r1,prst,fill,line='000000',text=None,sz=1200,vert=None,flipV=False,lw=12700,bold=True):
+    tx=''
+    if text:
+        va=' vert="vert270"' if vert else ''
+        bp=f'<a:bodyPr anchor="ctr"{va} wrap="square" lIns="0" rIns="0"/>'
+        tx=f'<xdr:txBody>{bp}<a:lstStyle/><a:p><a:pPr algn="ctr"/><a:r><a:rPr lang="en-US" sz="{sz}" b="{1 if bold else 0}"><a:solidFill><a:srgbClr val="000000"/></a:solidFill><a:latin typeface="Arial"/></a:rPr><a:t>{text}</a:t></a:r></a:p></xdr:txBody>'
+    fl='<a:noFill/>' if fill is None else f'<a:solidFill><a:srgbClr val="{fill}"/></a:solidFill>'
+    fv=' flipV="1"' if flipV else ''
+    return (f'<xdr:twoCellAnchor><xdr:from>{anc(c0,r0)}</xdr:from><xdr:to>{anc(c1,r1)}</xdr:to>'
+            f'<xdr:sp macro="" textlink=""><xdr:nvSpPr><xdr:cNvPr id="{nid()}" name="shape{_id[0]}"/><xdr:cNvSpPr/></xdr:nvSpPr>'
+            f'<xdr:spPr><a:xfrm{fv}/><a:prstGeom prst="{prst}"><a:avLst/></a:prstGeom>{fl}<a:ln w="{lw}"><a:solidFill><a:srgbClr val="{line}"/></a:solidFill></a:ln></xdr:spPr>{tx}</xdr:sp><xdr:clientData/></xdr:twoCellAnchor>')
+def ln(x0,y0,x1,y1,color='0000FF',arrow=False,lw=15875):
+    c0,c1=min(x0,x1),max(x0,x1); r0,r1=min(y0,y1),max(y0,y1)
+    flipH=x1<x0; flipV=y1<y0
+    xf='<a:xfrm'+(' flipH="1"' if flipH else '')+(' flipV="1"' if flipV else '')+'/>'
+    tail='<a:tailEnd type="triangle" w="med" len="med"/>' if arrow else ''
+    return (f'<xdr:twoCellAnchor><xdr:from>{anc(c0,r0)}</xdr:from><xdr:to>{anc(c1,r1)}</xdr:to>'
+            f'<xdr:cxnSp macro=""><xdr:nvCxnSpPr><xdr:cNvPr id="{nid()}" name="line{_id[0]}"/><xdr:cNvCxnSpPr/></xdr:nvCxnSpPr>'
+            f'<xdr:spPr>{xf}<a:prstGeom prst="straightConnector1"><a:avLst/></a:prstGeom><a:ln w="{lw}"><a:solidFill><a:srgbClr val="{color}"/></a:solidFill>{tail}</a:ln></xdr:spPr></xdr:cxnSp><xdr:clientData/></xdr:twoCellAnchor>')
+TAN='D6CDB4'; DRUM='EDEDDF'; CYC='DCE6F1'; BLUE='0000FF'; BLK='000000'
+S=[]
+# burner
+S.append(sp(8,19.3,9,22.3,'rect',TAN)); S.append(sp(9,17,18,24.5,'rect',TAN,text='Burner',sz=1300))
+# fuel line (black) and combustion air (blue) into burner stub
+S.append(ln(5,13,5,20.3,BLK)); S.append(ln(5,20.3,8,20.3,BLK,True))
+S.append(ln(4,25,4,21.5,BLUE)); S.append(ln(4,21.5,8,21.5,BLUE,True))
+# inlet gas main line and the two drops
+S.append(ln(18,20.8,32,20.8,BLUE,True)); S.append(ln(18.5,15,18.5,20.8,BLUE,True)); S.append(ln(32,15,32,20.8,BLUE,True))
+# wet feed into dryer
+S.append(ln(28,23,28,22.2,BLK)); S.append(ln(28,22.2,32,22.2,BLK,True))
+# dryer: stub, flanges, body, flanges, stub
+S.append(sp(32,18.6,33,22.6,'rect',DRUM)); S.append(sp(33,17.6,34,23.6,'rect',DRUM)); S.append(sp(35,17.6,36,23.6,'rect',DRUM))
+S.append(sp(36,16.6,48,24.6,'rect',DRUM,text='XD Series Rotary Dryer',sz=1400))
+S.append(sp(48,17.6,49,23.6,'rect',DRUM)); S.append(sp(50,17.6,51,23.6,'rect',DRUM)); S.append(sp(51,18.6,52,22.6,'rect',DRUM))
+# dryer to cyclone
+S.append(ln(52,20.6,55,20.6,BLK)); S.append(ln(55,20.6,55,17.2,BLK)); S.append(ln(55,17.2,57,17.2,BLK,True))
+# cyclone
+S.append(sp(57,16.2,58,18.4,'rect',CYC)); S.append(sp(58,15,63,21,'rect',CYC,text='Cyclone Collector',sz=1200,vert=True)); S.append(sp(58,21,63,27,'trapezoid',CYC,flipV=True)); S.append(sp(59.5,27,61.5,28.6,'rect',CYC))
+# cyclone top to fan, fan to exhaust
+S.append(ln(60.5,15,60.5,12,BLUE)); S.append(ln(60.5,12,45.5,12,BLUE)); S.append(ln(45.5,12,45.5,10.6,BLUE,True))
+S.append(sp(46.8,5,50.2,7.6,'rect',TAN)); S.append(sp(43,5.2,48.2,10.6,'ellipse',TAN,text='Dryer Fan',sz=1200))
+S.append(ln(50.2,6.3,52.5,6.3,BLUE)); S.append(ln(52.5,6.3,52.5,1.6,BLUE,True))
+# cyclone bottom to dry material; dry material to fuel / net product
+S.append(ln(60.5,28.6,60.5,31,BLK,True)); S.append(ln(55,30.6,48,30.6,BLUE,True)); S.append(ln(55,34.6,48,34.6,BLUE,True))
+SHAPES_XML=''.join(S)
+def inject_shapes(path):
+    tmp=path+'.tmp'
+    with zipfile.ZipFile(path) as zin:
+        names=zin.namelist()
+        wbxml=zin.read('xl/workbook.xml').decode(); wbrels=zin.read('xl/_rels/workbook.xml.rels').decode()
+        rid=re.search(r'<sheet[^>]*name="Flow"[^>]*r:id="(rId\d+)"',wbxml).group(1)
+        rel=[m for m in re.findall(r'<Relationship[^>]*/>',wbrels) if f'Id="{rid}"' in m][0]
+        target=re.search(r'Target="([^"]+)"',rel).group(1)
+        sheetfile='xl/'+target.lstrip('/').replace('xl/','')
+        relfile=sheetfile.replace('worksheets/','worksheets/_rels/')+'.rels'
+        srels=zin.read(relfile).decode()
+        drawing=re.search(r'Target="([^"]*drawing\d+\.xml)"',srels).group(1)
+        dfile='xl/drawings/'+os.path.basename(drawing)
+        dx=zin.read(dfile).decode()
+        assert 'xmlns:a=' in dx, dx[:300]
+        if 'xmlns:xdr=' not in dx:
+            dx=dx.replace('<wsDr ','<wsDr xmlns:xdr="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing" ',1)
+        dx=dx.replace('</wsDr>',SHAPES_XML+'</wsDr>').replace('</xdr:wsDr>',SHAPES_XML+'</xdr:wsDr>')
+        with zipfile.ZipFile(tmp,'w',zipfile.ZIP_DEFLATED) as zout:
+            for n in names:
+                zout.writestr(n, dx.encode() if n==dfile else zin.read(n))
+    shutil.move(tmp,path); print('shapes injected into',dfile)
+inject_shapes(OUT)
+
 print('HMB acfm at',H['acfm'],' evap at',H['evap'])

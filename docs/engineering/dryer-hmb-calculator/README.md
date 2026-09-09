@@ -9,7 +9,7 @@ from the Inputs sheet; nothing is pasted. `build_calculator.py` regenerates it.
 | Sheet | Purpose |
 |---|---|
 | README | How to use, what was wrong in the original, assumptions and sources |
-| Flow | Live schematic on one landscape page: burner, make-up air, mixed inlet gas, feed, drum, exhaust and cyclone, fan and stack, product, fines, optional reactor. |
+| Flow | Customer-facing schematic in the style of the original FLOW page: drawn burner, drum, fan and cyclone (native Excel shapes), yellow value boxes that are live cells, blue air and black solids lines, MCE logo, customer header (prepared by, customer, location, date) and document footer. Prints to one letter landscape page; `Flow_sheet_example.pdf` is the default case. Shapes are injected into the drawing XML by `build_calculator.py` after openpyxl saves. |
 | Summary | One-page hand-off for quoting: process, heat, dryer model and length to quote, burner, fan, duct, airlocks, annual fuel. All links, no inputs. |
 | Flow | Live schematic on one landscape page: system heat, burner, make-up air, mixed inlet gas, wet feed, drum, evaporation, exhaust and cyclone, fan and stack, dried product, cyclone fines, optional biochar reactor. Every block shows its current numbers. |
 | Inputs | The job: feed, moistures, temperatures, site, dryer type, fuel, air-handling rules, margins, hours. Dryer-type and fuel tables live on the right. |
