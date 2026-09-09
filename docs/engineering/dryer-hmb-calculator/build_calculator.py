@@ -37,7 +37,7 @@ rows=["MCE DRYER HEAT & MASS BALANCE CALCULATOR  ·  Rev A  ·  8 Sep 2026",
 "2. Read the HMB sheet: mass balance, MCE duty vs rigorous duty, combustion, airflow, energy closure (must be zero).",
 "3. Read the Equipment sheet: selected dryer model, burner, fan, duct, cyclone inlet, airlocks, annual fuel.",
 "4. Metric sheet mirrors the key results in SI units. Emissions sheet gives potential-to-emit.",
-"5. Dryer Models: single-pass XD Series rows are filled from MCE documents. Triple-pass rows are empty and waiting for MCE drum data. Z8 eight-pass rows carry the ACFM table from the original workbook. A model is selected automatically as the smallest of the chosen type that meets both airflow and evaporation with the design margin.",
+"5. Dryer Models: ten standard single-pass sizes plus a custom row; ten triple-pass rows on the same shells with a placeholder airflow factor (yellow) plus a custom row; Z8 eight-pass rows from the original workbook. A model is selected automatically as the smallest of the chosen type that meets both airflow and evaporation with the design margin. Burners are sized to the heat loading; a burner cap is optional per row.",
 "",
 "WHAT WAS WRONG IN THE ORIGINAL (kept here so it is not repeated)",
 "- CALC F4:F15, H4, I39:I45, B47, D48 were pasted values from a 9,000 lb/hr-evaporation job while Input said 1,333 lb/hr; burner, fan, duct and emissions were 6.5x too big.",
@@ -51,7 +51,7 @@ rows=["MCE DRYER HEAT & MASS BALANCE CALCULATOR  ·  Rev A  ·  8 Sep 2026",
 "- 1,750 Btu/lb rotary drum energy factor, 1,500 infrared, 1,875 flash tube: Jason Shipley, Drying Rates Calculator and 7 Feb 2026 meeting notes.",
 "- Theoretical energy 1.01 x (212 - T_in) + 970.4 Btu/lb: Drying Rates Calculator.",
 "- Fuel table HHV, density and excess air: original Input sheet F5:I10. Stoichiometric air for dry wood 5.82 lb/lb from the original COMB sheet (C 47.5 / H 5.4 / O 34.7). Other fuels: standard values, see comments.",
-"- XD-36 Mk.2 3 ft x 20 ft, 2.5 MMBtu/hr burner: MCE quote to LETEK DCG, Mar 2026; overall dims from the Mk.2 brochure. XD-60 Mk.2 5 ft x 30 ft: GA drawing Apr 2026. XD-72 Mk.2 6 ft dia: Feb 2026 notes (length and burner to confirm). XD-96 Mk.1 8 ft x 40 ft, 30 MMBtu/hr max: operating manual Rev 0.0.",
+"- Single-pass standard sizes 3x12, 3x20, 4x20, 5x25, 6x30, 7x35, 8x40, 10x50, 12x60, 13x60, any size on request, burner sized to the heat loading, drum inlet up to 900 F: J. Shipley, 9 Sep 2026. Triple-pass rows use the same shells; Baker-Rullman ratings to be loaded when available (site not reachable from the build session).",
 "- Z8 eight-pass sizes and ACFM max: original Input sheet K8:L18.",
 "- Airlock capacities: original DESIGN sheet K8:N19.",
 "- Emission factors are placeholders marked for confirmation against EPA AP-42 for the actual fuel and material.",
@@ -102,7 +102,8 @@ inp('xs','Excess air at burner','=INDEX($J$13:$J$18,MATCH(C{0},$G$13:$G$18,0))'.
 inp('stoich','Stoichiometric air','=INDEX($K$13:$K$18,MATCH(C{0},$G$13:$G$18,0))'.format(fuelrow),'lb air/lb fuel','',N2,True)
 inp('h2ofuel','Water formed per lb fuel','=INDEX($L$13:$L$18,MATCH(C{0},$G$13:$G$18,0))'.format(fuelrow),'lb H2O/lb fuel','Includes fuel moisture for wood',N2,True)
 inp('co2fuel','CO2 per lb fuel','=INDEX($M$13:$M$18,MATCH(C{0},$G$13:$G$18,0))'.format(fuelrow),'lb/lb fuel','',N2,True)
-inp('tgin','Dryer inlet gas temperature',600,'°F','Design choice. 500–700 °F wood shavings; 900–1,200 °F manure/sludge; original iterated to 588 °F',N0)
+inp('tgin','Dryer inlet gas temperature',900,'°F','Design choice, up to the maximum below. Lower it for heat-sensitive product.',N0)
+inp('tgmax','Maximum drum inlet gas temperature',900,'°F','MCE design limit, J. Shipley 9 Sep 2026',N0)
 inp('tgout','Dryer exhaust gas temperature',180,'°F','Original 180 °F; 200–230 °F for high-moisture feeds',N0)
 inp('etacomb','Combustion efficiency',0.90,'fraction','Original Input H3',P0)
 inp('shell','Shell and radiation loss',0.03,'fraction of fired duty','',P0)
@@ -118,6 +119,7 @@ inp('convey','Minimum conveying air',3,'lb air/lb product','Original Input A26',
 inp('bmargin','Burner sizing margin',0.20,'fraction','',P0)
 inp('smargin','Model selection margin on airflow and evaporation',0.15,'fraction','',P0)
 inp('burnerflux','Burner face heat release',1200,'Btu/hr per in²','Drying Rates Calculator',N0)
+inp('tpfactor','Triple-pass airflow factor vs single-pass of same OD',1.0,'fraction','PLACEHOLDER until the Baker-Rullman spec table is loaded; 1.0 rates a triple-pass drum like a single-pass of the same OD',N2)
 sec(wi,r,'OPERATION',2,5); r+=1
 inp('hrsday','Hours per day',24,'h','',N0)
 inp('daysyr','Days per year',312,'d','',N0)
@@ -196,6 +198,7 @@ row(wh,H,'tflame','Adiabatic products temperature, approx.',f'={L("tamb")}+{H["q
 sec(wh,r,'DRYER GAS FLOW',2,5); r+=1
 row(wh,H,'mgas','Hot gas to dryer at inlet temperature',f'={H["qdesign"]}*{L("etacomb")}/(0.24*({L("tgin")}-{L("tamb")}))','lb/hr',bold=True,note='Products of combustion plus dilution air, dry basis')
 row(wh,H,'mdil','Dilution (make-up) air',f'={H["mgas"]}-{H["poc"]}','lb/hr',note='Must be positive; if negative the inlet temperature is above what this fuel and excess air can give')
+row(wh,H,'tinchk','Inlet temperature vs MCE maximum',f'=IF({L("tgin")}<={L("tgmax")},"OK","INLET ABOVE MCE MAXIMUM - lower it")','')
 row(wh,H,'dilchk','Dilution check',f'=IF({H["mdil"]}<0,"INLET TEMP TOO HIGH FOR THIS FUEL / EXCESS AIR","OK")','')
 row(wh,H,'mleak','Air in-leakage',f'={H["mgas"]}*{L("leak")}','lb/hr')
 row(wh,H,'exdry','Exhaust dry gas',f'={H["mgas"]}+{H["mleak"]}','lb/hr')
@@ -227,23 +230,24 @@ row(wh,H,'holdpct','Drum fill',f'=IF({H["vol"]}>0,{H["holdvol"]}/{H["vol"]},"n/a
 wh.freeze_panes='B3'
 
 # ===================== DRYER MODELS =====================
-wm=wb.create_sheet('Dryer Models'); widths(wm,[2,10,24,9,9,10,10,12,12,13,13,12,12,14,11,44])
+wm=wb.create_sheet('Dryer Models'); widths(wm,[2,10,30,9,9,10,10,12,12,13,13,12,12,13,14,10,60])
 wm['B1']='DRYER MODELS  ·  one table, three types  ·  yellow = MCE to fill'; wm['B1'].font=F_H
 wm['B2']='Reference evaporative loading for the volume-limited rating, lb/hr·ft³:'; wm['B2'].font=F_LABEL
 wm['K2']='Single-pass'; wm['L2']=6.0; wm['M2']='Triple-pass'; wm['N2']=8.0; wm['O2']='Z8'; wm['P2']=8.0
 for a in ('L2','N2','P2'): wm[a].font=F_IN; wm[a].number_format=N1
-wm['B3']='Rated evaporation = MIN(burner ÷ energy factor, volume × reference loading). Blank burner = volume-limited only. Design ACFM for single-pass = cross-section × face velocity; triple-pass and Z8 use the entered ACFM.'; wm['B3'].font=F_NOTE
-hdr(wm,5,['Type','Model','Dia ft','Length ft','Cross-section ft²','Volume ft³','Design ACFM','Max burner MMBtu/hr','Rated evap (burner) lb/hr','Rated evap (volume) lb/hr','Rated evap lb/hr','Meets job? (row)','Overall L×W×H in','Fan hp','Source / status'],2)
+wm['B3']='Burners are sized to the heat loading, so drums rate on volume × reference loading; enter a burner cap only if a drum has a fixed burner. Design ACFM for single-pass = cross-section × face velocity. Triple-pass rows use the same shells times the triple-pass factor on Inputs until Baker-Rullman ratings are entered (yellow). Z8 uses the entered ACFM.'; wm['B3'].font=F_NOTE
+hdr(wm,5,['Type','Model','Dia ft','Length ft','Cross-section ft²','Volume ft³','Design ACFM','Burner cap MMBtu/hr (optional)','Evap at burner cap lb/hr','Evap at volume loading lb/hr','Rated evap lb/hr','Meets job? (row)','Burner at rated evap MMBtu/hr','Overall L×W×H in','Fan hp','Source / status'],2)
+sizes=[(3,12),(3,20),(4,20),(5,25),(6,30),(7,35),(8,40),(10,50),(12,60),(13,60)]
 M=[]
-M+= [('Single-pass rotary drum','XD-36 Mk.2',3,20,None,2.5,'413.9 × 84 × 100.5','','LETEK quote Mar 2026 (2.5 MMBtu MOP burner); Mk.2 brochure dims'),
-     ('Single-pass rotary drum','XD-60 Mk.2',5,30,None,None,'','','GA drawing Apr 2026; burner rating to fill'),
-     ('Single-pass rotary drum','XD-72 Mk.2',6,30,None,4.7,'','','6 ft dia and 470 MOP burner per 7 Feb 2026 notes; LENGTH TO CONFIRM'),
-     ('Single-pass rotary drum','XD-96 Mk.2',8,40,None,30.0,'470 × 224 × 169','','8×40 drum and 30 MMBtu/hr max from XD-96 Mk.1 manual; Mk.2 length assumed same')]
-for i in range(1,5):
-    M.append(('Triple-pass rotary drum',f'TP-{i} (fill)',None,None,None,None,'','','MCE triple-pass drum data not found in Drive, QBO or email; fill model, OD, length, design ACFM, burner'))
+for d,l in sizes:
+    M.append(('Single-pass rotary drum',f"XD-{d*12} ({d}'×{l}')",d,l,None,None,'','','MCE standard size, J. Shipley 9 Sep 2026; burner sized to heat loading'))
+M.append(('Single-pass rotary drum','Custom single-pass (enter dia × length)',None,None,None,None,'','','Any size can be built; enter drum OD and length'))
+for d,l in sizes:
+    M.append(('Triple-pass rotary drum',f"TP-{d*12} ({d}'×{l}')",d,l,'F',None,'','','Same shell sizes as single-pass; ACFM = OD cross-section × face velocity × triple-pass factor until Baker-Rullman ratings are entered'))
+M.append(('Triple-pass rotary drum','Custom triple-pass (enter dia × length)',None,None,'F',None,'','','Any size can be built'))
 z8=[("6'x24'",6,24,7000),("8'x35'",8,35,18000),("10'x40'",10,40,32000),("10'x50'",10,50,40000),("12'x50'",12,50,55000),("12'x60'",12,60,65000),("12'x70'",12,70,75000),("13'x60'",13,60,80000),("14'x70'",14,70,90000),("15'x70'",15,70,100000)]
 for n,d,l,a in z8:
-    M.append(('Z8 eight-pass',f'Z8 {n}',d,l,a,None,'','','Original Input K8:L18 ACFM max; burner to fill'))
+    M.append(('Z8 eight-pass',f'Z8 {n}',d,l,a,None,'','','Original Input K8:L18 ACFM max'))
 first=6
 for i,(typ,model,dia,ln,acfm,burner,dims,fan,src) in enumerate(M):
     rr=first+i
@@ -255,18 +259,20 @@ for i,(typ,model,dia,ln,acfm,burner,dims,fan,src) in enumerate(M):
     c=wm.cell(rr,7,f'=IF(OR(D{rr}="",E{rr}=""),"",F{rr}*E{rr})'); c.number_format=N0; c.border=BOX
     if typ.startswith('Single'):
         c=wm.cell(rr,8,f'=IF(F{rr}="","",F{rr}*{L("facev")})'); c.number_format=N0; c.border=BOX
+    elif acfm=='F':
+        c=wm.cell(rr,8,f'=IF(F{rr}="","",F{rr}*{L("facev")}*{L("tpfactor")})'); c.number_format=N0; c.border=BOX; c.fill=FILL_Y
     else:
         c=wm.cell(rr,8,acfm); c.font=F_IN; c.number_format=N0; c.border=BOX
         if acfm is None: c.fill=FILL_Y
     c=wm.cell(rr,9,burner); c.font=F_IN; c.number_format=N1; c.border=BOX
-    if burner is None: c.fill=FILL_Y
     ref={'Single-pass rotary drum':'$L$2','Triple-pass rotary drum':'$N$2','Z8 eight-pass':'$P$2'}[typ]
     c=wm.cell(rr,10,f'=IF(I{rr}="","",I{rr}*1000000/{L("efactor")})'); c.number_format=N0; c.border=BOX
     c=wm.cell(rr,11,f'=IF(G{rr}="","",G{rr}*{ref})'); c.number_format=N0; c.border=BOX
     c=wm.cell(rr,12,f'=IF(K{rr}="","",IF(J{rr}="",K{rr},MIN(J{rr},K{rr})))'); c.number_format=N0; c.border=BOX
     c=wm.cell(rr,13,f'=IF(AND(B{rr}={L("dtype")},H{rr}<>"",L{rr}<>"",H{rr}>=HMB!$C$52*(1+{L("smargin")}),L{rr}>={H["evap"]}*(1+{L("smargin")})),ROW(),99999)'); c.number_format=N0; c.border=BOX
-    wm.cell(rr,14,dims).font=F_IN; wm.cell(rr,15,fan).font=F_IN; wm.cell(rr,15).fill=FILL_Y
-    wm.cell(rr,16,src).font=F_NOTE
+    c=wm.cell(rr,14,f'=IF(L{rr}="","",L{rr}*{L("efactor")}/1000000)'); c.number_format=N1; c.border=BOX
+    wm.cell(rr,15,dims).font=F_IN; wm.cell(rr,16,fan).font=F_IN; wm.cell(rr,16).fill=FILL_Y
+    wm.cell(rr,17,src).font=F_NOTE
 last=first+len(M)-1
 # patch: the airflow reference must point at HMB acfm row; compute its address
 acfm_addr=H['acfm'].split('!')[1]
@@ -287,6 +293,7 @@ row(we,E,'selvol','Drum volume',f'=IFERROR(INDEX({rng("G")},MATCH(MIN({rng("M")}
 row(we,E,'selacfm','Model design airflow',f'=IFERROR(INDEX({rng("H")},MATCH(MIN({rng("M")}),{rng("M")},0)),"")','ACFM',N0)
 row(we,E,'selevap','Model rated evaporation',f'=IFERROR(INDEX({rng("L")},MATCH(MIN({rng("M")}),{rng("M")},0)),"")','lb/hr',N0)
 row(we,E,'selburn','Model maximum burner',f'=IFERROR(IF(INDEX({rng("I")},MATCH(MIN({rng("M")}),{rng("M")},0))="","not entered",INDEX({rng("I")},MATCH(MIN({rng("M")}),{rng("M")},0))),"")','MMBtu/hr',N1)
+row(we,E,'selbrated','Burner at model rated evaporation',f'=IFERROR(INDEX({rng("N")},MATCH(MIN({rng("M")}),{rng("M")},0)),"")','MMBtu/hr',N1,note='What the drum can use at reference loading; the job burner below is what it needs')
 row(we,E,'useacfm','Airflow utilization',f'=IF(ISNUMBER({E["selacfm"]}),{H["acfm"]}/{E["selacfm"]},"")','',P0)
 row(we,E,'useevap','Evaporation utilization',f'=IF(ISNUMBER({E["selevap"]}),{H["evap"]}/{E["selevap"]},"")','',P0)
 sec(we,r,'BURNER',2,5); r+=1
