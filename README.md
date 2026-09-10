@@ -100,3 +100,18 @@ The sync is operated by MCE's Claude workspace (which holds the QuickBooks conne
 - `docs/hetzner-checklist.md` — production server provisioning steps
 - `migration/` — all migration/import scripts (safe to re-run; never duplicate)
 - `renderer/` — the quote renderer service
+
+---
+
+## Re-issue a quote offline (no Twenty needed)
+
+When you need a revised copy of a quote that lives in HubSpot/Twenty but only a few
+lines change, describe the quote in a JSON file (see `docs/quotes/` for an example)
+and render it with the same branded template the server uses:
+
+```bash
+python renderer/render_local.py docs/quotes/my-quote.json out/my-quote.pdf
+```
+
+This writes the PDF plus a `.html` preview next to it. Dollar amounts in the JSON are
+plain dollars; the line total is `quantity × (unit price − discount)`.

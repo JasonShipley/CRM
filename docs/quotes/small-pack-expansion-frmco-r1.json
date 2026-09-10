@@ -1,0 +1,117 @@
+{
+  "name": "Small Pack Expansion - FRMco (R1)",
+  "quoteNumber": "20260910-1",
+  "issueDate": "2026-09-10",
+  "expirationDate": "2026-12-09",
+  "preparedBy": "JASON_SHIPLEY",
+  "comments": "Per your request we are pleased to provide the revised quotation on the following small pack expansion line.\n\nRevision 1 supersedes quote 20260113-124701306 and reflects the following changes: the elevated drag conveyor is now 60' (was 94'), the elevator leg is now 24' (was 26'), and the explosion vent has been removed from the three dust control filters.",
+  "terms": "50% down on receipt, balance on shipment.",
+  "company": {
+    "name": "Farmer's Rice Milling",
+    "address": {
+      "addressStreet1": "3211 Highway 397",
+      "addressCity": "Lake Charles",
+      "addressState": "LA",
+      "addressPostcode": "70615",
+      "addressCountry": "United States"
+    }
+  },
+  "contact": {
+    "firstName": "Mark",
+    "lastName": "Suiter",
+    "email": "msuiter@frmco.com",
+    "phone": "+19014637118"
+  },
+  "lineItems": [
+    {
+      "name": "Transitions",
+      "itemDescription": "Supply and Purge Chute Transition",
+      "quantity": 11,
+      "unitPrice": 750.0
+    },
+    {
+      "name": "12\" x 12\" Gate",
+      "itemDescription": "12\" x 12\" gate\nAll electric & air gates have safety covers included in electric & air add-on pricing.\nThe electric add-on pricing includes high density plastic rollers as a standard feature for standard ceiling gates. Actuator drive gates travel approximately 2.8 inches per second.\nGear head drive gates less than 24\" travel 3.0 inches per second and gates 24\" and larger travel 1.8 inches per second.\n24 Volt Solenoids Available. Consult Factory",
+      "quantity": 8,
+      "unitPrice": 3785.0
+    },
+    {
+      "name": "39' Drag Conveyor",
+      "itemDescription": "- 44' - 9X9 GALV. LEVEL DRAG\n- CLASS II - TORQUE ARM II - SHAFT MOUNT REDUCER, SF 2\n- 2HP, 1800 RPM, 230/460V/3/60, 145T, TEFC\n- (44) 9X9 1/4\" AR STEEL LINING - BOTTOM\n- (44) 9X9 10GA AR STEEL LINING- SIDES\n- 9X9, 9X17 TOP INLET\n- 9X9 HEAD DISCHARGE TRANSITION\n- (44) 9X9 RETURN RAILS\n- (36) STEEL CARRY OVER RETURN CUP\n- (9) 81XH CHAIN ADDER WITH WELDMENTS 10'\n- (2) 9X9,9X17,9X14 RAISED INSPECTION DOOR KIT\n- (3) 9\" INTERMEDIATE RACK & PINION CROSS SLIDE GATE\n- (3) ELEC R&P 1/3HP 230/460V/3 60HZ",
+      "quantity": 1,
+      "unitPrice": 34796.94
+    },
+    {
+      "name": "Storage Bins",
+      "itemDescription": "Heavy-duty, storage bin designed for use in feed, grain, biomass, and ingredient processing environments. The unit includes a fully welded upper wall assembly, converging lower hopper section, access door with viewing window, and reinforced leg structure for stable floor mounting.\nApproximate Overall Dimensions:\nHeight: ~245 in (20.4 ft)\nWidth: ~120 in\nDepth: ~120 in\nStandard Features:\n- 1/4″ A36 mild steel hopper\n- 12 ga A36 mild steel upper side wall\n- Reinforced structural frame and legs\n- Plexiglass Indicator Panel\n- 2x Access doors for inspection\n- Top cover\n- Suitable for dry bulk materials",
+      "quantity": 3,
+      "unitPrice": 58500.0
+    },
+    {
+      "name": "J-System",
+      "itemDescription": "Fumigation for bins",
+      "quantity": 3,
+      "unitPrice": 3900.0
+    },
+    {
+      "name": "XF-19 Fan",
+      "itemDescription": "Exhaust Fan\n• XF-19 Fan\n• Arrangement #9F heavy-gauge steel base with continuous welds.\n• Heavy-duty pillow block bearings.\n• Turned, ground, and straightened shaft.\n• Dynamically and statically balanced rotor with tapered hub and bushing.\n• Narrow width high static, heavy-duty rotor.\n• Rotor to be fabricated of AR 235 Plate Steel.\n• Heavy duty housing with continuous welds.\n• Housing to be fabricated of carbon steel.\n• Motor slide base with integral drive tensioning mechanism.\n• 10 HP, 1800 RPM, class TEFC, 230-460V/3/60 NEMA Premium efficient motor.\n• NOTE: TEFC motor with no environmental marking/T Code.\n• V-belt drive with 1.5 to 2.0 service factor.\n• Totally enclosed sanitary belt and shaft guard.\n• Factory test run prior to shipment.\n• Inlet to 11\" OD.\n• Flanged rectangular outlet.\n• Housing to have a drain port in the bottom.\n• Product contact zones unpainted, all other surfaces painted Basalt Gray; guards painted safety orange. Please specify otherwise.",
+      "quantity": 3,
+      "unitPrice": 7950.0
+    },
+    {
+      "name": "Dust Control Filter",
+      "itemDescription": "- FILTER TO HANDLE 2,000 CFM OF RICE DUST AT 70°F\n- FILTER STRESSED TO 17\" W.G.\n- FLANGED CONSTRUCTION\n- SIDE BAG REMOVAL\n- HINGED SERVICE DOOR\n- NEMA 4 ENCLOSURE\n- STEEL PLATED VENTURI & CUP\n- STAINLESS STEEL BAG CLAMPS\n- 16 OZ. SINGED POLYESTER BOTTOM REMOVAL BAGS\n- GALVANIZED CAGES\n- MAGNEHELIC GAUGE KIT\n- 4X4 SAFETY GRATE\n- NO EXPLOSION VENT (DELETED PER CUSTOMER REQUEST)\n- EXTERIOR PRIMED & PAINTED AIRLANCO WHITE\n- SAFETY EQUIPMENT PAINTED SAFETY YELLOW\n\nNOTE: A 110 VOLT SINGLE PHASE ELECTRICAL SOURCE IS REQUIRED FOR THE TIMER BOX.\nA COMPRESSED AIR SOURCE OF 4.43 SCFM AT 80-100 PSI IS REQUIRED FOR MEDIA CLEANING.",
+      "quantity": 3,
+      "unitPrice": 21296.25
+    },
+    {
+      "name": "BIN LEVEL SENSOR - Solido 115V",
+      "itemDescription": "- Install level sensor (Hi/Lo)\n- Includes mounting couplings and protective baffles installed in the hopper.\n- Customer to wire the level sensor to product feeding equipment to control the high and low level of product.\n- Rotating Paddle Switch 115 VAC 50/60Hz",
+      "quantity": 14,
+      "unitPrice": 455.0
+    },
+    {
+      "name": "Est Ductwork",
+      "itemDescription": "Estimated ductwork - final sizing, diameter, and gauge TBD upon site plan layout.\n- Estimate for duct piping on second floor.",
+      "quantity": 1,
+      "unitPrice": 9233.0
+    },
+    {
+      "name": "28' Belt Conveyor",
+      "itemDescription": "- 12”\n- 28’ OAL INCLINE BELT CONVEYOR\n- FULLY ENCLOSED\n- POWDERCOATED\n- DRIVE KIT AND MOTOR MOUNT",
+      "quantity": 1,
+      "unitPrice": 16899.61
+    },
+    {
+      "name": "24' Elevator Leg",
+      "itemDescription": "- 26' DH. 9\" D. 6X4 -5\" SPACING ELEVATOR\n- CLASS II - TORQUE ARM II - SHAFT MOUNT REDUCER, SF 2\n- 1.5HP\n- 1800 RPM\n- 230/460V/3/60\n- 145T\n- TEFC\n- 9\" 6X4 SINGLE FEED BOOT HOPPER",
+      "quantity": 1,
+      "unitPrice": 11123.08
+    },
+    {
+      "name": "Plate Magnet",
+      "itemDescription": "Hinged plate magnet\nfor installation in Gentle Handler elevator leg inlet transition",
+      "quantity": 1,
+      "unitPrice": 2490.0
+    },
+    {
+      "name": "60' Drag Conveyor",
+      "itemDescription": "- 60' - 9X9 GALV. LEVEL DRAG\n- CLASS II - TORQUE ARM II - SHAFT MOUNT REDUCER, SF 2\n- 5HP, 1800 RPM, 230/460V/3/60, 145T, TEFC\n- (60) 9X9 1/4\" AR STEEL LINING - BOTTOM\n- (60) 9X9 10GA AR STEEL LINING- SIDES\n- 9X9, 9X17 TOP INLET\n- (2) ELEC R&P 1/3HP 230/460V/3 60HZ\n- (60) 9X9 RETURN RAILS\n- (2) 9X9, 9X17, 9X14 RAISED INSPECTION DOOR KIT\n- (2) 9\" INTERMEDIATE RACK & PINION CROSS SLIDE GATE\n- CARRY BACK CUPS\n\nNote: This is not exact measurement of conveyor; exact measurements are being recorded prior to ordering equipment",
+      "quantity": 1,
+      "unitPrice": 37732.2
+    },
+    {
+      "name": "Three-Way Valve",
+      "itemDescription": "8\" THREE-WAY VALVE\n- Pan type\n- 10 Gauge\n- For two heavy duty 1/3 h.p. Duff Norton actuators\n- Totally enclosed\n- 230-460 volt\n- Three phase",
+      "quantity": 1,
+      "unitPrice": 6508.75
+    },
+    {
+      "name": "Two-Way Valve",
+      "itemDescription": "- 8\" TWO-WAY VALVE\n- Y-Style\n- Pan Type\n- For heavy duty 1/3 h.p. Duff Norton actuator\n- Totally enclosed\n- 230-460 volt\n- Three phase",
+      "quantity": 1,
+      "unitPrice": 4097.5
+    }
+  ]
+}
