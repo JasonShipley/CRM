@@ -115,3 +115,14 @@ python renderer/render_local.py docs/quotes/my-quote.json out/my-quote.pdf
 
 This writes the PDF plus a `.html` preview next to it. Dollar amounts in the JSON are
 plain dollars; the line total is `quantity × (unit price − discount)`.
+
+To reproduce the **HubSpot quote look** (logo, slate header band, comments box, Products &
+Services table, signature block, contact card) — for example a revision that has to match a
+quote the customer already has — use the other renderer with the same JSON:
+
+```bash
+python renderer/render_hubspot_style.py docs/quotes/my-quote.json out/my-quote.pdf
+```
+
+Description text is printed line-for-line (blank lines included), so break long lines
+yourself. Fonts (Montserrat) and the avatar live in `renderer/assets/`.

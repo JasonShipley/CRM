@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>{{ q.name }}</title>
+<style>
+  @font-face { font-family: "Montserrat"; font-weight: 400; src: url(data:font/ttf;base64,{{ font400 }}) format("truetype"); }
+  @font-face { font-family: "Montserrat"; font-weight: 700; src: url(data:font/ttf;base64,{{ font700 }}) format("truetype"); }
+  /* Page size and margins are in real points; everything inside the page is authored
+     in "scaled" units (true value / print scale) so Chromium's whole-pixel line boxes
+     land on the original's 16.3pt pitch after the PDF print scale is applied. */
+  @page { size: A4; margin: {{ g.page_top }}pt {{ g.page_right }}pt {{ g.page_bottom }}pt {{ g.page_left }}pt; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: #fff; }
+  /* The band bleeds 10pt past the text column; keep that inside the page box (a negative-
+     margin overflow makes Chromium shrink-to-fit the whole document). */
+  body { padding: 0 {{ 10.1|s }}pt 0 {{ 10.2|s }}pt; }
+  body { font-family: "Montserrat", Arial, sans-serif; font-weight: 400; color: #33475b;
+         font-size: {{ 9.5|s }}pt; line-height: 22px; -webkit-print-color-adjust: exact; }
+  b { font-weight: 700; }
+  .logo { display: block; width: {{ 220.8|s }}pt; height: {{ 67.9|s }}pt; margin-top: {{ g.logo_top|s }}pt; }
+  .band { background: #425b76; color: #fff; margin: {{ g.band_top|s }}pt {{ -10.1|s }}pt 0 {{ -10.2|s }}pt;
+          padding: {{ g.band_pad_top|s }}pt {{ 10.1|s }}pt {{ g.band_pad_bottom|s }}pt {{ 10.2|s }}pt; }
+  .band h1 { font-size: {{ 21.7|s }}pt; line-height: 35px; font-weight: 700; margin-bottom: {{ g.title_gap|s }}pt; }
+  .cols { display: flex; justify-content: space-between; }
+  .cols .r { text-align: right; }
+  .blank { height: 22px; }
+  .comments { border: {{ 0.7|s }}pt solid #33475b; margin-top: {{ g.comments_top|s }}pt;
+              padding: {{ g.comments_pad_top|s }}pt {{ 16.2|s }}pt {{ g.comments_pad_bottom|s }}pt {{ 16.2|s }}pt; }
+  .comments p { margin-top: {{ g.comments_gap|s }}pt; }
+  h2 { font-size: {{ 10.9|s }}pt; line-height: 22px; font-weight: 700; margin-top: {{ g.products_top|s }}pt; }
+  h3 { font-size: {{ 9.5|s }}pt; line-height: 22px; font-weight: 700; }
+  table.items { width: 100%; table-layout: fixed; border-collapse: collapse; margin-top: {{ g.table_top|s }}pt; }
+  table.items thead { display: table-header-group; }
+  table.items tr { page-break-inside: avoid; break-inside: avoid; }
+  table.items th { font-weight: 700; text-align: left; vertical-align: top;
+                   padding: {{ g.th_pad_top|s }}pt 0 {{ g.th_pad_bottom|s }}pt 0; border-bottom: {{ 1.4|s }}pt solid #425b76; }
+  table.items td { vertical-align: top; padding: {{ g.td_pad_top|s }}pt 0 {{ g.td_pad_bottom|s }}pt 0;
+                   border-bottom: {{ 0.7|s }}pt solid #dfe3eb; }
+  table.items tr.last td { border-bottom: {{ 1.4|s }}pt solid #425b76; }
+  table.items td.item { padding-left: {{ 5.5|s }}pt; }
+  table.items th.num, table.items td.num { text-align: right; white-space: nowrap; }
+  table.items th.pad, table.items td.pad { padding-right: {{ 16.5|s }}pt; }
+  .desc { font-size: {{ 8.2|s }}pt; line-height: 22px; white-space: pre; margin-top: {{ g.desc_gap|s }}pt; opacity: 0.7; }
+  .totals { width: {{ 260.2|s }}pt; margin-left: auto; margin-top: {{ g.totals_top|s }}pt; }
+  .totals .row { display: flex; justify-content: space-between; }
+  .totals .sub { border-bottom: {{ 0.7|s }}pt solid #dfe3eb; padding-bottom: {{ g.sub_pad_bottom|s }}pt; }
+  .totals .grand { font-size: {{ 10.9|s }}pt; font-weight: 700; margin-top: {{ g.grand_top|s }}pt; }
+  .totals .grand span:first-child { width: {{ 129.6|s }}pt; text-align: right; }
+  .terms { margin-top: {{ g.terms_top|s }}pt; }
+  .terms p { margin-top: {{ g.terms_gap|s }}pt; }
+  .sigh { font-size: {{ 10.9|s }}pt; margin-top: {{ g.sig_top|s }}pt; }
+  .sig { display: flex; gap: {{ 78.2|s }}pt; margin-top: {{ g.sig_line_top|s }}pt; }
+  .sig .cell { width: {{ 181.4|s }}pt; border-top: {{ 0.7|s }}pt solid #33475b; padding-top: {{ g.sig_cap_top|s }}pt; }
+  .sig.second { margin-top: {{ g.sig2_top|s }}pt; }
+  .contact { margin-top: {{ g.contact_top|s }}pt; }
+  .avatar { display: block; width: {{ 34|s }}pt; height: {{ 34|s }}pt; border-radius: 50%; margin-top: {{ g.avatar_top|s }}pt; }
+  .contact .lines { margin-top: {{ g.contact_lines_top|s }}pt; }
+  .block { page-break-inside: avoid; break-inside: avoid; }
+</style>
+</head>
+<body>
+<img class="logo" src="data:image/png;base64,{{ logo_b64 }}" alt="Midwest Custom Engineering">
+
+<div class="band">
+  <h1>{{ q.name }}</h1>
+  <div class="cols">
+    <div class="l">
+      <b>{{ q.company.name }}</b><br>
+      {{ a.addressStreet1 }}<br>
+      {{ a.addressCity }}, {{ a.addressState }} {{ a.addressPostcode }}<br>
+      {{ a.addressCountry }}
+      <div class="blank"></div><div class="blank"></div>
+      <b>{{ c.firstName }} {{ c.lastName }}</b><br>
+      {{ c.email }}<br>
+      {{ c.phone }}
+    </div>
+    <div class="r">
+      Reference: {{ ref }}<br>
+      Quote created: {{ issue_date }}<br>
+      Quote expires: {{ expires }}<br>
+      Quote created by: {{ seller_contact[0] }}
+      <div class="blank"></div>
+      {{ seller_contact[1] }}<br>
+      {{ seller_contact[2] }}
+    </div>
+  </div>
+</div>
+
+<div class="comments block">
+  <h3>Comments from {{ seller_contact[0] }}</h3>
+  <p>{{ q.comments }}</p>
+</div>
+
+<h2>Products &amp; Services</h2>
+<table class="items">
+  <colgroup>
+    <col style="width: {{ 301.7|s }}pt"><col style="width: {{ 76.1|s }}pt"><col style="width: {{ 87.0|s }}pt"><col style="width: {{ 54.4|s }}pt">
+  </colgroup>
+  <thead>
+    <tr>
+      <th>Item &amp; Description</th>
+      <th class="num pad">Quantity</th>
+      <th class="num pad">Unit Price</th>
+      <th class="num">Total</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for it in items %}
+    <tr{% if loop.last %} class="last"{% endif %}>
+      <td class="item">{{ it.name }}{% if it._desc_lines %}<div class="desc">{{ it._desc_lines | join('\n') }}</div>{% endif %}</td>
+      <td class="num pad">{{ it._qty }}</td>
+      <td class="num pad">{{ it._unit }}&nbsp;</td>
+      <td class="num">{{ it._net }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<div class="totals block">
+  <div class="row sub"><span>One-time subtotal</span><span>{{ subtotal }}</span></div>
+  <div class="row grand"><span>Total</span><span>{{ total }}</span></div>
+</div>
+
+<div class="terms block">
+  <h3>Purchase terms</h3>
+  <p>{{ q.terms }}</p>
+</div>
+
+<div class="block">
+  <h3 class="sigh">Signature</h3>
+  <div class="sig">
+    <div class="cell">Signature</div>
+    <div class="cell">Date</div>
+  </div>
+  <div class="sig second">
+    <div class="cell">Printed name</div>
+  </div>
+</div>
+
+<div class="contact block">
+  <h3>Questions? Contact me</h3>
+  <img class="avatar" src="data:image/png;base64,{{ avatar_b64 }}" alt="">
+  <div class="lines">
+    {{ seller_contact[0] }}<br>
+    {{ seller_contact[1] }}<br>
+    {{ seller_contact[2] }}
+    <div class="blank"></div>
+    {{ seller.company }}<br>
+    {{ seller.address | join('<br>') | safe }}
+  </div>
+</div>
+</body>
+</html>

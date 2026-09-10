@@ -89,7 +89,7 @@ def render_html(q):
     return env.get_template("quote.html").render(**build_context(q))
 
 
-def html_to_pdf(html, out_pdf):
+def html_to_pdf(html, out_pdf, scale=None, prefer_css_page_size=False):
     from playwright.sync_api import sync_playwright
     chromium_path = os.environ.get("CHROMIUM_PATH")
     if not chromium_path:
@@ -100,8 +100,15 @@ def html_to_pdf(html, out_pdf):
                                      args=["--no-sandbox"] if os.geteuid() == 0 else [])
         page = browser.new_page()
         page.set_content(html, wait_until="networkidle")
-        page.pdf(path=str(out_pdf), format="A4", print_background=True,
-                 margin={"top": "0", "bottom": "0", "left": "0", "right": "0"})
+        opts = dict(path=str(out_pdf), print_background=True,
+                    margin={"top": "0", "bottom": "0", "left": "0", "right": "0"})
+        if prefer_css_page_size:
+            opts["prefer_css_page_size"] = True
+        else:
+            opts["format"] = "A4"
+        if scale:
+            opts["scale"] = scale
+        page.pdf(**opts)
         browser.close()
 
 
