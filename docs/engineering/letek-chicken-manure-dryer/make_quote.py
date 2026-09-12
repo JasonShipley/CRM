@@ -56,10 +56,10 @@ System Commissioning
 - Start-up and operator training"""
 
 BURNER="""Burner oversized for this application per MCE engineering: 10 MMBtu/hr maximum with 10:1 turndown (normal fire 7.3 MMBtu/hr, calculator 8.7 with margin), sized to hold capacity if the press cake runs wetter than 70% or the plant runs 160 MT/day.
-- Dual-fuel: biogas (55% CH4, ~195 scfm at 2 psig) and LPG, two independent NFPA 86 gas trains with automatic changeover on gas pressure
-- Combustion air blower, flame safeguard integrated with the BMS panel
+- Dual-fuel: biogas (55% CH4, ~195 scfm at 2 psig) and LPG, two independent NFPA 86 gas trains with automatic changeover on gas pressure, parallel-positioning air/fuel control with flow metering on both fuels
+- Combustion air blower, flame safeguard and temperature control integrated with the BMS panel, NEMA 4X fiberglass enclosures
 - Replaces the standard 435 MOP burner and single valve train included in line 1
-PRICE: burner vendor quote pending - to be added"""
+- Budgetary; carbon steel gas train piping. Stainless piping for the biogas train available as an adder"""
 
 SS="""Recommended for digestate (ammonia, chlorides, pH to 8.2). In lieu of the A36 construction on line 1: 316L stainless drum shell (1/2" plate, sub-arc welded, X-ray shell) and flights, 316L feed screw and live bottom, 316L drop-out box (3/16" walls, 1/4" hopper), 316L airlock, R-15 mineral wool insulation with 26 ga 304 SS cladding on drum and drop-out box, Nomex inlet and discharge seals.
 Priced from MCE's 8' x 40' 316L XC Series system as built for a US animal-health customer (2022 pricing, not escalated); the exhaust fan, ducting and cyclone in 316L are quoted on request (the 304 SS cyclone adder is on line 7). Estimated equipment life 30-35 years for 316L versus 7-10 years for 3/8" A36.
@@ -67,7 +67,7 @@ Adder over the line 1 price; not included in the total below."""
 
 lines=[
  dict(name='XD-96 Mk.2 Rotary Thermal Conditioning System', qty=1, unit=price('XD-96 Mk.2 Rotary Thermal Conditioning System'), desc=XD96),
- dict(name='Dual-fuel burner upgrade, 10 MMBtu/hr, LPG + biogas', qty=1, unit=0.0, desc=BURNER),
+ dict(name='Dual-fuel burner upgrade, 10 MMBtu/hr, LPG + biogas', qty=1, unit=175000.0, desc=BURNER),
  dict(name='OPTION: 316L stainless steel construction (in lieu of line 1 A36)', qty=1, unit=1529000.0-price('XD-96 Mk.2 Rotary Thermal Conditioning System'), desc=SS),
  dict(name='XB 4.9 Live Bottom Storage Hopper', qty=1, unit=price('XB 4.9 Live Bottom Storage Hopper'), desc="Press cake surge ahead of the dryer feed screw, 2 hours at 6,430 lb/hr.\n"+rows['XB 4.9 Live Bottom Storage Hopper']['Product description']),
  dict(name='HD Screw Conveyor', qty=1, unit=price('HD Screw Conveyor'), desc="Cake transfer from live-bottom hopper to the dryer feed screw.\n"+rows['HD Screw Conveyor']['Product description']),
@@ -75,7 +75,7 @@ lines=[
  dict(name='HE-74 Cyclone - 304 stainless construction adder', qty=1, unit=21000.0, desc="304 stainless construction of the HE-74 for the wet, ammonia-laden dryer exhaust (adder per HE-74 catalog description). 1\" insulation and aluminum cladding available for an additional $9,995."),
  dict(name='FT-12 Airlock', qty=1, unit=price('FT-12 Airlock'), desc="Rotary airlock under the HE-74 cyclone discharge; fines rejoin the dried product.\n"+rows['FT-12 Airlock']['Product description']),
  dict(name='OPTION: Automation and Controls (PLC / HMI upgrade)', qty=1, unit=price('Automation and Controls'), desc="Optional upgrade in place of the basic BMS panel. Not included in the total below.\n"+rows['Automation and Controls']['Product description']),
- dict(name='Screw press dewatering system', qty=1, unit=0.0, desc="Screw press, 12,900 lb/hr (5.8 m3/h) of digestate at 15% TS to 30% TS cake, 316 SS screen and screw, with agitated receiving tank (8 h) and progressive-cavity feed pump. Cake moisture sets the dryer duty; a bench test on a 5-gallon sample is required.\nPRICE: vendor quote pending - to be added"),
+ dict(name='Screw press dewatering system, 316L, subject to sample test', qty=1, unit=374000.0, desc="Heavy-duty screw press for 12,900 lb/hr (5.8 m3/h) of digestate at 15% TS, 316L stainless wetted parts, with drive, controls and spare screen. Target 30% TS cake; cake moisture sets the dryer duty.\nDigested chicken manure is low in fiber and is a difficult material for any screw press. This line is conditional on a bench test of your effluent: please send 3 to 4 five-gallon pails to our Stuart, FL shop. If the press cannot reach 30% TS we will re-quote with a decanter centrifuge or with the dryer sized for 85% moisture feed (about 18.5 MMBtu/hr duty).\nAgitated receiving tank, progressive-cavity feed pump and polymer system quoted after the test."),
  dict(name='Biogas conditioning skid', qty=1, unit=0.0, desc="For 195 scfm (7,455 Nm3/day): iron-oxide H2S vessel (5,000 ppm in, under 200 ppm out), chiller / coalescer moisture knockout, booster blower to 2 psig, flame arrester, pressure control.\nPRICE: allowance to be added once the biogas analysis (H2S, moisture, supply pressure) is received"),
  dict(name='Freight', qty=1, unit=0.0, desc="FOB Stuart, FL. Sea freight door to door Stuart - Miami - Progreso - Merida estimated at $27,206 in April 2026 (two 40 ft HiCube containers plus one oversize drum piece); to be re-quoted for the XD-96 and billed at time of shipment."),
 ]
@@ -87,7 +87,7 @@ for i,l in enumerate(lines,1):
 comments=("Bernardo, thank you for the revised requirements of 20 August. This budgetary proposal covers the 85% to 15% case at 120 to 160 MT/day. "
 "We recommend mechanical dewatering ahead of the dryer: a screw press removes roughly 60% of the water at a fraction of the cost of evaporating it, which brings the dryer duty to about 7.3 MMBtu/hr at 140 MT/day and lets your biogas cover about 83% of it (LPG make-up on the order of US$420/day at US$14.50/MMBtu; about US$2,500/day with the digester offline). "
 "The XD-96 Mk.2 drum is sized with margin for 160 MT/day and cake moisture variability; the burner is oversized to 10 MMBtu/hr for the same reason. "
-"Line 3 prices the drum system in 316L stainless as an option (US$1,529,000 for the 316L system in place of the US$589,500 A36 system), which we recommend for this material. Lines marked TBD are awaiting vendor quotes or your process data (effluent total solids, pH, chlorides, ammonia; biogas composition and pressure; site layout). A 5-gallon sample of the effluent to our Stuart, FL shop will let us confirm press performance and flight design. "
+"Line 3 prices the drum system in 316L stainless as an option (US$1,529,000 for the 316L system in place of the US$589,500 A36 system), which we recommend for this material. The screw press is quoted subject to a bench test, since digested poultry manure has little fiber; if it does not dewater we have two fallbacks (decanter centrifuge, or drying from 85% at about 18.5 MMBtu/hr with the same drum and a larger burner). Line 11 (biogas conditioning) is awaiting your biogas analysis and your process data (effluent total solids, pH, chlorides, ammonia; biogas composition and pressure; site layout). A 5-gallon sample of the effluent to our Stuart, FL shop will let us confirm press performance and flight design. "
 "The attached process flow sheet is the mass and energy balance this proposal is built on.")
 terms=("50% down with order, 30% on approval drawings, 15% before shipment, 5% on start-up. Budgetary proposal, valid 60 days. "
 "Delivery 18-22 weeks after approval drawings, to be confirmed by production at time of order. Installation, foundations, utilities, permits, biogas and LPG supply, effluent storage and pressate disposal by others. "

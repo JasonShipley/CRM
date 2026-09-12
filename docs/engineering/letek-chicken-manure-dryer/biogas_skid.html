@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Biogas Conditioning Skid</title>
+<style>
+@page { size: letter; margin: 0.55in 0.6in; }
+body { font-family: Arial, Helvetica, sans-serif; color: #1a1a1a; font-size: 10.5px; margin: 0; }
+h1 { font-size: 18px; margin: 0 0 2px; color: #0b2a4a; }
+h2 { font-size: 12.5px; margin: 14px 0 4px; color: #0b2a4a; border-bottom: 2px solid #c8102e; padding-bottom: 2px; }
+.hdr { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 3px solid #0b2a4a; padding-bottom: 6px; margin-bottom: 8px; }
+.hdr .meta { text-align: right; font-size: 10px; line-height: 1.35; }
+.sub { color: #555; font-size: 11px; }
+table { border-collapse: collapse; width: 100%; margin: 4px 0 6px; }
+th, td { border: 1px solid #bbb; padding: 3px 5px; vertical-align: top; text-align: left; }
+th { background: #e8eef5; font-weight: bold; }
+td.n, th.n { text-align: right; white-space: nowrap; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.note { background: #fff6e5; border-left: 3px solid #e0a000; padding: 5px 8px; margin: 6px 0; }
+.foot { margin-top: 10px; border-top: 1px solid #999; padding-top: 4px; font-size: 9px; color: #555; display: flex; justify-content: space-between; }
+svg text { font-family: Arial, Helvetica, sans-serif; }
+.pb { page-break-before: always; }
+ul { margin: 3px 0 3px 16px; padding: 0; } li { margin: 1px 0; }
+</style></head><body>
+
+<div class="hdr">
+  <div><h1>Biogas Conditioning Skid - Process Design</h1>
+  <div class="sub">LETEK DCG / Bachoco layer farms, Merida, Yucatan - chicken manure digestate dryer, 140 MT/day case</div></div>
+  <div class="meta">Midwest Custom Engineering, Inc.<br>Doc. MCE-LETEK-BGS-001 Rev A - 12 Sep 2026<br>Prepared by: J. Shipley - Budgetary design</div>
+</div>
+
+<h2>1. Purpose and design basis</h2>
+<p>Raw digester biogas is saturated with water, carries hydrogen sulfide, and arrives at a few inches of water column. The dryer burner needs dry, low-sulfur gas at a steady 2 psig. The skid does three things in order: bulk H<sub>2</sub>S removal, moisture removal, and pressure boosting, with flame arresters at both ends and a control panel that hands the burner management system a clean permissive.</p>
+<table>
+<tr><th>Item</th><th class="n">Value</th><th>Basis</th></tr>
+<tr><td>Biogas flow, design case (140 MT/day)</td><td class="n">7,455 Nm&sup3;/day = 193 scfm</td><td>Customer figure, 19 Aug 2026</td></tr>
+<tr><td>Skid design flow</td><td class="n">232 scfm (+20%)</td><td>160 MT/day case and digester swings</td></tr>
+<tr><td>Composition</td><td class="n">55% CH<sub>4</sub>, 45% CO<sub>2</sub>, saturated</td><td>Customer figure; analysis pending</td></tr>
+<tr><td>Heating value at 193 scfm</td><td class="n">5.8 MMBtu/hr LHV (139 MMBtu/day), 6.5 HHV</td><td>911 / 1,012 Btu/scf CH<sub>4</sub></td></tr>
+<tr><td>Share of dryer duty</td><td class="n">80% of 7.3 MMBtu/hr normal fire; 58% of 10 MMBtu/hr max</td><td>LHV basis; LPG makes up the balance</td></tr>
+<tr><td>H<sub>2</sub>S inlet (assumed)</td><td class="n">up to 5,000 ppmv = 5.2 lb/hr H<sub>2</sub>S, 117 lb/day S</td><td>Poultry manure digestate is sulfur-rich; analysis pending</td></tr>
+<tr><td>H<sub>2</sub>S outlet</td><td class="n">&lt; 200 ppmv</td><td>Burner train, condensate and stack corrosion</td></tr>
+<tr><td>Inlet temperature / pressure</td><td class="n">95-100 F, 2-8 in WC</td><td>Mesophilic digester; to be confirmed</td></tr>
+<tr><td>Outlet to burner</td><td class="n">2.0 psig, dew point &gt;= 20 F below ambient, &lt; 5 micron particulate</td><td>NFPA 86 train, no condensate in the valve train</td></tr>
+<tr><td>Site</td><td class="n">30 ft elevation, 85-100 F, coastal, wet season</td><td>Outdoor skid under a roof</td></tr>
+</table>
+
+<h2>2. Process flow</h2>
+<svg viewBox="0 0 980 300" width="100%" xmlns="http://www.w3.org/2000/svg">
+<defs><marker id="a" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#0b2a4a"/></marker></defs>
+<g stroke="#0b2a4a" stroke-width="1.6" fill="none">
+<!-- main gas line -->
+<path d="M20,150 H85" marker-end="url(#a)"/>
+<path d="M125,150 H170" marker-end="url(#a)"/>
+<path d="M230,150 H270" marker-end="url(#a)"/>
+<path d="M330,150 H370" marker-end="url(#a)"/>
+<path d="M430,150 H470" marker-end="url(#a)"/>
+<path d="M530,150 H570" marker-end="url(#a)"/>
+<path d="M630,150 H670" marker-end="url(#a)"/>
+<path d="M730,150 H770" marker-end="url(#a)"/>
+<path d="M810,150 H850" marker-end="url(#a)"/>
+<path d="M900,150 H960" marker-end="url(#a)"/>
+<!-- recycle -->
+<path d="M650,120 V70 H500 V115" marker-end="url(#a)" stroke-dasharray="4,3"/>
+<!-- condensate -->
+<path d="M400,185 V235" marker-end="url(#a)" stroke="#2a7fd4"/>
+<path d="M300,185 V235" marker-end="url(#a)" stroke="#2a7fd4"/>
+<!-- flare -->
+<path d="M50,150 V60 H120" marker-end="url(#a)" stroke-dasharray="4,3"/>
+</g>
+<g fill="#eef3f8" stroke="#0b2a4a" stroke-width="1.4">
+<rect x="85" y="132" width="40" height="36" rx="4"/>
+<rect x="170" y="100" width="60" height="100" rx="6"/>
+<rect x="270" y="110" width="60" height="75" rx="6"/>
+<rect x="370" y="110" width="60" height="75" rx="6"/>
+<rect x="470" y="115" width="60" height="70" rx="6"/>
+<circle cx="600" cy="150" r="30"/>
+<rect x="670" y="120" width="60" height="60" rx="6"/>
+<rect x="770" y="132" width="40" height="36" rx="4"/>
+<rect x="850" y="120" width="50" height="60" rx="6"/>
+</g>
+<g font-size="10" fill="#1a1a1a" text-anchor="middle">
+<text x="105" y="153">FA-1</text>
+<text x="200" y="145">V-1 / V-2</text><text x="200" y="158">iron oxide</text><text x="200" y="171">lead / lag</text>
+<text x="300" y="145">E-1</text><text x="300" y="158">gas cooler</text>
+<text x="400" y="145">F-1</text><text x="400" y="158">coalescer</text>
+<text x="500" y="145">F-2</text><text x="500" y="158">filter 5 um</text>
+<text x="600" y="147">K-1</text><text x="600" y="160">blower</text>
+<text x="700" y="145">PCV-1</text><text x="700" y="158">2 psig</text>
+<text x="790" y="153">FA-2</text>
+<text x="875" y="145">to burner</text><text x="875" y="158">biogas train</text>
+<text x="52" y="175">raw biogas</text><text x="52" y="187">from digester</text>
+<text x="85" y="55">to flare / vent (by others)</text>
+<text x="575" y="63">recycle for pressure control</text>
+<text x="300" y="250" fill="#2a7fd4">condensate</text><text x="300" y="262" fill="#2a7fd4">3.8 gal/hr to lagoon</text>
+<text x="400" y="250" fill="#2a7fd4">condensate</text>
+<text x="590" y="205">AIT: CH4 / H2S / O2</text>
+<text x="200" y="225">TI  PDI  AIT(H2S)</text>
+<text x="700" y="205">PT  PSL  PSH  FT</text>
+<text x="20" y="20" text-anchor="start" font-size="11" font-weight="bold">Stream: 232 scfm design (193 normal) - 100 F sat. - 5,000 ppm H2S  ->  40 F dew point, &lt; 200 ppm H2S, 2 psig</text>
+</g>
+</svg>
+
+<h2>3. Sizing</h2>
+<table>
+<tr><th>Tag</th><th>Equipment</th><th>Sizing</th><th>Result / selection</th></tr>
+<tr><td>FA-1, FA-2</td><td>In-line deflagration flame arresters, 316 SS elements</td><td>232 scfm, 4 in line, IIA gas group</td><td>4 in bidirectional, inlet and outlet of skid</td></tr>
+<tr><td>V-1, V-2</td><td>Iron-oxide H<sub>2</sub>S vessels, lead/lag, 304 SS, top-loading, wet change-out</td><td>60 s empty-bed contact at design flow: 232 ft&sup3; per vessel; superficial velocity 12 fpm</td><td>2 x 5 ft dia x 14 ft T/T, 12 ft bed, about 14,000 lb pelletized iron oxide each (0.15 lb S per lb media)</td></tr>
+<tr><td colspan="2">Media life, lead vessel</td><td>117 lb S/day at 5,000 ppm = 780 lb media/day</td><td>18 days at 5,000 ppm; 179 days at 500 ppm. See note below.</td></tr>
+<tr><td>E-1</td><td>Gas cooler, shell and tube, 316L tubes, glycol chilled</td><td>874 lb/hr gas, 100 F to 40 F: 15,800 Btu/hr sensible + 33,400 latent = 49,300 Btu/hr</td><td>5-ton air-cooled glycol chiller; removes 32 lb/hr water (3.8 gal/hr); outlet water 4 lb/hr</td></tr>
+<tr><td>F-1</td><td>Coalescing separator with level-controlled condensate trap, 316L</td><td>Liquid-out at design flow, 0.5 in WC drop</td><td>4 in coalescer, automatic drainer to condensate line</td></tr>
+<tr><td>F-2</td><td>Particulate filter, 5 micron, with PDI</td><td>232 scfm</td><td>Duplex cartridge housing so a change-out does not stop the dryer</td></tr>
+<tr><td>K-1</td><td>Rotary-lobe biogas blower, gas-tight, explosion-proof motor, VFD</td><td>232 scfm from 0 to 2.5 psig; 4.6 shaft hp at 55%</td><td>7.5 hp, 480/3/60, VFD on outlet pressure; 20 F of blower heat gives the dew-point margin after cooling</td></tr>
+<tr><td>PCV-1</td><td>Outlet pressure control valve and recycle valve to blower suction</td><td>2.0 psig set, 10:1 turndown with the burner</td><td>2 in PCV, 2 in recycle, PT/PSL/PSH to the BMS</td></tr>
+<tr><td>AIT-1/2</td><td>Gas analyzers, inlet and outlet</td><td>CH<sub>4</sub>, H<sub>2</sub>S, O<sub>2</sub></td><td>Outlet H<sub>2</sub>S high alarm at 200 ppm, trip to LPG at 500 ppm; O<sub>2</sub> &gt; 2% trip</td></tr>
+<tr><td>LCP-1</td><td>Local control panel, NEMA 4X 304 SS</td><td>VFD, analyzer inputs, valve outputs, Modbus to burner BMS and plant PLC</td><td>Permissives to the burner: gas pressure OK, H<sub>2</sub>S OK, O<sub>2</sub> OK, arrester temperature OK</td></tr>
+<tr><td>Skid</td><td>Structural steel skid, 304 SS piping (wet side 316L), 4 in main line</td><td>Roughly 10 ft x 24 ft footprint, chiller alongside</td><td>Ship as two modules: vessels; cooler/blower/controls</td></tr>
+</table>
+
+<div class="note"><b>H<sub>2</sub>S loading drives the design.</b> At 5,000 ppm the dry media alone would consume about 780 lb per day, which is neither economical nor practical to change out. The recommended arrangement is bulk removal in the digester by micro-aeration (2 to 4% air into the headspace) or ferric chloride dosing, both by the digester supplier, bringing the gas to 500 ppm or less. The iron-oxide vessels then run as a polishing stage with a 6-month media life. If the digester cannot accept micro-aeration, a biological trickling scrubber ahead of the vessels is the alternative and roughly doubles the skid footprint. The biogas analysis decides this; the vessels and cooler stay the same either way.</div>
+
+<div class="pb"></div>
+
+<h2>4. Mass and energy summary (193 scfm normal flow)</h2>
+<div class="two">
+<table>
+<tr><th>Stream</th><th class="n">Flow</th><th class="n">T</th><th class="n">P</th><th>Condition</th></tr>
+<tr><td>1 Raw biogas</td><td class="n">193 scfm, 874 lb/hr gas + 36 lb/hr water</td><td class="n">100 F</td><td class="n">4 in WC</td><td>saturated, 5,000 ppm H<sub>2</sub>S</td></tr>
+<tr><td>2 After V-1/V-2</td><td class="n">192 scfm</td><td class="n">100 F</td><td class="n">2 in WC</td><td>&lt; 200 ppm H<sub>2</sub>S, saturated</td></tr>
+<tr><td>3 After E-1 / F-1</td><td class="n">192 scfm gas, 4 lb/hr water</td><td class="n">40 F</td><td class="n">0 in WC</td><td>40 F dew point</td></tr>
+<tr><td>4 After K-1 / PCV-1</td><td class="n">192 scfm</td><td class="n">60-70 F</td><td class="n">2.0 psig</td><td>dew point 20-30 F below gas temperature</td></tr>
+<tr><td>C Condensate</td><td class="n">32 lb/hr, 3.8 gal/hr</td><td class="n">40 F</td><td class="n">-</td><td>acidic, to lagoon or digester</td></tr>
+<tr><td>S Spent media</td><td class="n">14,000 lb per change-out</td><td class="n">-</td><td class="n">-</td><td>non-hazardous after air passivation; landfill</td></tr>
+</table>
+<table>
+<tr><th>Utility</th><th class="n">Demand</th></tr>
+<tr><td>Electrical, blower K-1</td><td class="n">7.5 hp, 5.6 kW at design</td></tr>
+<tr><td>Electrical, chiller</td><td class="n">5 ton, about 6 kW</td></tr>
+<tr><td>Electrical, controls and analyzers</td><td class="n">1 kW</td></tr>
+<tr><td>Total connected</td><td class="n">approx. 13 kW, 480/3/60</td></tr>
+<tr><td>Nitrogen for purge and change-out</td><td class="n">bottled, 2 cylinders on site</td></tr>
+<tr><td>Instrument air</td><td class="n">none (electric actuators)</td></tr>
+<tr><td>Condensate disposal</td><td class="n">3.8 gal/hr, gravity to lagoon</td></tr>
+</table>
+</div>
+
+<h2>5. Safety and controls</h2>
+<ul>
+<li>Flame arresters at skid inlet and outlet, temperature switches on both; the outlet arrester is the last device before the burner biogas train.</li>
+<li>Classified area: Class I Division 2 around the skid; blower motor and instruments rated accordingly; skid under a roof, open sides, no enclosure.</li>
+<li>Trips to LPG (automatic changeover in the burner BMS): low gas pressure, high H<sub>2</sub>S, high O<sub>2</sub>, high blower discharge temperature, arrester high temperature, chiller failure with dew point alarm.</li>
+<li>Iron-oxide media is pyrophoric when spent and dry; vessels are changed out wet with nitrogen purge, one vessel at a time (lead/lag lets the dryer keep running).</li>
+<li>Condensate is acidic (H<sub>2</sub>S, CO<sub>2</sub>); 316L on the cooler, coalescer and condensate piping, 304 SS elsewhere on the skid.</li>
+<li>Pressure relief on the blower discharge to the flare/vent header; the digester's own flare handles any gas the dryer cannot take.</li>
+</ul>
+
+<h2>6. Information needed to finalize</h2>
+<table>
+<tr><th>Item</th><th>Why it matters</th><th>From</th></tr>
+<tr><td>Biogas analysis: CH<sub>4</sub>, CO<sub>2</sub>, H<sub>2</sub>S, O<sub>2</sub>, N<sub>2</sub>, moisture, siloxanes</td><td>Sets the H<sub>2</sub>S removal stage (in-digester vs. skid), media life, and whether an activated-carbon polish is needed</td><td>LETEK / digester supplier</td></tr>
+<tr><td>Digester gas pressure and holder volume</td><td>Blower suction design, whether the holder can buffer burner turndown</td><td>Digester supplier</td></tr>
+<tr><td>Can the digester accept micro-aeration or FeCl<sub>3</sub> dosing?</td><td>Decides whether the skid is a polish stage (as sized) or needs a biological scrubber</td><td>Digester supplier</td></tr>
+<tr><td>LPG supply pressure and tank location</td><td>Burner changeover and train design</td><td>LETEK</td></tr>
+<tr><td>Site plan: digester to dryer distance</td><td>Line size and blower head; 4 in line assumed for up to 300 ft</td><td>LETEK</td></tr>
+</table>
+
+<h2>7. Assumptions and confidence</h2>
+<p>Confidence is <b>medium</b> for the cooler, blower and controls (these follow from the flow and composition the customer gave) and <b>low</b> for the H<sub>2</sub>S stage until the analysis arrives, because a 5,000 ppm assumption versus a 1,500 ppm reality changes the media economics by a factor of three and decides whether in-digester treatment is required. Pricing for this skid follows component quotations and is not included in this document.</p>
+
+<div class="foot"><span>Midwest Custom Engineering, Inc. - 6526 S Kanner Hwy #215, Stuart, FL 34997 - usemce.com</span><span>MCE-LETEK-BGS-001 Rev A - Confidential, prepared for LETEK DCG</span></div>
+</body></html>

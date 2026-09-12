@@ -145,3 +145,20 @@ No usable vendor pricing on file. Three Gmail drafts are in the Drafts folder fo
 
 MCE convention for these lines once vendor net pricing arrives: sell = vendor net / 0.8 (Jan 2026
 Roastamatic thread), then update lines 2, 10 and 11 in `make_quote.py` and QBO estimate 6476.
+
+## Vendor replies and quote update (12 Sep 2026)
+
+| Line | Vendor reply (11 Sep) | MCE price on quote | Basis |
+|---|---|---:|---|
+| Screw press | Vincent Corp. (Tampa), Fred White: VP-16 in 316L, end-user budget $352,000, 15% dealer discount ($299,200 net). Warns digested poultry manure is low-fiber and may not press; wants 3-4 five-gallon pails for a test. | $374,000 | net / 0.8, subject to sample test; fallbacks stated on the quote (decanter, or dry from 85% at 18.5 MMBtu/hr) |
+| Dual-fuel burner | BDC, Joe Kovacs: $130-140K budget with two valve trains, fiberglass enclosures, carbon steel piping; SS piping extra. Written proposal to follow. | $175,000 | $140,000 / 0.8; no credit taken for the standard 435 MOP burner in the XD-96 price |
+| Biogas skid | No vendor. MCE process design issued: `biogas_skid.html` -> `MCE-LETEK-BGS-001_Biogas_Conditioning_Skid.pdf` (lead/lag iron-oxide vessels 5 ft x 14 ft, 5-ton glycol gas cooler, 7.5 hp lobe blower, arresters, analyzers). | TBD | Component quotes needed; H2S analysis decides in-digester vs. skid bulk removal |
+
+Quote subtotal is now $1,267,822 (was $718,822). Reply drafts to Fred (sample logistics, VP-16 data sheet) and Joe
+(CS for LPG train, 304 SS biogas train as adder) are in Gmail Drafts, not sent. The customer reply to Bernardo
+(thread "Dryer System for Chicken Manure") is updated in Drafts; the two PDFs must be attached by hand before
+sending. QBO estimate 6476 still shows the 9 Sep pricing (burner and press at $0) per Jason's instruction that
+the PDF is enough for now.
+
+Context from Bernardo's 19 Aug email: Bachoco's management did not approve buying the dryer; LETEK would invest,
+build and operate it as a manure-treatment service, so LETEK is the buyer and is price-sensitive.
