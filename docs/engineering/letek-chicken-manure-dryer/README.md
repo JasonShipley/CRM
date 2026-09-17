@@ -191,7 +191,7 @@ about 8% TS, pH 8, NH4-N 3,500 mg/L, chlorides 3,000 mg/L; biogas 55% CH4 / 40% 
 airlock and cyclone are needed, for a preliminary layout with areas, for electricity and maintenance
 costs, and agreed to a sample test after an initial analysis.
 
-Reply drafted in Gmail (draft `r3881006483182831908`, reply to the message above, cc Santiago, Roberto,
+Reply drafted in Gmail (draft `r4045024626754806572`, message `1a0b196321402ae7`, reply to the message above; an earlier draft was detached from the thread by update_draft and trashed, cc Santiago, Roberto,
 JB, Mike) with `MCE-LETEK-LAY-001_Preliminary_Layout.pdf` attached. **Not sent; Jason to review.**
 
 Answers given in the draft (all preliminary, derived from the 140 MT/day basis):
