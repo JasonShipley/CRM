@@ -1,0 +1,15 @@
+<style>
+  @font-face { font-family: "Inter"; src: url(data:font/ttf;base64,{{ fonts.inter }}) format("truetype"); font-weight: 100 900; }
+  .ftr { -webkit-print-color-adjust: exact; width: 100%; margin: 0 36px; font-family: "Inter", Arial, sans-serif; font-size: 6.5px; color: #9A9A9A; }
+  .line { border-top: 1px solid #C8C7C7; position: relative; margin-bottom: 5px; }
+  .line:before { content: ""; position: absolute; left: 0; top: -1px; width: 28px; height: 2px; background: #FF6602; }
+  .row { display: flex; justify-content: space-between; }
+  b { color: #575D5E; font-weight: 700; }
+</style>
+<div class="ftr">
+  <div class="line"></div>
+  <div class="row">
+    <span><b>MIDWEST CUSTOM ENGINEERING</b> &nbsp;PRECISION. QUALITY. INTEGRITY.</span>
+    <span>{{ d.footer_right }}</span>
+  </div>
+</div>

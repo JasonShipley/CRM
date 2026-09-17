@@ -1,0 +1,25 @@
+<style>
+  @font-face { font-family: "Oswald"; src: url(data:font/ttf;base64,{{ fonts.oswald }}) format("truetype"); font-weight: 200 700; }
+  @font-face { font-family: "Inter"; src: url(data:font/ttf;base64,{{ fonts.inter }}) format("truetype"); font-weight: 100 900; }
+  .hdr { -webkit-print-color-adjust: exact; width: 100%; margin: 0; padding: 0; font-family: "Inter", Arial, sans-serif; }
+  .band { background: #000; height: 80px; display: flex; align-items: center; justify-content: space-between; padding: 0 36px; }
+  .band img { width: 196px; height: auto; display: block; }
+  .right { text-align: right; color: #fff; }
+  .t { font-family: "Oswald", "Arial Narrow", sans-serif; font-weight: 700; font-size: 20px; letter-spacing: .01em; line-height: 1.05; }
+  .s { color: #FF6602; font-family: "Oswald", "Arial Narrow", sans-serif; font-weight: 500; font-size: 9px; letter-spacing: .04em; text-transform: uppercase; margin-top: 3px; }
+  .m { color: #C8C7C7; font-size: 7px; margin-top: 3px; }
+  .dr { color: #FF6602; font-size: 6.5px; font-weight: 700; margin-top: 2px; letter-spacing: .03em; }
+  .rule { height: 3.5px; background: #FF6602; }
+</style>
+<div class="hdr">
+  <div class="band">
+    <img src="data:image/png;base64,{{ logo }}">
+    <div class="right">
+      <div class="t">{{ d.doc_type }}</div>
+      <div class="s">{{ d.subtitle }}</div>
+      <div class="m">Proposal {{ d.number }} &nbsp;·&nbsp; {{ d.date }} &nbsp;·&nbsp; Page <span class="pageNumber"></span></div>
+      {% if draft %}<div class="dr">DRAFT — INTERNAL REVIEW — ORANGE ITEMS REQUIRE MCE INPUT BEFORE RELEASE</div>{% endif %}
+    </div>
+  </div>
+  <div class="rule"></div>
+</div>

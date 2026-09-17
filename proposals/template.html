@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>{{ d.number }} — {{ d.subtitle }}</title>
+<style>
+  @font-face { font-family: "Oswald"; src: url(data:font/ttf;base64,{{ fonts.oswald }}) format("truetype"); font-weight: 200 700; }
+  @font-face { font-family: "Inter"; src: url(data:font/ttf;base64,{{ fonts.inter }}) format("truetype"); font-weight: 100 900; font-style: normal; }
+  @font-face { font-family: "Inter"; src: url(data:font/ttf;base64,{{ fonts.inter_italic }}) format("truetype"); font-weight: 100 900; font-style: italic; }
+  :root { --orange: #FF6602; --black: #000; --steel: #575D5E; --silver: #C8C7C7; --panel: #F5F5F5; --thead: #E4E4E4; --muted: #9A9A9A; --ink: #1a1a1a; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { font-family: "Inter", Arial, sans-serif; font-size: 8.6pt; line-height: 1.38; color: var(--ink); }
+  @page { size: Letter; }
+  h1, h2, h3, .oswald { font-family: "Oswald", "Arial Narrow", sans-serif; }
+
+  .secbar { background: var(--steel); color: #fff; font-family: "Oswald", sans-serif; font-weight: 600; font-size: 9.2pt;
+    letter-spacing: .04em; text-transform: uppercase; height: 15pt; line-height: 15pt; padding-left: 12px; position: relative;
+    margin: 16px 0 7px; display: flex; justify-content: space-between; page-break-after: avoid; break-after: avoid; }
+  .secbar:before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 5px; background: var(--orange); }
+  .secbar .note { font-family: "Inter", sans-serif; font-weight: 400; font-style: italic; text-transform: none; letter-spacing: 0;
+    color: var(--silver); font-size: 7.4pt; padding-right: 8px; }
+  h3.sub { color: var(--orange); font-weight: 600; font-size: 8.8pt; text-transform: uppercase; letter-spacing: .03em; margin: 10px 0 4px; page-break-after: avoid; }
+
+  .flag { color: var(--orange); font-weight: 600; }
+  .flag-off { }
+  p { margin: 0 0 6px; }
+  ul { margin: 2px 0 2px 12px; }
+  li { margin: 1px 0; }
+  .gap { height: 5px; }
+  .prose { max-width: 100%; }
+  .prose div { margin-bottom: 4px; }
+
+  /* summary panel */
+  .summary { display: flex; gap: 18px; background: var(--panel); padding: 8px 12px 10px; margin-top: 4px; }
+  .summary .col { flex: 1; }
+  .summary .lbl { color: var(--steel); font-weight: 700; font-size: 6.2pt; letter-spacing: .06em; text-transform: uppercase; margin-bottom: 3px; }
+  .summary .col div.v { font-size: 8.2pt; }
+  .summary .col div.v:first-of-type { font-weight: 700; }
+
+  table { width: 100%; border-collapse: collapse; page-break-inside: auto; }
+  thead { display: table-header-group; }
+  tr { page-break-inside: avoid; break-inside: avoid; }
+  tr.long { page-break-inside: auto; break-inside: auto; }
+  ul { list-style: disc; }
+  th { background: var(--thead); color: var(--steel); font-weight: 700; font-size: 6.4pt; letter-spacing: .06em; text-transform: uppercase;
+    text-align: left; padding: 4px 6px; }
+  td { padding: 5px 6px; border-bottom: 1px solid #E4E4E4; vertical-align: top; }
+  tr:nth-child(even) td { background: #FAFAFA; }
+  td.num, th.num { text-align: right; white-space: nowrap; }
+  td.k { font-weight: 400; width: 24%; }
+  td.desc b.name { display: block; margin-bottom: 2px; }
+  td.item { width: 5%; font-weight: 700; color: var(--steel); }
+  td.qty { width: 6%; text-align: center; }
+  td.price { width: 15%; }
+
+  .totals { margin-left: auto; width: 52%; margin-top: 6px; }
+  .totals .row { display: flex; justify-content: space-between; padding: 4px 6px; border-bottom: 1px solid #E4E4E4; }
+  .totals .row.grand { border-top: 2px solid var(--black); border-bottom: none; font-family: "Oswald", sans-serif; font-weight: 700; font-size: 11pt; padding-top: 6px; }
+  .totals .row.grand span:last-child { color: var(--orange); }
+  .totals .row .sub { color: var(--muted); font-size: 7.2pt; }
+  .block { page-break-inside: avoid; break-inside: avoid; }
+
+  .sig { display: flex; gap: 40px; margin-top: 14px; border-top: 1px solid var(--silver); padding-top: 8px; }
+  .sig .cell { flex: 1; }
+  .sig .lbl { color: var(--steel); font-weight: 700; font-size: 6.2pt; letter-spacing: .06em; text-transform: uppercase; margin-bottom: 6px; }
+  .sig .ln { margin: 5px 0; }
+</style>
+</head>
+<body>
+
+<div class="secbar">Proposal summary</div>
+<div class="summary">
+  <div class="col"><div class="lbl">Prepared for</div>{% for l in d.prepared_for %}<div class="v">{{ l|rich }}</div>{% endfor %}</div>
+  <div class="col"><div class="lbl">Project</div>{% for l in d.project %}<div class="v">{{ l|rich }}</div>{% endfor %}</div>
+  <div class="col"><div class="lbl">Reference</div>{% for l in d.reference %}<div class="v">{{ l|rich }}</div>{% endfor %}</div>
+</div>
+<div class="prose" style="margin-top:10px">{{ d.intro|rich }}</div>
+
+{% for s in d.sections %}
+  {% if s.type != "signature" %}
+  <div class="secbar"><span>{{ loop.index }}. {{ s.title }}</span>{% if s.note %}<span class="note">{{ s.note|rich }}</span>{% endif %}</div>
+  {% endif %}
+  {% if s.lead %}<div class="prose">{{ s.lead|rich }}</div>{% endif %}
+
+  {% if s.type == "table" %}
+    <table>
+      <thead><tr>{% for c in s.columns %}<th{% if c.startswith('#') %} class="num"{% endif %}>{{ c.lstrip('#') }}</th>{% endfor %}</tr></thead>
+      <tbody>
+      {% for r in s.rows %}<tr>{% for c in r %}<td class="{% if loop.first %}k{% endif %}{% if s.columns[loop.index0].startswith('#') %} num{% endif %}">{{ c|rich }}</td>{% endfor %}</tr>{% endfor %}
+      </tbody>
+    </table>
+
+  {% elif s.type == "bullets" %}
+    <div class="prose">{{ s.text|rich }}</div>
+
+  {% elif s.type == "prose" %}
+    <div class="prose">{{ s.text|rich }}</div>
+
+  {% elif s.type == "pricing" %}
+    <table>
+      <thead><tr><th>Item</th><th>Description</th><th style="text-align:center">Qty</th><th class="num">Unit price</th><th class="num">Extended</th></tr></thead>
+      <tbody>
+      {% for it in s["items"] %}
+      <tr class="long">
+        <td class="item">{{ loop.index }}</td>
+        <td class="desc"><b class="name">{{ it.name|rich }}</b>{{ it.description|rich }}</td>
+        <td class="qty">{{ it.qty }}</td>
+        <td class="num price">{{ it.unit_price|money }}</td>
+        <td class="num price">{{ it.extended|money }}</td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    <div class="totals block">
+      <div class="row"><span>Subtotal — items 1 to {{ s["items"]|length }}</span><span>{{ s.subtotal|money }}</span></div>
+      {% if s.discount_percent %}<div class="row"><span>Less {{ s.discount_percent }}% discount{% if s.discount_label %} <span class="sub">{{ s.discount_label }}</span>{% endif %}</span><span>({{ s.discount_amount|money }})</span></div>{% endif %}
+      <div class="row grand"><span>Total — {{ s.total_label or "equipment as quoted" }}</span><span>{{ s.total|money }}</span></div>
+    </div>
+    {% if s.after %}<div class="prose" style="margin-top:8px">{{ s.after|rich }}</div>{% endif %}
+    {% if s.options %}
+    <h3 class="sub">Options and adders</h3>
+    <table>
+      <thead><tr><th>Option</th><th>Description</th><th style="text-align:center">Qty</th><th class="num">Unit price</th><th class="num">Net adder{% if s.discount_percent %} (after {{ s.discount_percent }}%){% endif %}</th></tr></thead>
+      <tbody>
+      {% for op in s.options %}
+      <tr>
+        <td class="item">{{ "ABCDEFGHIJ"[loop.index0] }}</td>
+        <td class="desc"><b class="name">{{ op.name|rich }}</b>{{ op.description|rich }}</td>
+        <td class="qty">{{ op.qty if op.qty else "" }}</td>
+        <td class="num price">{{ op.unit_price|money }}</td>
+        <td class="num price">{% if op.net_extended is defined %}{{ op.net_extended|money }}{% if op.qty and op.qty > 1 %}<br><span style="color:var(--muted);font-size:7pt">{{ op.net_unit|money }} each</span>{% endif %}{% else %}{{ op.price_text }}{% endif %}</td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% endif %}
+
+  {% elif s.type == "signature" %}
+    <div class="sig block">
+      <div class="cell"><div class="lbl">Prepared by</div>{% for l in s.prepared_by %}<div class="ln">{{ l|rich }}</div>{% endfor %}</div>
+      <div class="cell"><div class="lbl">For {{ s.customer }}</div>
+        <div class="ln">Accepted: ______________________________</div>
+        <div class="ln">Name / Title: ___________________________</div>
+        <div class="ln">Date: _______________ &nbsp; PO #: _______________</div>
+      </div>
+    </div>
+  {% endif %}
+{% endfor %}
+
+</body>
+</html>

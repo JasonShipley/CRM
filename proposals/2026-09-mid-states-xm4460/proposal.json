@@ -1,0 +1,213 @@
+{
+  "output_basename": "MCE_Proposal_-_Mid-States_Companies_-_XM-4460_Hammer_Mills_(8)_-_R1_DRAFT",
+  "draft": true,
+  "doc_type": "EQUIPMENT PROPOSAL",
+  "subtitle": "XM-4460 Hammer Mill Grinding System (8 Mills) — Corn Ethanol",
+  "number": "MCE-Q-2609-MIDSTATES-R1",
+  "date": "September 17, 2026",
+  "footer_right": "Stuart, FL  ·  772-200-4060  ·  midwestcustomengineering.com",
+  "prepared_for": [
+    "Mid-States Companies",
+    "Attn: Chris Schaudt",
+    "chris.schaudt@midstatescompanies.com  ·  515-509-3011",
+    "1300 S B Avenue, Nevada, IA 50201"
+  ],
+  "project": [
+    "Eight (8) XM-4460 hammer mills for corn grinding — dry-grind ethanol plant",
+    "48–50 TPH per mill at 7,200 sq in screen area",
+    "Mills set on concrete; plenums hung below on the next floor",
+    "Air system (fans, filters, ducting) by W.D. Patterson — Mike King"
+  ],
+  "reference": [
+    "MCE-Q-2609-MIDSTATES-R1",
+    "Basis: Rough Rider hammer mill review of Sep 15, 2026 (C. Schaudt / J. Bliss / M. King) and MCE engineering of Sep 15, 2026",
+    "Validity: [[through December 31, 2026]]  ·  Currency: USD",
+    "[[FOB MCE plant, Newkirk, OK]]"
+  ],
+  "intro": "Midwest Custom Engineering is pleased to quote eight (8) XM-4460 extra-heavy-duty hammer mills with feeders, self-cleaning magnet adapters, 350 FPM plenum chambers and plenum transfer screws for corn grinding at the Mid-States ethanol project. Each mill is rated 48–50 TPH on corn with 7,200 sq in of screen area and a 500 HP drive. Mill drive motors are quoted as an option so Mid-States may purchase them directly and ship them to MCE for mounting. The air-relief system is by W.D. Patterson and is not included here.",
+  "sections": [
+    {
+      "type": "table",
+      "title": "Design basis",
+      "note": "per Jason Bliss, MCE, Sep 15, 2026",
+      "columns": [
+        "Parameter",
+        "Design value",
+        "Notes"
+      ],
+      "rows": [
+        [
+          "Product",
+          "Whole corn — dry-grind ethanol",
+          "Grinding for fermentation; screen selection per Mid-States process"
+        ],
+        [
+          "Number of mills",
+          "8 × XM-4460",
+          "Extra-heavy-duty, direct-drive, dual grinding chamber, gravity discharge"
+        ],
+        [
+          "Capacity",
+          "**48–50 TPH per mill**",
+          "Based on 7,200 sq in screen area per mill"
+        ],
+        [
+          "Screen size",
+          "[[8/64\" (per prior Mid-States quote — confirm)]]",
+          "Two (4 total) sets of screens per mill included"
+        ],
+        [
+          "Mill drive",
+          "500 HP, 1800 RPM, 460 V/3/60, TEFC, 1.15 SF",
+          "Toshiba, Baldor or Siemens; quoted as Option A, or supplied by Mid-States"
+        ],
+        [
+          "Air relief through mill",
+          "**9,360 CFM @ 6\" SP per mill**",
+          "Fans, dust filters, ducting and airlocks by W.D. Patterson"
+        ],
+        [
+          "Feeder",
+          "14-row, 10\" dia. nylon cup",
+          "20.72 RPM at 90% cup fill; auto self-cleaning magnet adapter"
+        ],
+        [
+          "Plenum chamber",
+          "350 FPM design velocity, 18'-0\" long",
+          "3/16\" A36 plate, 2\" flat bar wraps every 24\"; hangs below mill floor — no support structure"
+        ],
+        [
+          "Discharge",
+          "Transfer screw under each plenum",
+          "Sized for 50 TPH ground corn"
+        ],
+        [
+          "Installation",
+          "Mills set on concrete; plenums on floor below",
+          "Installation by others"
+        ]
+      ]
+    },
+    {
+      "type": "pricing",
+      "title": "Scope of supply and pricing",
+      "note": "USD · taxes and freight excluded",
+      "discount_percent": 10,
+      "discount_label": "project discount, 8-mill order",
+      "total_label": "eight (8) mill lines as quoted",
+      "items": [
+        {
+          "name": "XM-4460 Hammer Mill — Extra Heavy Duty Mill Design",
+          "qty": 8,
+          "unit_price": 123791.8,
+          "description": "Direct drive, dual grinding chamber, gravity discharge hammer mill:\n• Motor base extension; reversible top feed inlet; screen carriage\n• Screen size: [[8/64\"]] — two (4 total) sets of screens included\n• Construction: mild steel with AR liners\n• 7,200 sq in screen area\n• Hammers: hard faced, heat treated — one (1) set included\n• HP range 300–600 HP; operating horsepower 500 HP\n• Capacity: 48–50 TPH corn; air relief 9,360 CFM @ 6\" SP through the mill\n• Included: top feed inlet, mill/motor support base, three NEMA 4/12 limit switches, OSHA guard, vibration switch and rubber vibration pads\n• Motor: 500 HP, 1800 RPM, 460 V/3/60, TEFC premium efficiency, 1.15 SF (Toshiba, Baldor or Siemens) — **not included**; see Option A. Customer-supplied motors are shipped to MCE for mounting and alignment before the mill ships."
+        },
+        {
+          "name": "XM-10\" AC 14-Row Nylon Cup Feeder with built-in Auto Self-Clean Magnet Adapter",
+          "qty": 8,
+          "unit_price": 41631.7,
+          "description": "• 10\" dia. nylon cup rotor, 14 rows; shaft extension, motor base and roller chain drive with safety shield\n• 1.608 cu ft/rev; 20.72 RPM at 90% cup fill\n• Combo unit built with auto self-clean magnet adapter: stainless steel front, stainless steel hinged magnet plate, air operated with two air cylinders and trash pans; SF300-50\" plate magnet\n• Micro switch to indicate magnet door open\n• Gearhead motor quoted as item 3"
+        },
+        {
+          "name": "Feeder Gearhead Motor",
+          "qty": 8,
+          "unit_price": 4059.0,
+          "description": "2 HP, 3 PH, 60 Hz, 460 V, TEFC gearhead motor, 40.7 RPM final output — sized for 20.72 RPM feeder speed through the roller chain drive."
+        },
+        {
+          "name": "Custom Plenum Chamber — 350 FPM, for XM-4460",
+          "qty": 8,
+          "unit_price": 44567.6,
+          "description": "• 18'-0\" long; sized for 350 FPM design velocity\n• Constructed of 3/16\" A36 plate, wrapped every 24\" with 2\" flat bar\n• Mounting flange for the hammer mill; plenum hangs below the mill floor (mill sets on concrete) — no support structure included\n• Discharge flange for transfer screw (item 5); mounting plate for dust filter or ducting flange as required\n• Exterior: one shop coat grey enamel\n• Plenum length may change with final mill placement; confirmed on approval drawings"
+        },
+        {
+          "name": "Transfer Screw Conveyor — 18\" dia. × 21'-0\", for XM-4460 plenum",
+          "qty": 8,
+          "unit_price": 32862.5,
+          "description": "18\" diameter screw conveyor, 21'-0\" long inside trough ends, to convey 50 TPH of ground corn at 35 PCF, control fed at 45% trough loading, 46 RPM, horizontal. [[Length to be confirmed against the 18'-0\" plenum on approval drawings.]]\n• 18\" RH sectional screw, 1/4\" flights, full pitch, on 6\" Sch 40 pipe, 3-7/16\" shafts; Tem-U-Lac coupling bolts\n• Anti-friction tail trough end with WPS and lip seal; standard drive trough end with feet\n• 18\" × 3/16\" flared trough 18'-0\" long, uncovered to act as inlet, with flared-to-U-trough adaptor plate; 3'-0\" single-flanged trough with 12 GA gasketed cover\n• 19\" × 19\" × 3/16\" flush end discharge spout; support feet; shroud; flange gaskets and bolt kits\n• Drive: Baldor 10 HP, 1750 RPM, 3/60/460 V TEFC 215T motor; Dodge TA4207H25 taper-bushed reducer, class 2 gearing, 46 RPM output; drive shaft, motor mount, sheaves, belts and guard\n• Exterior: one shop coat grey enamel; general arrangement drawings for approval before fabrication"
+        }
+      ],
+      "after": "Unit prices are quoted for a single order of eight (8) lines. The project discount shown applies to items 1–5 and to Option A if selected.",
+      "options": [
+        {
+          "name": "500 HP Mill Drive Motor",
+          "qty": 8,
+          "unit_price": 35272.6,
+          "description": "500 HP, 1800 RPM, 460 V/3/60, TEFC premium efficiency, 1.15 SF, 449T frame — Toshiba, Baldor or Siemens per MCE selection at time of order. Mounted, aligned and belt-guarded on the mill at MCE. Motor pricing is subject to change at time of order. [[Price basis: MCE 500 HP TEFC line of Apr 2026 — confirm current vendor pricing.]]"
+        },
+        {
+          "name": "Plenum chambers fabricated by Mid-States",
+          "qty": null,
+          "unit_price": null,
+          "price_text": "Deduct item 4",
+          "description": "Mid-States may elect to fabricate the plenum chambers to MCE drawings. MCE furnishes fabrication drawings and the mill mounting flange details; items 1–3 and 5 are unchanged. [[Confirm whether MCE supplies the mill mounting flange/adapter with this option.]]"
+        }
+      ]
+    },
+    {
+      "type": "bullets",
+      "title": "Furnished by others",
+      "text": "• Air-relief system for the mills — fans, dust control filters, ducting, airlocks and explosion protection — by W.D. Patterson (Mike King), sized to 9,360 CFM @ 6\" SP per mill as stated above\n• Mill drive motors unless Option A is selected; motor starters, VFDs and motor control\n• Controls, PLC programming and instrumentation beyond the limit switches, vibration switches and magnet micro switches listed\n• Concrete, foundations, floor openings, anchor bolts and any support steel for the plenums\n• Infeed to the feeders, and conveyance from the transfer screw discharge\n• Compressed air to the magnet adapters (air cylinders)\n• Installation, millwright, electrical and start-up labor"
+    },
+    {
+      "type": "table",
+      "title": "Freight, delivery and schedule",
+      "columns": [
+        "Item",
+        "Basis"
+      ],
+      "rows": [
+        [
+          "Freight",
+          "[[FOB MCE plant, Newkirk, OK; freight to Mid-States site quoted at time of shipment or shipped freight collect.]]"
+        ],
+        [
+          "Delivery",
+          "[[__ weeks after receipt of order, approval drawings and customer-supplied motors (if applicable).]] Order placement planned by Mid-States for December 2026; MCE will reserve fabrication capacity on receipt of a signed proposal."
+        ],
+        [
+          "Approval drawings",
+          "General arrangement drawings for the plenum chambers and transfer screws issued for Mid-States approval before fabrication; plenum length confirmed at that time."
+        ],
+        [
+          "Installation",
+          "By others. MCE start-up assistance and operator training available at MCE's standard daily rate plus expenses."
+        ]
+      ]
+    },
+    {
+      "type": "prose",
+      "title": "Commercial terms",
+      "text": "Payment: 50% down with order, balance before shipment. Prices are in US dollars and exclude sales tax, freight and installation. Pricing is valid [[through December 31, 2026]]; steel and motor pricing are subject to adjustment for orders placed after that date. Warranty per MCE standard terms and conditions. This proposal covers the equipment listed in Section 2 only; the air system is quoted separately by W.D. Patterson."
+    },
+    {
+      "type": "signature",
+      "customer": "Mid-States Companies",
+      "prepared_by": [
+        "**Jason Shipley**",
+        "President, Midwest Custom Engineering, Inc.",
+        "jason@usemce.com · 772-200-4060 · cell 620-200-9109"
+      ]
+    }
+  ],
+  "internal_notes": {
+    "do_not_print": true,
+    "source": "JB email 'Mid States' of Sep 15, 2026 to Jason Shipley and Mike Buckskin",
+    "pricing_rule": "Unit prices = list x 1.10; 10% discount shown to Chris (net = 0.99 x list). Competing with CSE Bliss and CPM Bliss, believed ~10% higher after steel adjustments.",
+    "list_prices": {
+      "mill": 112538.0,
+      "feeder": 37847.0,
+      "gearmotor": 3690.0,
+      "plenum": 40516.0,
+      "screw": 29875.0,
+      "motor500": 32066.0
+    },
+    "commission": "W.D. Patterson (Mike King) commission payable if the order is secured; Mike King handles all air-system details.",
+    "customer_timing": "Chris needs this quote by Friday Sep 25, 2026; equipment orders planned for December 2026.",
+    "hubspot": {
+      "contact_id": "208589341606",
+      "company_id": "52910885637",
+      "prior_quote_xm4460_id": "38339919629"
+    }
+  }
+}
