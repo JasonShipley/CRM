@@ -200,7 +200,7 @@ Answers given in the draft (all preliminary, derived from the 140 MT/day basis):
 |---|---|
 | Cyclone + airlocks | Required (product recovery 15-25% of product, stack particulate, drum sealing) |
 | Hopper + transfer screw | Deletable if the dewatering unit chutes straight onto the feed screw: -$64,487, total $1,352,772 -> $1,288,285 |
-| Layout | Pad 110 x 64 ft (34 x 20 m, ~650 m2); footprints ~210 m2; site allowance ~40 x 30 m (1,200 m2); roof over dryer train, dewatering and skid |
+| Layout | Rev 1: pad 120 x 64 ft (37 x 20 m, ~710 m2); footprints ~225 m2; site allowance ~45 x 30 m (1,350 m2); roof over dryer train, dewatering and skid; dryer train from drawing 104400900 |
 | Electricity | ~160 hp connected, ~100 kW average, ~830 MWh/yr (24 h x 350 d); $83-100k/yr at $0.10-0.12/kWh; XD-72 alternative ~76 kW, ~640 MWh/yr |
 | Fuel | Dewatered feed (>=22% TS): duty 4-6 MMBtu/hr, biogas (7,455 Nm3/day, ~6 MMBtu/hr) covers 100%; LPG-only ~$1,800/day at $14.50/MMBtu. No dewatering: 20.4 MMBtu/hr, biogas ~30%, LPG ~$5,000/day |
 | Maintenance | Routine $30-40k/yr; overhaul reserve $75-100k every 5-7 yr; H2S polishing media ~$50-60k/yr at 500 ppm inlet; polymer (if needed) $80-140k/yr; one operator per shift |
@@ -212,4 +212,23 @@ Answers given in the draft (all preliminary, derived from the 140 MT/day basis):
 Open question put to Bernardo: is 140 (120-160) MT/day the digester effluent or the manure into the
 digester, and what is the effluent flow. Rev C waits on that and the dewatering test.
 
-Files: `make_layout.py` -> `MCE-LETEK-LAY-001_Preliminary_Layout.pdf` (2 pages, 7.7 KB, base-14 fonts).
+Files: `make_layout.py` -> `MCE-LETEK-LAY-001_Preliminary_Layout.pdf` (2 pages, base-14 fonts).
+
+#### Layout Rev 1: dryer train taken from the MCE 8 x 40 general arrangement (17 Sep)
+
+Jason supplied MCE drawing `104400900-OVERVIEW` (DWG, AutoCAD 2018 format, plus a letter-size
+print-to-PDF dated Aug 2023). No DWG reader is available in this environment (no ODA converter,
+no libredwg) and the PDF print carries no dimension text, so the geometry was taken from the PDF
+vector line work (PyMuPDF `get_drawings`) and scaled to the drum: the plan view shows a double
+drum outline, inner 32.1 pt / outer 36.9 pt, read as the 96 in shell inside insulation cladding
+(scale 2.991 in/pt; cladding OD 110 in, tires 126 in, tire spacing ~20 ft, base frame 35.6 ft,
+all consistent with an 8 x 40 drum). The plan and elevation silhouettes are stored in
+`xd96_silhouette.json` (inches; the DWG and PDF themselves are not committed).
+
+Dryer train as drawn: 79 ft overall including the burner and fuel train (71 ft burner face to
+drop-out box), 14.7 ft wide over the combustion blower, drop-out box 13.5 x 10.6 ft and 17.1 ft
+tall, burner housing top 13.1 ft, drum centreline 8.4 ft above grade, drum visible between the
+breechings 35.4 ft. Rev 0 had assumed a 62 ft train. Pad grows to 120 x 64 ft (37 x 20 m,
+7,680 sq ft / 713 sq m), equipment footprints ~2,420 sq ft (225 sq m), recommended site
+allowance ~45 x 30 m. Scale check still wanted from Jason: one overall dimension off the DWG
+(the print shows 10'-11 1/8" on a feature I could not place).
