@@ -24,7 +24,7 @@
     "Validity: [[through December 31, 2026]]  ·  Currency: USD",
     "[[FOB MCE plant, Newkirk, OK]]"
   ],
-  "intro": "Midwest Custom Engineering is pleased to quote eight (8) XM-4460 extra-heavy-duty hammer mills with feeders, self-cleaning magnet adapters, 350 FPM plenum chambers and plenum transfer screws for corn grinding at the Mid-States ethanol project. Each mill is rated 48–50 TPH on corn with 7,200 sq in of screen area and a 500 HP drive. Toshiba 500 HP main drive motors are listed separately as item 6, with pricing to follow on receipt of the Toshiba quotation; Mid-States may instead purchase the motors directly and ship them to MCE for mounting. The air-relief system is by W.D. Patterson and is not included here.",
+  "intro": "Midwest Custom Engineering is pleased to quote eight (8) XM-4460 extra-heavy-duty hammer mills with feeders, self-cleaning magnet adapters, maintenance gates, 350 FPM plenum chambers and plenum transfer screws for corn grinding at the Mid-States ethanol project. Each mill is rated 48–50 TPH on corn with 7,200 sq in of screen area and a 500 HP drive. Toshiba 500 HP main drive motors are listed separately as item 7, with pricing to follow on receipt of the Toshiba quotation; Mid-States may instead purchase the motors directly and ship them to MCE for mounting. The air-relief system is by W.D. Patterson and is not included here.",
   "sections": [
     {
       "type": "table",
@@ -59,7 +59,7 @@
         [
           "Mill drive",
           "500 HP, 1800 RPM, 460 V/3/60, TEFC premium efficiency, 1.15 SF",
-          "Toshiba — priced separately as item 6 ([[Toshiba quote pending]]); may instead be supplied by Mid-States and shipped to MCE for mounting"
+          "Toshiba — priced separately as item 7 ([[Toshiba quote pending]]); may instead be supplied by Mid-States and shipped to MCE for mounting"
         ],
         [
           "Air relief through mill",
@@ -72,14 +72,19 @@
           "20.72 RPM at 90% cup fill; auto self-cleaning magnet adapter"
         ],
         [
+          "Maintenance gate",
+          "One per mill, between mill and plenum",
+          "Hand-crank rack-and-pinion gate seals off the mill for maintenance"
+        ],
+        [
           "Plenum chamber",
           "78\" × 78\" × 18'-2\" long over flanges; 350 FPM design",
           "MCE drawing XM4460-350PL Rev A; 3/16\" A36 plate, 2\" flat bar wraps every 24\"; 35° hopper bottom to the transfer screw; hangs below mill floor — no support structure"
         ],
         [
           "Discharge",
-          "Transfer screw under each plenum",
-          "Sized for 50 TPH ground corn; airlock and downstream conveyance by others"
+          "18\" × 24'-0\" transfer screw under each plenum",
+          "18'-0\" flared inlet under the plenum hopper; sized for 50 TPH ground corn; airlock and downstream conveyance by others"
         ],
         [
           "Installation",
@@ -100,7 +105,7 @@
           "name": "XM-4460 Hammer Mill — Extra Heavy Duty Mill Design",
           "qty": 8,
           "unit_price": 123791.8,
-          "description": "Direct drive, dual grinding chamber, gravity discharge hammer mill:\n• Motor base extension; reversible top feed inlet; screen carriage\n• Screen size: #5 (5/64\") — two (4 total) sets of screens included\n• Construction: mild steel with AR liners\n• 7,200 sq in screen area\n• Hammers: hard faced, heat treated — one (1) set included\n• HP range 300–600 HP; operating horsepower 500 HP\n• Capacity: 48–50 TPH corn; air relief 9,360 CFM @ 6\" SP through the mill\n• Included: top feed inlet, mill/motor support base, three NEMA 4/12 limit switches, OSHA guard, vibration switch and rubber vibration pads\n• Motor: 500 HP, 1800 RPM, 460 V/3/60, TEFC premium efficiency, 1.15 SF (Toshiba, Baldor or Siemens) — **not included in the mill price**; see item 6. Customer-supplied motors are shipped to MCE for mounting and alignment before the mill ships."
+          "description": "Direct drive, dual grinding chamber, gravity discharge hammer mill:\n• Motor base extension; reversible top feed inlet; screen carriage\n• Screen size: #5 (5/64\") — two (4 total) sets of screens included\n• Construction: mild steel with AR liners\n• 7,200 sq in screen area\n• Hammers: hard faced, heat treated — one (1) set included\n• HP range 300–600 HP; operating horsepower 500 HP\n• Capacity: 48–50 TPH corn; air relief 9,360 CFM @ 6\" SP through the mill\n• Included: top feed inlet, mill/motor support base, three NEMA 4/12 limit switches, OSHA guard, vibration switch and rubber vibration pads\n• Motor: 500 HP, 1800 RPM, 460 V/3/60, TEFC premium efficiency, 1.15 SF (Toshiba, Baldor or Siemens) — **not included in the mill price**; see item 7. Customer-supplied motors are shipped to MCE for mounting and alignment before the mill ships."
         },
         {
           "name": "XM-10\" AC 14-Row Nylon Cup Feeder with built-in Auto Self-Clean Magnet Adapter",
@@ -115,16 +120,22 @@
           "description": "2 HP, 3 PH, 60 Hz, 460 V, TEFC gearhead motor, 40.7 RPM final output — sized for 20.72 RPM feeder speed through the roller chain drive."
         },
         {
+          "name": "Maintenance Gate",
+          "qty": 8,
+          "unit_price": 10835.0,
+          "description": "• Mounted between the hammer mill discharge and the plenum chamber\n• Gear reduction and hand crank drive; push rods with rack and pinion gear\n• Seals off the hammer mill for maintenance and prevents dropped parts from entering the plenum"
+        },
+        {
           "name": "Custom Plenum Chamber — 350 FPM, for XM-4460 (MCE dwg. XM4460-350PL Rev A)",
           "qty": 8,
           "unit_price": 44567.6,
           "description": "• 78\" × 78\" cross-section, 218-1/8\" (18'-2\") long over end flanges, 72\" deep including 35° hopper bottom to a 19-13/16\" wide discharge for the transfer screw trough\n• Constructed of 3/16\" A36 plate, wrapped every 24\" with 2\" flat bar\n• 10\" top flange with bolted 78\" × 78\" mill mounting opening at the mill end; 55\" × 60-3/4\" flanged opening at the opposite end for the dust filter / air-relief connection (filter by others)\n• Plenum hangs below the mill floor (mill sets on concrete) — no support structure, hangers or floor steel included\n• Approximate weight 2,500 lb each; exterior one shop coat grey enamel\n• Final length confirmed on approval drawings to suit mill placement"
         },
         {
-          "name": "Transfer Screw Conveyor — 18\" dia. × 21'-0\", for XM-4460 plenum",
+          "name": "Transfer Screw Conveyor — 18\" dia. × 24'-0\", for XM-4460 plenum",
           "qty": 8,
           "unit_price": 32862.5,
-          "description": "18\" diameter screw conveyor, 21'-0\" long inside trough ends, to convey 50 TPH of ground corn at 35 PCF, control fed at 45% trough loading, 46 RPM, horizontal. Trough length suits the 18'-2\" plenum on drawing XM4460-350PL; confirmed on approval drawings.\n• 18\" RH sectional screw, 1/4\" flights, full pitch, on 6\" Sch 40 pipe, 3-7/16\" shafts; Tem-U-Lac coupling bolts\n• Anti-friction tail trough end with WPS and lip seal; standard drive trough end with feet\n• 18\" × 3/16\" flared trough 18'-0\" long, uncovered to act as inlet, with flared-to-U-trough adaptor plate; 3'-0\" single-flanged trough with 12 GA gasketed cover\n• 19\" × 19\" × 3/16\" flush end discharge spout; support feet; shroud; flange gaskets and bolt kits\n• Drive: Baldor 10 HP, 1750 RPM, 3/60/460 V TEFC 215T motor; Dodge TA4207H25 taper-bushed reducer, class 2 gearing, 46 RPM output; drive shaft, motor mount, sheaves, belts and guard\n• Exterior: one shop coat grey enamel; general arrangement drawings for approval before fabrication"
+          "description": "18\" diameter screw conveyor, 24'-0\" long inside trough ends, to convey 50 TPH of ground corn at 35 PCF, control fed at 45% trough loading, horizontal. [[Price basis: SCC quote H51445AW1 (21' unit) — update on receipt of SCC quotation for the 24' unit.]]\n• 18\" RH sectional screw, 1/4\" flights, full pitch, on 6\" Sch 40 pipe, 3-7/16\" shafts; Tem-U-Lac coupling bolts\n• 18'-0\" flared inlet trough, 3/16\" plate, open to receive the full length of the plenum hopper discharge, with angle flange around the opening to bolt to the plenum\n• Shroud at the end of the 18'-0\" opening, then 6'-0\" of flanged U-trough with 12 GA gasketed covers to the discharge\n• Anti-friction tail trough end with WPS and lip seal; standard drive trough end with feet; flush end discharge spout; support feet; gaskets and bolt kits\n• Drive: 10 HP, 1750 RPM, 3/60/460 V TEFC motor; Dodge TA taper-bushed reducer, class 2 gearing; drive shaft, motor mount, sheaves, belts and guard — [[drive HP confirmed by SCC for the 24' length]]\n• Exterior: one shop coat grey enamel; general arrangement drawings for approval before fabrication"
         },
         {
           "name": "Main Drive Motor — Toshiba 500 HP",
@@ -135,22 +146,22 @@
           "description": "Toshiba 500 HP, 1800 RPM, 460 V/3/60, TEFC premium efficiency, 1.15 SF, 449T frame (Baldor or Siemens equivalent acceptable). Mounted, aligned and guarded on the mill at MCE. **Priced separately** on receipt of the Toshiba quotation; Mid-States may instead purchase the motors directly and ship them to MCE for mounting at no additional charge."
         }
       ],
-      "after": "Unit prices are quoted for a single order of eight (8) lines. The project discount applies to items 1–5 and will be applied to item 6 when the Toshiba motor price is added.",
+      "after": "Unit prices are quoted for a single order of eight (8) lines. The project discount applies to items 1–6 and will be applied to item 7 when the Toshiba motor price is added.",
       "options": [
         {
           "name": "Plenum chambers fabricated by Mid-States",
           "qty": null,
           "unit_price": null,
-          "price_text": "Deduct item 4",
-          "description": "Mid-States may elect to fabricate the plenum chambers to MCE drawings. MCE furnishes fabrication drawings and the mill mounting flange details; items 1–3, 5 and 6 are unchanged. [[Confirm whether MCE supplies the mill mounting flange/adapter with this option.]]"
+          "price_text": "Deduct item 5",
+          "description": "Mid-States may elect to fabricate the plenum chambers to MCE drawings. MCE furnishes fabrication drawings and the mill mounting flange details; items 1–4, 6 and 7 are unchanged. [[Confirm whether MCE supplies the mill mounting flange/adapter with this option.]]"
         }
       ],
-      "subtotal_label": "items 1 to 5"
+      "subtotal_label": "items 1 to 6"
     },
     {
       "type": "bullets",
       "title": "Furnished by others",
-      "text": "• Air-relief system for the mills — fans, dust control filters, ducting, airlocks and explosion protection — by W.D. Patterson (Mike King), sized to 9,360 CFM @ 6\" SP per mill as stated above\n• Mill drive motors if supplied by Mid-States (see item 6); motor starters, VFDs and motor control\n• Controls, PLC programming and instrumentation beyond the limit switches, vibration switches and magnet micro switches listed\n• Concrete, foundations, floor openings, anchor bolts and any support steel for the plenums\n• Infeed to the feeders, and conveyance from the transfer screw discharge\n• Compressed air to the magnet adapters (air cylinders)\n• Installation, millwright, electrical and start-up labor"
+      "text": "• Air-relief system for the mills — fans, dust control filters, ducting, airlocks and explosion protection — by W.D. Patterson (Mike King), sized to 9,360 CFM @ 6\" SP per mill as stated above\n• Mill drive motors if supplied by Mid-States (see item 7); motor starters, VFDs and motor control\n• Controls, PLC programming and instrumentation beyond the limit switches, vibration switches and magnet micro switches listed\n• Concrete, foundations, floor openings, anchor bolts and any support steel for the plenums\n• Infeed to the feeders, and conveyance from the transfer screw discharge\n• Compressed air to the magnet adapters (air cylinders)\n• Installation, millwright, electrical and start-up labor"
     },
     {
       "type": "table",
@@ -170,7 +181,7 @@
         ],
         [
           "Approval drawings",
-          "Plenum chamber per MCE drawing XM4460-350PL Rev A (Sep 17, 2026); general arrangement drawings for the plenums and transfer screws issued for Mid-States approval before fabrication, with plenum length confirmed to suit mill placement."
+          "Plenum chamber per MCE drawing XM4460-350PL Rev A (Sep 17, 2026); general arrangement drawings for the plenums, maintenance gates and transfer screws issued for Mid-States approval before fabrication, with plenum length confirmed to suit mill placement."
         ],
         [
           "Installation",
@@ -203,7 +214,8 @@
       "gearmotor": 3690.0,
       "plenum": 40516.0,
       "screw": 29875.0,
-      "motor500": 32066.0
+      "motor500": 32066.0,
+      "maintenance_gate": 9850.0
     },
     "commission": "W.D. Patterson (Mike King) commission payable if the order is secured; Mike King handles all air-system details.",
     "customer_timing": "Chris needs this quote by Friday Sep 25, 2026; equipment orders planned for December 2026.",
@@ -214,6 +226,7 @@
     },
     "main_drive_motor": "Toshiba 500 HP 1800 RPM TEFC quote requested from Mike Buckskin by Jason Shipley on Sep 17, 2026 (Re: Mid States). Insert as item 6 unit price (x1.10 uplift, 10% discount) when received. Prior MCE line: 500 HP TEFC $32,066 list (Apr 2026) — not used.",
     "screen": "Screen #5 (5/64\") confirmed by Jason Shipley Sep 17, 2026.",
-    "plenum_drawing": "JB drawing XM4460-350PL Rev A, 9/17/26 (email '4460 CORN PLENUM' to Mike King, cc Jason/Mike B): 78x78 section, 218-1/8 over flanges, 212-13/16 body, 72 deep, 35 deg hopper to 19-13/16 outlet, 10 top flange, 55x60-3/4 filter opening, 2,500 lb. Air relief dwg 001 Rev A 6/17/26 shows filter on plenum end and airlock under screw discharge. Check for JB: 9,360 CFM through a 78x78 (42.25 sq ft) section is ~221 FPM, not 350 — confirm the 350 FPM designation. Drawings kept in reference/ — proprietary, do not attach to customer copy while Chris may self-build."
+    "plenum_drawing": "JB drawing XM4460-350PL Rev A, 9/17/26 (email '4460 CORN PLENUM' to Mike King, cc Jason/Mike B): 78x78 section, 218-1/8 over flanges, 212-13/16 body, 72 deep, 35 deg hopper to 19-13/16 outlet, 10 top flange, 55x60-3/4 filter opening, 2,500 lb. Air relief dwg 001 Rev A 6/17/26 shows filter on plenum end and airlock under screw discharge. Check for JB: 9,360 CFM through a 78x78 (42.25 sq ft) section is ~221 FPM, not 350 — confirm the 350 FPM designation. Drawings kept in reference/ — proprietary, do not attach to customer copy while Chris may self-build.",
+    "screw_rfq": "RFQ to Marty Dzik (SCC) drafted Sep 17, 2026 for (8) 18in x 24ft screws, 18ft flared opening w/ angle flange, shroud after opening. Item 6 still priced off the 21ft H51445AW1 basis ($29,875 list) until SCC replies."
   }
 }
