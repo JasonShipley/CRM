@@ -106,14 +106,14 @@
         <td class="item">{{ loop.index }}</td>
         <td class="desc"><b class="name">{{ it.name|rich }}</b>{{ it.description|rich }}</td>
         <td class="qty">{{ it.qty }}</td>
-        <td class="num price">{{ it.unit_price|money }}</td>
-        <td class="num price">{{ it.extended|money }}</td>
+        <td class="num price">{{ it.unit_price|money|rich }}</td>
+        <td class="num price">{{ it.extended|money|rich }}</td>
       </tr>
       {% endfor %}
       </tbody>
     </table>
     <div class="totals block">
-      <div class="row"><span>Subtotal — items 1 to {{ s["items"]|length }}</span><span>{{ s.subtotal|money }}</span></div>
+      <div class="row"><span>Subtotal — {{ s.subtotal_label or ("items 1 to " ~ (s["items"]|length)) }}</span><span>{{ s.subtotal|money }}</span></div>
       {% if s.discount_percent %}<div class="row"><span>Less {{ s.discount_percent }}% discount{% if s.discount_label %} <span class="sub">{{ s.discount_label }}</span>{% endif %}</span><span>({{ s.discount_amount|money }})</span></div>{% endif %}
       <div class="row grand"><span>Total — {{ s.total_label or "equipment as quoted" }}</span><span>{{ s.total|money }}</span></div>
     </div>
