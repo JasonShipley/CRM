@@ -182,3 +182,34 @@ Renderers: `make_quote.py` (HTML/Chromium, full graphics; now also writes `quote
 `make_quote_compact.py` (reportlab; `NOFLOW=1` drops the flow page), `make_skid_compact.py`.
 A copy of the e-mailed quote is also on Google Drive (file id 1sqfr_8OnFTSiMdH0QcZKph2ZIMrDobe4).
 QBO estimate 6476 still carries the 9 Sep pricing; update it if Jason wants QBO to match Rev B.
+
+### Bernardo's 17 Sep questions and the re-sizing they trigger (draft reply, not sent)
+
+Bernardo's reply of 17 Sep (Gmail `1a0b155ce56dbd30`) gave the first real process data: digester effluent
+about 8% TS, pH 8, NH4-N 3,500 mg/L, chlorides 3,000 mg/L; biogas 55% CH4 / 40% CO2 / 2,500 ppm H2S /
+400 ppm NH3 / <50 mbar; LPG supply new; site plan open. He asked whether the hopper, transfer screw,
+airlock and cyclone are needed, for a preliminary layout with areas, for electricity and maintenance
+costs, and agreed to a sample test after an initial analysis.
+
+Reply drafted in Gmail (draft `r3881006483182831908`, reply to the message above, cc Santiago, Roberto,
+JB, Mike) with `MCE-LETEK-LAY-001_Preliminary_Layout.pdf` attached. **Not sent; Jason to review.**
+
+Answers given in the draft (all preliminary, derived from the 140 MT/day basis):
+
+| Item | Answer |
+|---|---|
+| Cyclone + airlocks | Required (product recovery 15-25% of product, stack particulate, drum sealing) |
+| Hopper + transfer screw | Deletable if the dewatering unit chutes straight onto the feed screw: -$64,487, total $1,352,772 -> $1,288,285 |
+| Layout | Pad 110 x 64 ft (34 x 20 m, ~650 m2); footprints ~210 m2; site allowance ~40 x 30 m (1,200 m2); roof over dryer train, dewatering and skid |
+| Electricity | ~160 hp connected, ~100 kW average, ~830 MWh/yr (24 h x 350 d); $83-100k/yr at $0.10-0.12/kWh; XD-72 alternative ~76 kW, ~640 MWh/yr |
+| Fuel | Dewatered feed (>=22% TS): duty 4-6 MMBtu/hr, biogas (7,455 Nm3/day, ~6 MMBtu/hr) covers 100%; LPG-only ~$1,800/day at $14.50/MMBtu. No dewatering: 20.4 MMBtu/hr, biogas ~30%, LPG ~$5,000/day |
+| Maintenance | Routine $30-40k/yr; overhaul reserve $75-100k every 5-7 yr; H2S polishing media ~$50-60k/yr at 500 ppm inlet; polymer (if needed) $80-140k/yr; one operator per shift |
+| Dewatering | 8% TS slurry, fine low-fiber solids: decanter likely better than screw press; asks for TS/VS/PSD/CST data and a 20 L bench sample |
+| Biogas | 2,500 ppm H2S = ~60 lb S/day = ~68 t/yr iron-oxide media -> bulk removal in digester (micro-aeration or FeCl3) to <=500 ppm, skid polishes to <100 ppm; <50 mbar OK with the booster blower |
+| Effluent chemistry | 3,000 mg/L Cl at pH 8 favors 316L for dewatering, feed screw and wet end; 3,500 mg/L NH4-N means ammonia in the exhaust, scrubber may be needed by permit (not quoted) |
+| Sizing | If 140 MT/day is effluent at 8% TS: DS 1,029 lb/hr, product 1,210 lb/hr (~13 t/day); water evaporated 3,470 lb/hr at 22% TS cake, 2,900 at 25%, 2,220 at 30%; XD-72 (5,089 lb/hr) fits, XD-96 (12,064) oversized; XD-72 catalog $489,000 vs XD-96 $589,500, "roughly $100k" stated in the draft |
+
+Open question put to Bernardo: is 140 (120-160) MT/day the digester effluent or the manure into the
+digester, and what is the effluent flow. Rev C waits on that and the dewatering test.
+
+Files: `make_layout.py` -> `MCE-LETEK-LAY-001_Preliminary_Layout.pdf` (2 pages, 7.7 KB, base-14 fonts).
