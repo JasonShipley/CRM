@@ -162,3 +162,23 @@ the PDF is enough for now.
 
 Context from Bernardo's 19 Aug email: Bachoco's management did not approve buying the dryer; LETEK would invest,
 build and operate it as a manure-treatment service, so LETEK is the buyer and is price-sensitive.
+
+## Rev B sent to LETEK (17 Sep 2026)
+
+Sent to Bernardo Urquiza (cc Santiago Urquiza, Roberto Demesa, JB, Mike) on the "Dryer System for Chicken Manure"
+thread, Gmail message 1a0b0a57399749f6, with two attachments:
+
+- `MCE_Quote_20260917-LETEK-B_email_copy.pdf` - compact 6-page quote (reportlab, base-14 fonts, no flow page) so it
+  could travel through the mail tool; total **$1,352,772**. The full-graphics 7-page version is
+  `MCE_Quote_20260917-LETEK-B_Chicken_Manure_Dryer.pdf` (with the flow sheet page).
+- `MCE-LETEK-BGS-001_Biogas_Conditioning_Skid.pdf` - reportlab version of the skid design.
+
+Rev B changes vs. the 9 Sep quote: burner priced at $170,000 from BDC's 16 Sep budget ($120,000 +/-10% for the
+two-burner system plus $16,000 start-up, / 0.8); Automation and Controls ($89,950) moved into the total because BDC's
+scope leaves the PLC/HMI and parallel-positioning program to us; screw press $374,000 (Vincent VP-16 316L, $352,000
+list less 15% dealer, / 0.8) subject to a bench test; 316L drum option $939,500 not in total.
+
+Renderers: `make_quote.py` (HTML/Chromium, full graphics; now also writes `quote_data.json`),
+`make_quote_compact.py` (reportlab; `NOFLOW=1` drops the flow page), `make_skid_compact.py`.
+A copy of the e-mailed quote is also on Google Drive (file id 1sqfr_8OnFTSiMdH0QcZKph2ZIMrDobe4).
+QBO estimate 6476 still carries the 9 Sep pricing; update it if Jason wants QBO to match Rev B.

@@ -1,0 +1,331 @@
+{
+ "items": [
+  {
+   "name": "XD-96 Mk.2 Rotary Thermal Conditioning System",
+   "sku": "",
+   "_qty": 1,
+   "_unit": "$589,500.00",
+   "_unit_discount": "\u2014",
+   "_net": "$589,500.00",
+   "_desc_lines": [
+    "Application (sized with the MCE Dryer HMB Calculator, case LETEK_140tpd_caseA):",
+    "Product: chicken manure biodigester effluent, screw-pressed to cake, 3/8\" minus",
+    "Incoming moisture content (to dryer): 70% (effluent 85% ahead of the press)",
+    "Est bulk density: 55 lb/ft3 wet cake, 30 lb/ft3 dried",
+    "Desired output MC: 15%",
+    "Lb/hr in: 6,430 (140 MT/day of effluent at 85%)",
+    "Lb/hr out: 2,269 (24.7 MT/day bedding)",
+    "Lb of water removed: 4,161 per hour",
+    "Gal of H2O removed: 499 per hour",
+    "Est BTU of entire system: 7,281,000 BTU/hr (rigorous check 6,610,000)",
+    "Drum inlet gas 900 F, exhaust 230 F, 24 h/day",
+    "Fuel source: LPG with biogas (55% CH4) as primary; 145.77 MMBtu/day of biogas covers about 83% of the duty",
+    "XD Series - Heavy Duty Direct Fired Rotary Thermal Conditioning System",
+    "- Feed screw system with 5 HP motor",
+    "- Co-current single pass Rotary Dehydration Drum (8' dia x 40' long). Drum to be constructed from A36 steel (see line 3 for stainless)",
+    "- Heavy Duty Dryer Drop-Out Box for dry product",
+    "- Airlock complete with 1.5 HP motor, drive and control devices, mild steel construction",
+    "- Drum Drive mounted on a structural base complete with 30 HP motor and drive",
+    "- Full tooth, mounted chain sprocket to match chain drive",
+    "- Forged steel drum tracks with HD attachment points",
+    "- Front trunnion base with hardened trunnion wheels mounted on a structural base",
+    "- Rear trunnion base with hardened trunnion wheels and thrust wheel assembly mounted on a structural base",
+    "- Front and rear water deluge nozzle for fire suppression",
+    "- Inlet and discharge seals",
+    "Exhaust Fan",
+    "- XF-40 fan, arrangement #9F, AR 235 rotor, 60 HP TEFC 230-460V/3/60, V-belt drive, 23\" inlet, vibration isolation sleeve, inspection door, drain port",
+    "- Calculator: 12,934 ACFM at 230 F, 12 in WC static, 42 bhp",
+    "Ducting and Transition",
+    "- Ducting, transitions and elbows up to 60 lineal feet, 22\" dia, A36 construction",
+    "Control System and Fire Prevention",
+    "- Basic Burner Management System control panel",
+    "- Electrical and control instrumentation for MCE's proprietary processing equipment",
+    "- Motor control cabinet for seller's equipment, 3 phase, 60 Hz, 480 V",
+    "- Manual quench nozzles provided; automated fire suppression system quoted upon request",
+    "- Standard 435 MOP burner and pre-piped, pre-wired valve train are replaced by the oversized dual-fuel burner on line 2",
+    "System Commissioning",
+    "- 1 man-week; equipment installation instructions for buyer's installation contractors",
+    "- Start-up and operator training"
+   ]
+  },
+  {
+   "name": "Dual-fuel burner upgrade, 10 MMBtu/hr, LPG + biogas",
+   "sku": "",
+   "_qty": 1,
+   "_unit": "$170,000.00",
+   "_unit_discount": "\u2014",
+   "_net": "$170,000.00",
+   "_desc_lines": [
+    "Burner oversized for this application per MCE engineering: 10 MMBtu/hr maximum with 10:1 turndown (normal fire 7.3 MMBtu/hr, calculator 8.7 with margin), sized to hold capacity if the press cake runs wetter than 70% or the plant runs 160 MT/day.",
+    "- Dual-burner system: one 10 MMBtu/hr LPG burner and one 10 MMBtu/hr biogas burner, each with stainless combustor sleeve, integral combustion blower and filter, and independent air and gas actuators with position feedback",
+    "- Two NFPA 86 safety valve trains: 2\" LPG train and 4\" flanged biogas train with biogas-rated dual safety shut-off valves, high and low gas pressure switches, gas meters; automatic changeover to LPG on loss of biogas",
+    "- Parallel-positioning air/fuel control with a separate fuel profile for LPG and for biogas (runs in the PLC/HMI on line 9)",
+    "- Burner management panel, fiberglass NEMA 4X enclosure, two self-checking UV flame safeguards, high-temperature limits, combustion E-stop",
+    "- Includes one week of combustion start-up and tuning on site",
+    "- Replaces the standard 435 MOP burner and single valve train included in line 1"
+   ]
+  },
+  {
+   "name": "OPTION: 316L stainless steel construction (in lieu of line 1 A36)",
+   "sku": "",
+   "_qty": 1,
+   "_unit": "$939,500.00",
+   "_unit_discount": "\u2014",
+   "_net": "$939,500.00",
+   "_desc_lines": [
+    "Recommended for digestate (ammonia, chlorides, pH to 8.2). In lieu of the A36 construction on line 1: 316L stainless drum shell (1/2\" plate, sub-arc welded, X-ray shell) and flights, 316L feed screw and live bottom, 316L drop-out box (3/16\" walls, 1/4\" hopper), 316L airlock, R-15 mineral wool insulation with 26 ga 304 SS cladding on drum and drop-out box, Nomex inlet and discharge seals.",
+    "Priced from MCE's 8' x 40' 316L XC Series system as built for a US animal-health customer (2022 pricing, not escalated); the exhaust fan, ducting and cyclone in 316L are quoted on request (the 304 SS cyclone adder is on line 7). Estimated equipment life 30-35 years for 316L versus 7-10 years for 3/8\" A36.",
+    "Adder over the line 1 price; not included in the total below."
+   ]
+  },
+  {
+   "name": "XB 4.9 Live Bottom Storage Hopper",
+   "sku": "",
+   "_qty": 1,
+   "_unit": "$48,995.00",
+   "_unit_discount": "\u2014",
+   "_net": "$48,995.00",
+   "_desc_lines": [
+    "Press cake surge ahead of the dryer feed screw, 2 hours at 6,430 lb/hr.",
+    "XB 4.9 Live Bottom Storage Hopper with the following features: ",
+    "2 - 9H312 9\" diameter, RH, helicoid screw, 9' 10\" long with \u215c\" thick at base and 3/16\" thick at tip, helicoid flighting, full pitch (6\"), mounted with standard welds on 2\" schedule 40 pipe, bushed and 2-hole drilled for 1-\u00bd\" shafts ",
+    "2 - 9H312 9\" diameter, RH, helicoid screw, 9' 10\" long with \u215c\" thick at base and 3/16\" thick at tip, helicoid flighting, full pitch (6\"), mounted with standard welds on 2\" schedule 40 pipe, bushed and 2-hole drilled for 1-\u00bd\" shafts. ",
+    "16 - \u00bd\" x 3\" - Tem-U-Lac Coupling Bolts with locknuts ",
+    "4 - 2\" diameter Tail Shaft ",
+    "1 - 9\" x 1-\u00bd\" Anti-Friction Tail Bearings ",
+    "1 - Access Door with limit switch plate for backup ",
+    "1 - Discharge Opening with flange, fitted ",
+    "1 - Set Support Feet ",
+    "1-  Removable Auger End Plate",
+    "6 - Lexan Viewing Windows",
+    "2 - 5 HP TEFC motors",
+    "2 - HD gear reduction drives with final chain drives",
+    "1- Chain Safety Guard",
+    "Approx Overall Dimensions: approx. 6\u2019 W\" x 14\u20199\u201dL x 11\u20198\" H ",
+    "for more information see link here: https://www.midwestcustomengineering.com/xb-4-6-live-bottom-tank"
+   ]
+  },
+  {
+   "name": "HD Screw Conveyor",
+   "sku": "",
+   "_qty": 1,
+   "_unit": "$15,492.00",
+   "_unit_discount": "\u2014",
+   "_net": "$15,492.00",
+   "_desc_lines": [
+    "Cake transfer from live-bottom hopper to the dryer feed screw.",
+    "HD 12\" Screw Conveyor 12' 0\" long inside trough ends. Inclined 45\u00b0",
+    "To Consist of: 1 - 12S412 12\" diameter, RH, sectional screw, 11' 10\" long with 3/16\" thick sectional flights, \u00bd pitch (6' '), continuously welded on carry side, mounted on 2-\u00bd\" schedule40 pipe, precision bushed and 3-hole drilled for 2\" shafts to have 9-\u00bd\" of bare pipe at discharge end ",
+    "6 - \u215d\" x 3-\u215d\" - Tem-U-Lac Coupling Bolts with locknuts ",
+    "1 - 2\" diameter Tail Shaft for Shelf Type Trough End, 3-hole drilled ",
+    "1 - 12\" x 2\" Trough End with Seal and SCM Ball Bearing",
+    "1 - 12\" x 2\" Standard Drive Trough End with Feet prepared for screw conveyor drive ",
+    "1 - 12\" x 10 GA Tubular Trough 12' 0\" long ",
+    "2 - Black Sponge Rubber Flange Gaskets ",
+    "2 - 13\" x 13\" x 3/16\" thick Inlet Spout with Flange, fitted",
+    "2 - TE/Flange Assembly Bolt Kits ",
+    "BALDOR / NORD DRIVE EQUIPMENT: Baldor 3 H.P., 1,755 RPM, 3PH, 60 HZ, 230/460 volt,  NORD Clincher C-Face Reducer, 172 RPM output speed, complete with 2\" diameter Drive Shaft and Screw Conveyor Drive Adaptor"
+   ]
+  },
+  {
+   "name": "HE-74 Cyclone",
+   "sku": "",
+   "_qty": 1,
+   "_unit": "$30,940.00",
+   "_unit_discount": "\u2014",
+   "_net": "$30,940.00",
+   "_desc_lines": [
+    "Dryer exhaust collector, 12,934 ACFM at 230 F (rated to 30,500 CFM).",
+    "New HE-74 Cyclone, 10 ga, mild steel",
+    "rated up to 30,500 CFM",
+    "High Efficiency Centrifugal Collector Model HE-74",
+    "\u2022 CW inlet rotation",
+    "\u2022 10 gauge mild steel construction",
+    "\u2022 Exterior welds continuous where possible and cleaned",
+    "free of weld slag and splatter",
+    "\u2022 74\" Diameter flanged collector housing with riser tube",
+    "\u2022 Flanged 75\u00b0 cone, welded to expansion chamber",
+    "\u2022 Product discharge is flanged 10\" round",
+    "\u2022 Flanged rectangular inlet, 45.0\" x 19.0\u201d",
+    "\u2022 Draw-thru fitting mounted on riser tube flange, 37.0\" x 24.0\" exhaust size",
+    "\u2022 Standard mount pads",
+    "\u2022 8\" Dia. bolted inspection port, F/G white sponge gasket",
+    "\u2022 Housing flange gasketing to be Food Grade silicone caulking",
+    "\u2022 Airstream Temperature: 70\u00b0F",
+    "\u2022 painted RAL #7012 Basalt Grey",
+    "\u2022 If stand with 40\" clearance is desired, please add $6,500",
+    "\u2022 If insulated with 1\" insulation and aluminum cladding please add $9,995",
+    "\u2022 If 304 Stainless Construction, please add $21,000"
+   ]
+  },
+  {
+   "name": "HE-74 Cyclone - 304 stainless construction adder",
+   "sku": "",
+   "_qty": 1,
+   "_unit": "$21,000.00",
+   "_unit_discount": "\u2014",
+   "_net": "$21,000.00",
+   "_desc_lines": [
+    "304 stainless construction of the HE-74 for the wet, ammonia-laden dryer exhaust (adder per HE-74 catalog description). 1\" insulation and aluminum cladding available for an additional $9,995."
+   ]
+  },
+  {
+   "name": "FT-12 Airlock",
+   "sku": "",
+   "_qty": 1,
+   "_unit": "$12,895.00",
+   "_unit_discount": "\u2014",
+   "_net": "$12,895.00",
+   "_desc_lines": [
+    "Rotary airlock under the HE-74 cyclone discharge; fines rejoin the dried product.",
+    "FT-12 AIRLOCK ",
+    "COMPLETE WITH THE FOLLOWING FEATURES ",
+    "DROP THRU ROTARY AIRLOCK FEEDER COMPLETE ",
+    "WITH CAST IRON HOUSING AND END PLATES, 8-VANE ",
+    "OPEN END MILD STEEL BEVELED ROTOR. ",
+    "HEAVY DUTY DROP THRU ROTARY AIRLOCK FEEDER  ",
+    "COMPLETE WITH CAST IRON HOUSING AND END PLATES, ",
+    "8-VANE OPEN END MILD STEEL BEVELED ROTOR, ",
+    "OUTBOARD BEARINGS WITH THREE MOLYURETHANE ",
+    "U-CUP PACKING RINGS PER SIDE. ",
+    "COMPLETE DRIVE PACKAGE INCLUDES 1-1/2 HP 3PH  ",
+    "230/460 VOLT 60 CYCLE TEFC GEARMOTOR",
+    "18 RPM"
+   ]
+  },
+  {
+   "name": "Automation and Controls (PLC / HMI)",
+   "sku": "",
+   "_qty": 1,
+   "_unit": "$89,950.00",
+   "_unit_discount": "\u2014",
+   "_net": "$89,950.00",
+   "_desc_lines": [
+    "Required with the dual-fuel burner: the PLC hosts the parallel-positioning fuel profiles for LPG and biogas, the automatic changeover logic, dryer temperature control and the operator HMI, and links to the biogas skid and the plant system.",
+    "Upgraded Automation and Controls",
+    "- includes PLC programming of all infeed, outfeed, and product conveyance into through, and out of system includes modulation programming for burner management system (BMS)",
+    "- 21.5\" HMI display with modeled equipment interface includes data logging for temperatures and hours of components",
+    "- includes on site programming for 1 man weeks, additional costs billed at $1,350/day plus expenses",
+    "- includes visualization programming",
+    "- includes reports via emailed pdf's in customer chosen frequency",
+    "- Mobile data access"
+   ]
+  },
+  {
+   "name": "Screw press dewatering system, 316L, subject to sample test",
+   "sku": "",
+   "_qty": 1,
+   "_unit": "$374,000.00",
+   "_unit_discount": "\u2014",
+   "_net": "$374,000.00",
+   "_desc_lines": [
+    "Heavy-duty screw press for 12,900 lb/hr (5.8 m3/h) of digestate at 15% TS, 316L stainless wetted parts, with drive, controls and spare screen. Target 30% TS cake; cake moisture sets the dryer duty.",
+    "Digested chicken manure is low in fiber and is a difficult material for any screw press. This line is conditional on a bench test of your effluent: please send 3 to 4 five-gallon pails to our Stuart, FL shop. If the press cannot reach 30% TS we will re-quote with a decanter centrifuge or with the dryer sized for 85% moisture feed (about 18.5 MMBtu/hr duty).",
+    "Agitated receiving tank, progressive-cavity feed pump and polymer system quoted after the test."
+   ]
+  },
+  {
+   "name": "Biogas conditioning skid",
+   "sku": "",
+   "_qty": 1,
+   "_unit": "TBD",
+   "_unit_discount": "\u2014",
+   "_net": "TBD",
+   "_desc_lines": [
+    "For 195 scfm (7,455 Nm3/day): iron-oxide H2S vessel (5,000 ppm in, under 200 ppm out), chiller / coalescer moisture knockout, booster blower to 2 psig, flame arrester, pressure control.",
+    "PRICE: allowance to be added once the biogas analysis (H2S, moisture, supply pressure) is received"
+   ]
+  },
+  {
+   "name": "Freight",
+   "sku": "",
+   "_qty": 1,
+   "_unit": "TBD",
+   "_unit_discount": "\u2014",
+   "_net": "not included",
+   "_desc_lines": [
+    "FOB Stuart, FL. Sea freight door to door Stuart - Miami - Progreso - Merida estimated at $27,206 in April 2026 (two 40 ft HiCube containers plus one oversize drum piece); to be re-quoted for the XD-96 and billed at time of shipment."
+   ]
+  }
+ ],
+ "comments": "Bernardo, thank you for the revised requirements of 20 August. This budgetary proposal covers the 85% to 15% case at 120 to 160 MT/day. We recommend mechanical dewatering ahead of the dryer: a screw press removes roughly 60% of the water at a fraction of the cost of evaporating it, which brings the dryer duty to about 7.3 MMBtu/hr at 140 MT/day and lets your biogas cover about 83% of it (LPG make-up on the order of US$420/day at US$14.50/MMBtu; about US$2,500/day with the digester offline). The XD-96 Mk.2 drum is sized with margin for 160 MT/day and cake moisture variability; the burner is oversized to 10 MMBtu/hr for the same reason. Line 3 prices the drum system in 316L stainless as an option (not in the total) (US$1,529,000 for the 316L system in place of the US$589,500 A36 system), which we recommend for this material. The screw press is quoted subject to a bench test, since digested poultry manure has little fiber; if it does not dewater we have two fallbacks (decanter centrifuge, or drying from 85% at about 18.5 MMBtu/hr with the same drum and a larger burner). Line 11 (biogas conditioning) is awaiting your biogas analysis and your process data (effluent total solids, pH, chlorides, ammonia; biogas composition and pressure; site layout). A 5-gallon sample of the effluent to our Stuart, FL shop will let us confirm press performance and flight design. The mass and energy balance behind the sizing is summarized on line 1; the full process flow sheet is available on request.",
+ "terms": "50% down with order, 30% on approval drawings, 15% before shipment, 5% on start-up. Budgetary proposal, valid 60 days. Delivery 18-22 weeks after approval drawings, to be confirmed by production at time of order. Installation, foundations, utilities, permits, biogas and LPG supply, effluent storage and pressate disposal by others. Prices in US dollars, FOB Stuart, FL, exclusive of taxes and duties.",
+ "ref": "20260917-LETEK-B",
+ "issue_date": "Sep 17, 2026",
+ "expires": "Nov 16, 2026",
+ "subtotal": "$1,352,772.00",
+ "lines": [
+  {
+   "name": "XD-96 Mk.2 Rotary Thermal Conditioning System",
+   "qty": 1,
+   "unit": 589500.0,
+   "desc": "Application (sized with the MCE Dryer HMB Calculator, case LETEK_140tpd_caseA):\nProduct: chicken manure biodigester effluent, screw-pressed to cake, 3/8\" minus\nIncoming moisture content (to dryer): 70% (effluent 85% ahead of the press)\nEst bulk density: 55 lb/ft3 wet cake, 30 lb/ft3 dried\nDesired output MC: 15%\nLb/hr in: 6,430 (140 MT/day of effluent at 85%)\nLb/hr out: 2,269 (24.7 MT/day bedding)\nLb of water removed: 4,161 per hour\nGal of H2O removed: 499 per hour\nEst BTU of entire system: 7,281,000 BTU/hr (rigorous check 6,610,000)\nDrum inlet gas 900 F, exhaust 230 F, 24 h/day\nFuel source: LPG with biogas (55% CH4) as primary; 145.77 MMBtu/day of biogas covers about 83% of the duty\n\nXD Series - Heavy Duty Direct Fired Rotary Thermal Conditioning System\n- Feed screw system with 5 HP motor\n- Co-current single pass Rotary Dehydration Drum (8' dia x 40' long). Drum to be constructed from A36 steel (see line 3 for stainless)\n- Heavy Duty Dryer Drop-Out Box for dry product\n- Airlock complete with 1.5 HP motor, drive and control devices, mild steel construction\n- Drum Drive mounted on a structural base complete with 30 HP motor and drive\n- Full tooth, mounted chain sprocket to match chain drive\n- Forged steel drum tracks with HD attachment points\n- Front trunnion base with hardened trunnion wheels mounted on a structural base\n- Rear trunnion base with hardened trunnion wheels and thrust wheel assembly mounted on a structural base\n- Front and rear water deluge nozzle for fire suppression\n- Inlet and discharge seals\n\nExhaust Fan\n- XF-40 fan, arrangement #9F, AR 235 rotor, 60 HP TEFC 230-460V/3/60, V-belt drive, 23\" inlet, vibration isolation sleeve, inspection door, drain port\n- Calculator: 12,934 ACFM at 230 F, 12 in WC static, 42 bhp\n\nDucting and Transition\n- Ducting, transitions and elbows up to 60 lineal feet, 22\" dia, A36 construction\n\nControl System and Fire Prevention\n- Basic Burner Management System control panel\n- Electrical and control instrumentation for MCE's proprietary processing equipment\n- Motor control cabinet for seller's equipment, 3 phase, 60 Hz, 480 V\n- Manual quench nozzles provided; automated fire suppression system quoted upon request\n- Standard 435 MOP burner and pre-piped, pre-wired valve train are replaced by the oversized dual-fuel burner on line 2\n\nSystem Commissioning\n- 1 man-week; equipment installation instructions for buyer's installation contractors\n- Start-up and operator training"
+  },
+  {
+   "name": "Dual-fuel burner upgrade, 10 MMBtu/hr, LPG + biogas",
+   "qty": 1,
+   "unit": 170000.0,
+   "desc": "Burner oversized for this application per MCE engineering: 10 MMBtu/hr maximum with 10:1 turndown (normal fire 7.3 MMBtu/hr, calculator 8.7 with margin), sized to hold capacity if the press cake runs wetter than 70% or the plant runs 160 MT/day.\n- Dual-burner system: one 10 MMBtu/hr LPG burner and one 10 MMBtu/hr biogas burner, each with stainless combustor sleeve, integral combustion blower and filter, and independent air and gas actuators with position feedback\n- Two NFPA 86 safety valve trains: 2\" LPG train and 4\" flanged biogas train with biogas-rated dual safety shut-off valves, high and low gas pressure switches, gas meters; automatic changeover to LPG on loss of biogas\n- Parallel-positioning air/fuel control with a separate fuel profile for LPG and for biogas (runs in the PLC/HMI on line 9)\n- Burner management panel, fiberglass NEMA 4X enclosure, two self-checking UV flame safeguards, high-temperature limits, combustion E-stop\n- Includes one week of combustion start-up and tuning on site\n- Replaces the standard 435 MOP burner and single valve train included in line 1"
+  },
+  {
+   "name": "OPTION: 316L stainless steel construction (in lieu of line 1 A36)",
+   "qty": 1,
+   "unit": 939500.0,
+   "desc": "Recommended for digestate (ammonia, chlorides, pH to 8.2). In lieu of the A36 construction on line 1: 316L stainless drum shell (1/2\" plate, sub-arc welded, X-ray shell) and flights, 316L feed screw and live bottom, 316L drop-out box (3/16\" walls, 1/4\" hopper), 316L airlock, R-15 mineral wool insulation with 26 ga 304 SS cladding on drum and drop-out box, Nomex inlet and discharge seals.\nPriced from MCE's 8' x 40' 316L XC Series system as built for a US animal-health customer (2022 pricing, not escalated); the exhaust fan, ducting and cyclone in 316L are quoted on request (the 304 SS cyclone adder is on line 7). Estimated equipment life 30-35 years for 316L versus 7-10 years for 3/8\" A36.\nAdder over the line 1 price; not included in the total below."
+  },
+  {
+   "name": "XB 4.9 Live Bottom Storage Hopper",
+   "qty": 1,
+   "unit": 48995.0,
+   "desc": "Press cake surge ahead of the dryer feed screw, 2 hours at 6,430 lb/hr.\nXB 4.9 Live Bottom Storage Hopper with the following features: \n2 - 9H312 9\" diameter, RH, helicoid screw, 9' 10\" long with \u215c\" thick at base and 3/16\" thick at tip, helicoid flighting, full pitch (6\"), mounted with standard welds on 2\" schedule 40 pipe, bushed and 2-hole drilled for 1-\u00bd\" shafts \n2 - 9H312 9\" diameter, RH, helicoid screw, 9' 10\" long with \u215c\" thick at base and 3/16\" thick at tip, helicoid flighting, full pitch (6\"), mounted with standard welds on 2\" schedule 40 pipe, bushed and 2-hole drilled for 1-\u00bd\" shafts. \n16 - \u00bd\" x 3\" - Tem-U-Lac Coupling Bolts with locknuts \n4 - 2\" diameter Tail Shaft \n1 - 9\" x 1-\u00bd\" Anti-Friction Tail Bearings \n1 - Access Door with limit switch plate for backup \n1 - Discharge Opening with flange, fitted \n1 - Set Support Feet \n1-  Removable Auger End Plate\n6 - Lexan Viewing Windows\n2 - 5 HP TEFC motors\n2 - HD gear reduction drives with final chain drives\n1- Chain Safety Guard\nApprox Overall Dimensions: approx. 6\u2019 W\" x 14\u20199\u201dL x 11\u20198\" H \n\nfor more information see link here: https://www.midwestcustomengineering.com/xb-4-6-live-bottom-tank"
+  },
+  {
+   "name": "HD Screw Conveyor",
+   "qty": 1,
+   "unit": 15492.0,
+   "desc": "Cake transfer from live-bottom hopper to the dryer feed screw.\nHD 12\" Screw Conveyor 12' 0\" long inside trough ends. Inclined 45\u00b0\nTo Consist of: 1 - 12S412 12\" diameter, RH, sectional screw, 11' 10\" long with 3/16\" thick sectional flights, \u00bd pitch (6' '), continuously welded on carry side, mounted on 2-\u00bd\" schedule40 pipe, precision bushed and 3-hole drilled for 2\" shafts to have 9-\u00bd\" of bare pipe at discharge end \n6 - \u215d\" x 3-\u215d\" - Tem-U-Lac Coupling Bolts with locknuts \n1 - 2\" diameter Tail Shaft for Shelf Type Trough End, 3-hole drilled \n1 - 12\" x 2\" Trough End with Seal and SCM Ball Bearing\n1 - 12\" x 2\" Standard Drive Trough End with Feet prepared for screw conveyor drive \n1 - 12\" x 10 GA Tubular Trough 12' 0\" long \n2 - Black Sponge Rubber Flange Gaskets \n2 - 13\" x 13\" x 3/16\" thick Inlet Spout with Flange, fitted\n2 - TE/Flange Assembly Bolt Kits \n\nBALDOR / NORD DRIVE EQUIPMENT: Baldor 3 H.P., 1,755 RPM, 3PH, 60 HZ, 230/460 volt,  NORD Clincher C-Face Reducer, 172 RPM output speed, complete with 2\" diameter Drive Shaft and Screw Conveyor Drive Adaptor"
+  },
+  {
+   "name": "HE-74 Cyclone",
+   "qty": 1,
+   "unit": 30940.0,
+   "desc": "Dryer exhaust collector, 12,934 ACFM at 230 F (rated to 30,500 CFM).\nNew HE-74 Cyclone, 10 ga, mild steel\nrated up to 30,500 CFM\nHigh Efficiency Centrifugal Collector Model HE-74\n\u2022 CW inlet rotation\n\u2022 10 gauge mild steel construction\n\u2022 Exterior welds continuous where possible and cleaned\nfree of weld slag and splatter\n\u2022 74\" Diameter flanged collector housing with riser tube\n\u2022 Flanged 75\u00b0 cone, welded to expansion chamber\n\u2022 Product discharge is flanged 10\" round\n\u2022 Flanged rectangular inlet, 45.0\" x 19.0\u201d\n\u2022 Draw-thru fitting mounted on riser tube flange, 37.0\" x 24.0\" exhaust size\n\u2022 Standard mount pads\n\u2022 8\" Dia. bolted inspection port, F/G white sponge gasket\n\u2022 Housing flange gasketing to be Food Grade silicone caulking\n\u2022 Airstream Temperature: 70\u00b0F\n\u2022 painted RAL #7012 Basalt Grey\n\u2022 If stand with 40\" clearance is desired, please add $6,500\n\u2022 If insulated with 1\" insulation and aluminum cladding please add $9,995\n\u2022 If 304 Stainless Construction, please add $21,000"
+  },
+  {
+   "name": "HE-74 Cyclone - 304 stainless construction adder",
+   "qty": 1,
+   "unit": 21000.0,
+   "desc": "304 stainless construction of the HE-74 for the wet, ammonia-laden dryer exhaust (adder per HE-74 catalog description). 1\" insulation and aluminum cladding available for an additional $9,995."
+  },
+  {
+   "name": "FT-12 Airlock",
+   "qty": 1,
+   "unit": 12895.0,
+   "desc": "Rotary airlock under the HE-74 cyclone discharge; fines rejoin the dried product.\nFT-12 AIRLOCK \nCOMPLETE WITH THE FOLLOWING FEATURES \nDROP THRU ROTARY AIRLOCK FEEDER COMPLETE \nWITH CAST IRON HOUSING AND END PLATES, 8-VANE \nOPEN END MILD STEEL BEVELED ROTOR. \nHEAVY DUTY DROP THRU ROTARY AIRLOCK FEEDER  \nCOMPLETE WITH CAST IRON HOUSING AND END PLATES, \n8-VANE OPEN END MILD STEEL BEVELED ROTOR, \nOUTBOARD BEARINGS WITH THREE MOLYURETHANE \nU-CUP PACKING RINGS PER SIDE. \nCOMPLETE DRIVE PACKAGE INCLUDES 1-1/2 HP 3PH  \n230/460 VOLT 60 CYCLE TEFC GEARMOTOR\n18 RPM"
+  },
+  {
+   "name": "Automation and Controls (PLC / HMI)",
+   "qty": 1,
+   "unit": 89950.0,
+   "desc": "Required with the dual-fuel burner: the PLC hosts the parallel-positioning fuel profiles for LPG and biogas, the automatic changeover logic, dryer temperature control and the operator HMI, and links to the biogas skid and the plant system.\nUpgraded Automation and Controls\n- includes PLC programming of all infeed, outfeed, and product conveyance into through, and out of system includes modulation programming for burner management system (BMS)\n- 21.5\" HMI display with modeled equipment interface includes data logging for temperatures and hours of components\n- includes on site programming for 1 man weeks, additional costs billed at $1,350/day plus expenses\n- includes visualization programming\n- includes reports via emailed pdf's in customer chosen frequency\n- Mobile data access"
+  },
+  {
+   "name": "Screw press dewatering system, 316L, subject to sample test",
+   "qty": 1,
+   "unit": 374000.0,
+   "desc": "Heavy-duty screw press for 12,900 lb/hr (5.8 m3/h) of digestate at 15% TS, 316L stainless wetted parts, with drive, controls and spare screen. Target 30% TS cake; cake moisture sets the dryer duty.\nDigested chicken manure is low in fiber and is a difficult material for any screw press. This line is conditional on a bench test of your effluent: please send 3 to 4 five-gallon pails to our Stuart, FL shop. If the press cannot reach 30% TS we will re-quote with a decanter centrifuge or with the dryer sized for 85% moisture feed (about 18.5 MMBtu/hr duty).\nAgitated receiving tank, progressive-cavity feed pump and polymer system quoted after the test."
+  },
+  {
+   "name": "Biogas conditioning skid",
+   "qty": 1,
+   "unit": 0.0,
+   "desc": "For 195 scfm (7,455 Nm3/day): iron-oxide H2S vessel (5,000 ppm in, under 200 ppm out), chiller / coalescer moisture knockout, booster blower to 2 psig, flame arrester, pressure control.\nPRICE: allowance to be added once the biogas analysis (H2S, moisture, supply pressure) is received"
+  },
+  {
+   "name": "Freight",
+   "qty": 1,
+   "unit": 0.0,
+   "desc": "FOB Stuart, FL. Sea freight door to door Stuart - Miami - Progreso - Merida estimated at $27,206 in April 2026 (two 40 ft HiCube containers plus one oversize drum piece); to be re-quoted for the XD-96 and billed at time of shipment."
+  }
+ ]
+}
