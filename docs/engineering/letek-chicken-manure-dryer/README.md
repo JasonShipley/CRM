@@ -242,3 +242,22 @@ Weights (104400900-WEIGHTS, 3/30/23): drum and skid 79,890 lb empty, burner tube
 drop-out box 9,250 lb, total 94,400 lb; running material load 19,305 lb (429 ft3 at 1/3 fill,
 45 lb/ft3). Rev 0 had assumed a 62 ft train. Pad is now 124 x 64 ft (38 x 20 m, 7,936 sq ft /
 737 sq m), equipment footprints ~2,650 sq ft (246 sq m), recommended site allowance ~47 x 30 m.
+
+#### General arrangement sheet SD-26-01 in the MCS drawing style (18 Sep)
+
+Jason asked for the layout to look like the MCS sales drawings in Drive folder
+`1gGKI4h6xkeoMorR7ghxkpMD9T8MwLbiu` (SD-22-03 horse bedding dryer plan and elevations, SD-01-20
+080-350 Z8 general arrangement, RD0835-30 and D-TR630-20 fabrication drawings): ANSI D 36 x 24 in
+sheet, PLAN / ELEVATION / END views at 3/16" = 1'-0", feet-inch dimensions with arrowheads, leader
+labels in caps, general notes box, title block bottom right with logo, proprietary note, drawn/date,
+scale and drawing number.
+
+`make_ga_sheet.py` renders that sheet with reportlab: `SD-26-01_LETEK_XD-96_General_Arrangement.pdf`
+(315 KB) draws the dryer train from the real 8x40 line work (`xd96_linework.json.gz`, 50k segments
+from the 104400900 overview print in feet, calibrated on 104400906); `LIGHT=1` gives the e-mail copy
+(25.6 KB, silhouettes instead of line work) `..._email.pdf`. Cyclone, fan, stack, ducting, airlocks,
+product screw, feed screw, dewatering unit, biogas skid, chiller, MCC and LPG station are drawn
+schematically; the pad 124 x 64 ft is shown dashed with dimensions. Drawing number SD-26-01 rev P1
+(preliminary) follows the SD-yy-nn pattern of the references; the older MCE-LETEK-LAY-001 plot plan
+is superseded but left in the folder. The full-line-work sheet is too large to pass through the
+Gmail/Drive tools from here; it is in the repo only.
