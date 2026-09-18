@@ -261,3 +261,22 @@ schematically; the pad 124 x 64 ft is shown dashed with dimensions. Drawing numb
 (preliminary) follows the SD-yy-nn pattern of the references; the older MCE-LETEK-LAY-001 plot plan
 is superseded but left in the folder. The full-line-work sheet is too large to pass through the
 Gmail/Drive tools from here; it is in the repo only.
+
+#### SD-26-02: proposed layout as a 2D CAD file with placeholders (18 Sep)
+
+Jason asked for a 2D drawing of an actual proposed layout with placeholders for the skids and
+items not yet defined. `make_layout_dxf.py` (ezdxf, installed offline) writes
+`SD-26-02_LETEK_Proposed_Layout.dxf` (R2018, inches, model space 1:1, 7 MB; committed as
+`.dxf.zip`) and a 36 x 24 print `SD-26-02_LETEK_Proposed_Layout_print.pdf` rendered through
+ezdxf's PyMuPDF backend. Layers: PAD, CLEARANCE, DRYER-TRAIN (the real 8x40 line work, plan and
+elevation), EQUIPMENT (sized schematic cyclone, fan, stack, ducting, airlocks, screws), PLACEHOLDER
+and PLACEHOLDER-TEXT (dashed, crossed rectangles with name, size and status), FLOW, DIMENSIONS
+(feet-inch text overrides on the MCE dimstyle), TEXT, CENTERLINE, TITLE, NOTES. Placeholders:
+dewatering unit with feed tank (20 x 14 ft, size TBD after the sample test), polymer make-up
+(8 x 8, if required), digestate feed pumps (8 x 6, by others), dried product bunker (20 x 14, by
+others), exhaust scrubber (12 x 12, if required by permit), biogas conditioning skid (24 x 10,
+MCE design BGS-001, vendor TBD), gas chiller (6 x 8), MCC / control room (16 x 10), LPG vaporizer
+station (10 x 10, by others), air compressor (10 x 8). Same arrangement as SD-26-01: burner end
+east, drop-out box / cyclone / fan / stack west, dewatering and bunker north, skids and MCC south,
+pad 124 x 64 ft. Elevation and end views sit below and beside the plan; title block and notes
+bottom right.
