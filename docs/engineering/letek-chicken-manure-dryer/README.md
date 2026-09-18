@@ -191,7 +191,7 @@ about 8% TS, pH 8, NH4-N 3,500 mg/L, chlorides 3,000 mg/L; biogas 55% CH4 / 40% 
 airlock and cyclone are needed, for a preliminary layout with areas, for electricity and maintenance
 costs, and agreed to a sample test after an initial analysis.
 
-Reply drafted in Gmail (draft `r4045024626754806572`, message `1a0b196321402ae7`, reply to the message above; an earlier draft was detached from the thread by update_draft and trashed, cc Santiago, Roberto,
+Reply drafted in Gmail (draft `r-6151199160926804944`, message `1a0b1a625a09418d`, reply to the message above; two earlier drafts were trashed, one detached from the thread by update_draft, one superseded by the layout re-scale, cc Santiago, Roberto,
 JB, Mike) with `MCE-LETEK-LAY-001_Preliminary_Layout.pdf` attached. **Not sent; Jason to review.**
 
 Answers given in the draft (all preliminary, derived from the 140 MT/day basis):
@@ -200,7 +200,7 @@ Answers given in the draft (all preliminary, derived from the 140 MT/day basis):
 |---|---|
 | Cyclone + airlocks | Required (product recovery 15-25% of product, stack particulate, drum sealing) |
 | Hopper + transfer screw | Deletable if the dewatering unit chutes straight onto the feed screw: -$64,487, total $1,352,772 -> $1,288,285 |
-| Layout | Rev 1: pad 120 x 64 ft (37 x 20 m, ~710 m2); footprints ~225 m2; site allowance ~45 x 30 m (1,350 m2); roof over dryer train, dewatering and skid; dryer train from drawing 104400900 |
+| Layout | Rev 1: pad 124 x 64 ft (38 x 20 m, ~740 m2); footprints ~250 m2; site allowance ~47 x 30 m (1,400 m2); roof over dryer train, dewatering and skid; dryer train 87 x 16 ft, 19 ft tall, from drawing 104400900 calibrated on 104400906; train weights given for the foundation |
 | Electricity | ~160 hp connected, ~100 kW average, ~830 MWh/yr (24 h x 350 d); $83-100k/yr at $0.10-0.12/kWh; XD-72 alternative ~76 kW, ~640 MWh/yr |
 | Fuel | Dewatered feed (>=22% TS): duty 4-6 MMBtu/hr, biogas (7,455 Nm3/day, ~6 MMBtu/hr) covers 100%; LPG-only ~$1,800/day at $14.50/MMBtu. No dewatering: 20.4 MMBtu/hr, biogas ~30%, LPG ~$5,000/day |
 | Maintenance | Routine $30-40k/yr; overhaul reserve $75-100k every 5-7 yr; H2S polishing media ~$50-60k/yr at 500 ppm inlet; polymer (if needed) $80-140k/yr; one operator per shift |
@@ -217,18 +217,28 @@ Files: `make_layout.py` -> `MCE-LETEK-LAY-001_Preliminary_Layout.pdf` (2 pages, 
 #### Layout Rev 1: dryer train taken from the MCE 8 x 40 general arrangement (17 Sep)
 
 Jason supplied MCE drawing `104400900-OVERVIEW` (DWG, AutoCAD 2018 format, plus a letter-size
-print-to-PDF dated Aug 2023). No DWG reader is available in this environment (no ODA converter,
-no libredwg) and the PDF print carries no dimension text, so the geometry was taken from the PDF
-vector line work (PyMuPDF `get_drawings`) and scaled to the drum: the plan view shows a double
-drum outline, inner 32.1 pt / outer 36.9 pt, read as the 96 in shell inside insulation cladding
-(scale 2.991 in/pt; cladding OD 110 in, tires 126 in, tire spacing ~20 ft, base frame 35.6 ft,
-all consistent with an 8 x 40 drum). The plan and elevation silhouettes are stored in
-`xd96_silhouette.json` (inches; the DWG and PDF themselves are not committed).
+print-to-PDF dated Aug 2023) and then the Phibro project Drive folder
+(`19JiFvPbKui25G9uMVYbCK_o0auJddKyi`, Manufacturing/PDF's) with the released 8x40 drawing set:
+`104400900-A` (GA, isometric with BOM: drum 104400903, skid 104400904, burner 104400905, trunnions
+104400907, drive table 104400906, drop-out box 104400908, 12 in SS screw 103100101, gas train
+304318 ModelX, burner B12RG-RPUV-UBDBX), `104400900-WEIGHTS` and `104400906-FIELD ASSEMBLY`.
+No DWG reader is available here (no ODA converter, no libredwg) and the overview print carries no
+dimension text, so the geometry was taken from the print's vector line work (PyMuPDF
+`get_drawings`).
 
-Dryer train as drawn: 79 ft overall including the burner and fuel train (71 ft burner face to
-drop-out box), 14.7 ft wide over the combustion blower, drop-out box 13.5 x 10.6 ft and 17.1 ft
-tall, burner housing top 13.1 ft, drum centreline 8.4 ft above grade, drum visible between the
-breechings 35.4 ft. Rev 0 had assumed a 62 ft train. Pad grows to 120 x 64 ft (37 x 20 m,
-7,680 sq ft / 713 sq m), equipment footprints ~2,420 sq ft (225 sq m), recommended site
-allowance ~45 x 30 m. Scale check still wanted from Jason: one overall dimension off the DWG
-(the print shows 10'-11 1/8" on a feature I could not place).
+Scale calibration: the field-assembly sheet carries two real dimensions (168 7/8 and 202 1/8 in),
+which give 1.288 in/pt on that sheet; on it the drum shell measures exactly 96 in and the visible
+drum length and the main frame both measure 466 in. The same two features measure 142.0 and
+142.68 pt on the overview print, so the overview scale is 3.274 in/pt. (A first pass had assumed
+the inner plan outline was the 96 in shell, giving 2.991 in/pt and a train 9% too short; that
+outline is the insulation cladding at ~105 in, with an outer ring at ~121 in and tires at ~138 in.)
+Silhouettes, stations, heights and weights are stored in `xd96_silhouette.json`; the drawings
+themselves are not committed.
+
+Dryer train as drawn: 87 ft overall including the burner and fuel train (77 ft burner face to
+drop-out box), 16 ft wide over the combustion blower, drop-out box 14.8 x 11.6 ft and 18.8 ft
+tall, burner housing top 14.3 ft, drum centreline 9.2 ft above grade, main frame 466 in (38.8 ft).
+Weights (104400900-WEIGHTS, 3/30/23): drum and skid 79,890 lb empty, burner tube 15,980 lb,
+drop-out box 9,250 lb, total 94,400 lb; running material load 19,305 lb (429 ft3 at 1/3 fill,
+45 lb/ft3). Rev 0 had assumed a 62 ft train. Pad is now 124 x 64 ft (38 x 20 m, 7,936 sq ft /
+737 sq m), equipment footprints ~2,650 sq ft (246 sq m), recommended site allowance ~47 x 30 m.
