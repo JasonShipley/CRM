@@ -6,6 +6,7 @@ LIGHT=1 draws the train as silhouettes (small file for e-mail).  No vendor, pric
 import json, gzip, io, math, os
 from pathlib import Path
 from PIL import Image
+from reportlab import rl_config; rl_config.useA85=0
 from reportlab.pdfgen import canvas
 from reportlab.lib.units import inch
 from reportlab.lib import colors
@@ -56,7 +57,7 @@ def title(x,y,name,sub,scale='Scale  3/16" = 1\'-0"'):
 c.setLineWidth(1.5); c.setStrokeColor(BLACK); c.rect(0.5*inch,0.5*inch,W-1*inch,H-1*inch)
 TBX,TBY,TBW,TBH=W-0.5*inch-8.6*inch,0.5*inch,8.6*inch,3.5*inch
 c.setLineWidth(1.0); c.rect(TBX,TBY,TBW,TBH)
-im=Image.open(REPO/'renderer'/'assets'/'mce-logo.png').convert('RGBA'); im.thumbnail((320,320)); bg=Image.new('RGB',im.size,'white'); bg.paste(im,mask=im.split()[3]); lb=io.BytesIO(); bg.save(lb,'JPEG',quality=65,optimize=True); lb.seek(0)
+im=Image.open(REPO/'renderer'/'assets'/'mce-logo.png').convert('RGBA'); im.thumbnail((200,200) if LIGHT else (320,320)); bg=Image.new('RGB',im.size,'white'); bg.paste(im,mask=im.split()[3]); lb=io.BytesIO(); bg.save(lb,'JPEG',quality=55 if LIGHT else 70,optimize=True); lb.seek(0)
 from reportlab.lib.utils import ImageReader
 lh=0.75*inch; lw_=lh*im.size[0]/im.size[1]; c.drawImage(ImageReader(lb),TBX+TBW/2-lw_/2,TBY+TBH-0.85*inch,lw_,lh)
 c.line(TBX,TBY+TBH-0.95*inch,TBX+TBW,TBY+TBH-0.95*inch)
