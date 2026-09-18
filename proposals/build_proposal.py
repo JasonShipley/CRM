@@ -77,21 +77,30 @@ def money(v):
 
 def compute_pricing(sec):
     """Fill extended prices and totals for a pricing section in place."""
-    subtotal = 0.0
+    subtotal, exempt = 0.0, 0.0
     for it in sec.get("items", []):
         if isinstance(it.get("unit_price"), (int, float)):
             it["extended"] = round(it["unit_price"] * it.get("qty", 1), 2)
-            subtotal += it["extended"]
+            if it.get("discount_exempt"):
+                exempt += it["extended"]  # priced net; the discount does not apply
+            else:
+                subtotal += it["extended"]
         else:  # text-priced line (e.g. "Pending vendor quote") — shown, not totalled
             it["unit_price"] = it.get("price_text", "")
             it["extended"] = it.get("extended_text", "")
     sec["subtotal"] = round(subtotal, 2)
     pct = sec.get("discount_percent") or 0
     sec["discount_amount"] = round(subtotal * pct / 100.0, 2)
-    sec["total"] = round(subtotal - sec["discount_amount"], 2)
+    sec["exempt_subtotal"] = round(exempt, 2)
+    sec["total"] = round(subtotal - sec["discount_amount"] + exempt, 2)
     for op in sec.get("options", []):
         if isinstance(op.get("unit_price"), (int, float)):
-            op["net_unit"] = round(op["unit_price"] * (1 - pct / 100.0), 2)
+            if "net_unit_override" in op:
+                op["net_unit"] = op["net_unit_override"]
+            elif op.get("discount_exempt"):
+                op["net_unit"] = op["unit_price"]
+            else:
+                op["net_unit"] = round(op["unit_price"] * (1 - pct / 100.0), 2)
             op["net_extended"] = round(op["net_unit"] * op.get("qty", 1), 2)
     return sec
 

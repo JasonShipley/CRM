@@ -115,13 +115,14 @@
     <div class="totals block">
       <div class="row"><span>Subtotal — {{ s.subtotal_label or ("items 1 to " ~ (s["items"]|length)) }}</span><span>{{ s.subtotal|money }}</span></div>
       {% if s.discount_percent %}<div class="row"><span>Less {{ s.discount_percent }}% discount{% if s.discount_label %} <span class="sub">{{ s.discount_label }}</span>{% endif %}</span><span>({{ s.discount_amount|money }})</span></div>{% endif %}
+      {% if s.exempt_subtotal %}<div class="row"><span>{{ s.exempt_label or "Items priced net (no discount)" }}</span><span>{{ s.exempt_subtotal|money }}</span></div>{% endif %}
       <div class="row grand"><span>Total — {{ s.total_label or "equipment as quoted" }}</span><span>{{ s.total|money }}</span></div>
     </div>
     {% if s.after %}<div class="prose" style="margin-top:8px">{{ s.after|rich }}</div>{% endif %}
     {% if s.options %}
     <h3 class="sub">Options and adders</h3>
     <table>
-      <thead><tr><th>Option</th><th>Description</th><th style="text-align:center">Qty</th><th class="num">Unit price</th><th class="num">Net adder{% if s.discount_percent %} (after {{ s.discount_percent }}%){% endif %}</th></tr></thead>
+      <thead><tr><th>Option</th><th>Description</th><th style="text-align:center">Qty</th><th class="num">Unit price</th><th class="num">Net adder</th></tr></thead>
       <tbody>
       {% for op in s.options %}
       <tr>

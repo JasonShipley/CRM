@@ -24,7 +24,7 @@
     "Validity: [[through December 31, 2026]]  ·  Currency: USD",
     "[[FOB MCE plant, Newkirk, OK]]"
   ],
-  "intro": "Midwest Custom Engineering is pleased to quote eight (8) XM-4460 extra-heavy-duty hammer mills with feeders, self-cleaning magnet adapters, maintenance gates, 350 FPM plenum chambers and plenum transfer screws for corn grinding at the Mid-States ethanol project. Each mill is rated 48–50 TPH on corn with 7,200 sq in of screen area and a 500 HP drive. Toshiba 500 HP main drive motors are listed separately as item 7, with pricing to follow on receipt of the Toshiba quotation; Mid-States may instead purchase the motors directly and ship them to MCE for mounting. The air-relief system is by W.D. Patterson and is not included here.",
+  "intro": "Midwest Custom Engineering is pleased to quote eight (8) XM-4460 extra-heavy-duty hammer mills with feeders, self-cleaning magnet adapters, maintenance gates, 350 FPM plenum chambers and plenum transfer screws for corn grinding at the Mid-States ethanol project. Each mill is rated 48–50 TPH on corn with 7,200 sq in of screen area and a 500 HP drive. TECO MAX-E1 500 HP main drive motors are priced as item 7, with Toshiba Global SD motors offered as an alternate; Mid-States may instead purchase the motors directly and ship them to MCE for mounting. The air-relief system is by W.D. Patterson and is not included here.",
   "sections": [
     {
       "type": "table",
@@ -58,8 +58,8 @@
         ],
         [
           "Mill drive",
-          "500 HP, 1800 RPM, 460 V/3/60, TEFC premium efficiency, 1.15 SF",
-          "Toshiba — priced separately as item 7 ([[Toshiba quote pending]]); may instead be supplied by Mid-States and shipped to MCE for mounting"
+          "500 HP, 1800 RPM, 460 V/3/60, TEFC premium efficiency, 5009/10/11 frame",
+          "TECO MAX-E1 as item 7; Toshiba Global SD offered as Option A; or supplied by Mid-States and shipped to MCE for mounting"
         ],
         [
           "Air relief through mill",
@@ -105,7 +105,7 @@
           "name": "XM-4460 Hammer Mill — Extra Heavy Duty Mill Design",
           "qty": 8,
           "unit_price": 123791.8,
-          "description": "Direct drive, dual grinding chamber, gravity discharge hammer mill:\n• Motor base extension; reversible top feed inlet; screen carriage\n• Screen size: #5 (5/64\") — two (4 total) sets of screens included\n• Construction: mild steel with AR liners\n• 7,200 sq in screen area\n• Hammers: hard faced, heat treated — one (1) set included\n• HP range 300–600 HP; operating horsepower 500 HP\n• Capacity: 48–50 TPH corn; air relief 9,360 CFM @ 6\" SP through the mill\n• Included: top feed inlet, mill/motor support base, three NEMA 4/12 limit switches, OSHA guard, vibration switch and rubber vibration pads\n• Motor: 500 HP, 1800 RPM, 460 V/3/60, TEFC premium efficiency, 1.15 SF (Toshiba, Baldor or Siemens) — **not included in the mill price**; see item 7. Customer-supplied motors are shipped to MCE for mounting and alignment before the mill ships."
+          "description": "Direct drive, dual grinding chamber, gravity discharge hammer mill:\n• Motor base extension; reversible top feed inlet; screen carriage\n• Screen size: #5 (5/64\") — two (4 total) sets of screens included\n• Construction: mild steel with AR liners\n• 7,200 sq in screen area\n• Hammers: hard faced, heat treated — one (1) set included\n• HP range 300–600 HP; operating horsepower 500 HP\n• Capacity: 48–50 TPH corn; air relief 9,360 CFM @ 6\" SP through the mill\n• Included: top feed inlet, mill/motor support base, three NEMA 4/12 limit switches, OSHA guard, vibration switch and rubber vibration pads\n• Motor: 500 HP, 1800 RPM, 460 V/3/60, TEFC premium efficiency, 1.15 SF — **not included in the mill price**; see item 7 (TECO) or Option A (Toshiba). Customer-supplied motors are shipped to MCE for mounting and alignment before the mill ships."
         },
         {
           "name": "XM-10\" AC 14-Row Nylon Cup Feeder with built-in Auto Self-Clean Magnet Adapter",
@@ -138,16 +138,23 @@
           "description": "18\" diameter screw conveyor, 21'-0\" long inside trough ends, single span with no intermediate hanger bearing, to convey 50 TPH of ground corn at 35 PCF, control fed at 45% trough loading, horizontal. [[Price basis: SCC quote H51445AW1 — update on receipt of SCC quotation for this configuration.]]\n• 18\" RH sectional screw, 1/4\" flights, full pitch, on 6\" Sch 40 pipe, 3-7/16\" shafts; Tem-U-Lac coupling bolts\n• 18'-0\" flared inlet trough, 3/16\" plate, open to receive the full length of the plenum hopper discharge, with angle flange around the opening to bolt to the plenum\n• Shroud at the end of the 18'-0\" opening, then 3'-0\" of flanged U-trough with 12 GA gasketed covers to the discharge\n• Anti-friction tail trough end with WPS and lip seal; standard drive trough end with feet; flush end discharge spout; support feet; gaskets and bolt kits\n• Drive: 10 HP, 1750 RPM, 3/60/460 V TEFC motor; Dodge TA4207H25 taper-bushed reducer, class 2 gearing, 46 RPM output; drive shaft, motor mount, sheaves, belts and guard\n• Exterior: one shop coat grey enamel; general arrangement drawings for approval before fabrication"
         },
         {
-          "name": "Main Drive Motor — Toshiba 500 HP",
+          "name": "Main Drive Motor — TECO MAX-E1 500 HP",
           "qty": 8,
-          "unit_price": null,
-          "price_text": "[[Pending Toshiba quote]]",
-          "extended_text": "Not in total",
-          "description": "Toshiba 500 HP, 1800 RPM, 460 V/3/60, TEFC premium efficiency, 1.15 SF, 449T frame (Baldor or Siemens equivalent acceptable). Mounted, aligned and guarded on the mill at MCE. **Priced separately** on receipt of the Toshiba quotation; Mid-States may instead purchase the motors directly and ship them to MCE for mounting at no additional charge."
+          "unit_price": 31336.0,
+          "description": "TECO MAX-E1 premium efficiency, 500 HP, 1800 RPM, 460 V/3/60, TEFC, 5009/10/11 frame, cast iron, 1.15 SF. Mounted, aligned and guarded on the mill at MCE. Priced net — the project discount does not apply to motors. [[TECO quoted from stock (Round Rock, TX) — confirm availability of eight and lead time.]] Mid-States may instead purchase the motors directly and ship them to MCE for mounting at no additional charge.",
+          "discount_exempt": true
         }
       ],
-      "after": "Unit prices are quoted for a single order of eight (8) lines. The project discount applies to items 1–6 and will be applied to item 7 when the Toshiba motor price is added.",
+      "after": "Unit prices are quoted for a single order of eight (8) lines. The project discount applies to items 1–6; motors (item 7 and Option A) are priced net.",
       "options": [
+        {
+          "name": "Toshiba Global SD 500 HP main drive motors, in lieu of item 7",
+          "qty": 8,
+          "unit_price": 47118.0,
+          "discount_exempt": true,
+          "description": "Toshiba Global SD premium efficiency, 500 HP, 1800 RPM, 460 V/3/60, TEFC, 5009/10/11 frame, 1.15 SF (Toshiba part 5004FTAB41E-A). Mounted, aligned and guarded on the mill at MCE. Factory lead time approximately 13 weeks (December 20, 2026 on a September order). Adder shown is the net difference over item 7 for eight motors.",
+          "net_unit_override": 15782.0
+        },
         {
           "name": "Plenum chambers fabricated by Mid-States",
           "qty": null,
@@ -156,7 +163,8 @@
           "description": "Mid-States may elect to fabricate the plenum chambers to MCE drawings. MCE furnishes fabrication drawings and the mill mounting flange details; items 1–4, 6 and 7 are unchanged. [[Confirm whether MCE supplies the mill mounting flange/adapter with this option.]]"
         }
       ],
-      "subtotal_label": "items 1 to 6"
+      "subtotal_label": "items 1 to 6",
+      "exempt_label": "Item 7 — TECO main drive motors (8), priced net"
     },
     {
       "type": "bullets",
@@ -224,7 +232,7 @@
       "company_id": "52910885637",
       "prior_quote_xm4460_id": "38339919629"
     },
-    "main_drive_motor": "Toshiba 500 HP 1800 RPM TEFC quote requested from Mike Buckskin by Jason Shipley on Sep 17, 2026 (Re: Mid States). Insert as item 6 unit price (x1.10 uplift, 10% discount) when received. Prior MCE line: 500 HP TEFC $32,066 list (Apr 2026) — not used.",
+    "main_drive_motor": "Dykman Electrical (Tulsa) quote 0786104, 9/18/2026, expires 10/18/2026, Mike Buckskin: TECO-PREM-SD-MAXE1-500HP-18-509/10/11B-TEFC (EPF5004) $31,336.00 ea, qty 1 quoted, stock Round Rock TX; TSH-GLOBAL-SD-500HP-18-TEFC-5009/10/11US (5004FTAB41E-A) $39,265.00 ea x 8, lead time 12/20/2026. Per Jason 9/18: offer both; TECO at Dykman price as shown (no uplift, no discount); Toshiba at Dykman x 1.20 = $47,118.00. MCE buys direct from TECO. Quote saved in reference/.",
     "screen": "Screen #5 (5/64\") confirmed by Jason Shipley Sep 17, 2026.",
     "plenum_drawing": "JB drawing XM4460-350PL Rev A, 9/17/26 (email '4460 CORN PLENUM' to Mike King, cc Jason/Mike B): 78x78 section, 218-1/8 over flanges, 212-13/16 body, 72 deep, 35 deg hopper to 19-13/16 outlet, 10 top flange, 55x60-3/4 filter opening, 2,500 lb. Air relief dwg 001 Rev A 6/17/26 shows filter on plenum end and airlock under screw discharge. Check for JB: 9,360 CFM through a 78x78 (42.25 sq ft) section is ~221 FPM, not 350 — confirm the 350 FPM designation. Drawings kept in reference/ — proprietary, do not attach to customer copy while Chris may self-build.",
     "screw_rfq": "RFQ to Marty Dzik (SCC) Sep 17, 2026. Marty is quoting 21' (not 24'): a 24' single-span 18in screw changes the deflection and would need a hanger bearing. Spec: 21' with 18' flared opening + angle flange, shroud after the opening, 3' covered trough to discharge. Item 6 stays at the H51445AW1 basis ($29,875 list) until his quote arrives; Jason is waiting on it."
