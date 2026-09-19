@@ -1,0 +1,20 @@
+# Overlay: HTTPS entrypoint for the stack.
+# Use together with the base file and the renderer overlay:
+#   docker compose -f docker-compose.yml -f docker-compose.renderer.yml -f docker-compose.caddy.yml up -d
+services:
+  caddy:
+    image: caddy:2
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - server
+
+volumes:
+  caddy-data:
+  caddy-config:

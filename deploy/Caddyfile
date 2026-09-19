@@ -1,0 +1,14 @@
+# MCE CRM — Caddy reverse proxy with automatic HTTPS (Let's Encrypt)
+# crm.usemce.com    -> Twenty CRM
+# quotes.usemce.com -> quote renderer (basic auth: user mce, same password as CRM login)
+
+crm.usemce.com {
+	reverse_proxy server:3000
+}
+
+quotes.usemce.com {
+	basic_auth {
+		mce $2b$12$Hfa6PSeJiogxr6uibilZV.FRj41vK9tQpbko9x526knZ1IkyCsaHS
+	}
+	reverse_proxy quote-renderer:8090
+}
