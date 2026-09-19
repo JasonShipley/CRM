@@ -50,7 +50,7 @@ echo "==> [6/8] Start Twenty + quote renderer (renderer image build takes a few 
 docker compose -f docker-compose.yml -f docker-compose.renderer.yml up -d --build
 
 echo "==> [7/8] Nightly backups (2:15 AM, 30-day retention)"
-( crontab -l 2>/dev/null | grep -v mce-crm/deploy/backup.sh ; \
+( { crontab -l 2>/dev/null | grep -v mce-crm/deploy/backup.sh || true; } ; \
   echo "15 2 * * * /opt/mce-crm/deploy/backup.sh >> /var/log/mce-crm-backup.log 2>&1" ) | crontab -
 
 echo "==> [8/8] Rotating root password (the old one was shared during setup)"
