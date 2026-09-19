@@ -47,10 +47,19 @@
     margin-right: 6px; vertical-align: -1px; }
   .bfoot b { color: var(--ink); font-weight: 700; letter-spacing: .05em; }
 
+  /* paged wrapper table: thead/tfoot repeat on every printed page and reserve
+     space so the fixed brand header/footer never cover content */
+  .paged { width: 100%; border-collapse: collapse; }
+  .paged > thead > tr > td, .paged > tbody > tr > td, .paged > tfoot > tr > td {
+    padding: 0; border: 0; background: none; }
+  .pgspace td { height: 0; }
+  .pgfoot td { height: 0; }
+
   @media print {
     .bhead { position: fixed; top: 0; left: 0; right: 0; z-index: 10; }
     .bfoot { position: fixed; bottom: 0; left: 0; right: 0; z-index: 10; height: 22px; }
-    .content { padding-top: 108px; padding-bottom: 34px; }
+    .pgspace td { height: 90px; }
+    .pgfoot td { height: 30px; }
   }
   @media screen {
     body { background: #eceff1; }
@@ -86,15 +95,15 @@
   th { background: var(--thead); font-size: 7.5px; font-weight: 700; letter-spacing: .08em;
     text-transform: uppercase; color: #3c3c3c; text-align: left; padding: 5px 8px; }
   th.num, td.num { text-align: right; }
-  td { padding: 8px; vertical-align: top; border-bottom: 1px solid var(--rule); }
-  tbody tr:nth-child(even) td { background: var(--zebra); }
-  tr { page-break-inside: avoid; }
+  .items td { padding: 8px; vertical-align: top; border-bottom: 1px solid var(--rule); }
+  .items tbody tr:nth-child(even) td { background: var(--zebra); }
   td.itemno { font-weight: 700; width: 30px; }
   td.desc b { font-size: 9.5px; display: block; margin-bottom: 3px; }
   td.desc ul { margin: 2px 0 0 12px; }
   td.desc li { margin: 1.5px 0; color: #3a3a3a; }
   .sku { color: var(--ink-soft); font-size: 8px; margin-top: 3px; }
   td.money { white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .items tr { page-break-inside: avoid; }
 
   /* ===== totals ===== */
   .totals { width: 46%; min-width: 300px; margin-left: auto; margin-top: 2px;
@@ -130,6 +139,10 @@
     </div>
   </div>
 
+  <table class="paged">
+  <thead class="pgspace"><tr><td></td></tr></thead>
+  <tfoot class="pgfoot"><tr><td></td></tr></tfoot>
+  <tbody><tr><td>
   <div class="content">
 
     <div class="bar"><span class="t">Proposal Summary</span></div>
@@ -161,7 +174,7 @@
 
     <div class="bar"><span class="t">1. Scope of Supply and Pricing</span>
       <span class="note">USD &middot; taxes and freight excluded unless noted</span></div>
-    <table>
+    <table class="items">
       <thead><tr>
         <th style="width:30px">Item</th><th>Description</th>
         <th class="num" style="width:44px">Qty</th>
@@ -214,6 +227,8 @@
     </div>
 
   </div>
+  </td></tr></tbody>
+  </table>
 
   <div class="bfoot">
     <span><span class="sq"></span><b>MIDWEST CUSTOM ENGINEERING</b> &nbsp;PRECISION. QUALITY. INTEGRITY.</span>
