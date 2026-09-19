@@ -35,9 +35,11 @@ SELLER = {
     "address": ["6526 S Kanner Hwy #215", "Stuart, FL 34997", "United States"],
 }
 OWNER_CONTACTS = {
-    # select value -> (display name, email, phone) for "Prepared by" / seller contact
-    "JASON_SHIPLEY": ("Jason Shipley", "jason@usemce.com", "+16202009109"),
+    # select value -> (display name, title, email, phone line)
+    "JASON_SHIPLEY": ("Jason Shipley", "President, Midwest Custom Engineering, Inc.",
+                      "jason@usemce.com", "772-200-4060 \u00b7 cell 620-200-9109"),
 }
+FOOTER_RIGHT = "Stuart, FL \u00b7 772-200-4060 \u00b7 midwestcustomengineering.com"
 
 app = Flask(__name__)
 _token = {"value": None, "at": 0}
@@ -148,21 +150,30 @@ def load_quote(quote_id):
 
     owner = OWNER_CONTACTS.get(q.get("preparedBy") or "", None)
     prepared_name = (q.get("preparedBy") or "").replace("_", " ").title()
+    if not owner:
+        owner = (prepared_name, "Midwest Custom Engineering, Inc.", "", "")
     contact = q.get("contact")
-    buyer_contact = None
+    buyer_name = buyer_line = ""
     if contact:
-        nm = f"{contact['name']['firstName']} {contact['name']['lastName']}".strip()
+        buyer_name = f"{contact['name']['firstName']} {contact['name']['lastName']}".strip()
         em = (contact.get("emails") or {}).get("primaryEmail") or ""
-        buyer_contact = f"{nm} ({em})" if em else nm
+        ph = (contact.get("phones") or {}).get("primaryPhoneNumber") or ""
+        buyer_line = " \u00b7 ".join(x for x in (em, ph) if x)
 
     logo = base64.b64encode((ROOT / "assets" / "mce-logo.png").read_bytes()).decode()
+    fonts = {n: base64.b64encode((ROOT / "assets" / "fonts" / f"{n}.woff2").read_bytes()).decode()
+             for n in ("oswald", "inter")}
     return {
         "q": q,
         "items": items,
         "logo_b64": logo,
         "seller": SELLER,
-        "seller_contact": owner or (prepared_name, "", ""),
-        "buyer_contact": buyer_contact,
+        "seller_contact": owner,
+        "buyer_name": buyer_name,
+        "buyer_line": buyer_line,
+        "fonts": fonts,
+        "footer_right": FOOTER_RIGHT,
+        "is_draft": (q.get("status") == "DRAFT"),
         "ref": q.get("quoteNumber") or "",
         "issue_date": fmt_date(q.get("sourceCreatedAt") or q.get("createdAt")),
         "expires": fmt_date(q.get("expirationDate")),
@@ -211,8 +222,15 @@ def quote_pdf(quote_id):
         browser = pw.chromium.launch(executable_path=chromium_path)
         page = browser.new_page()
         page.set_content(html, wait_until="networkidle")
-        pdf = page.pdf(format="A4", print_background=True,
-                       margin={"top": "0", "bottom": "0", "left": "0", "right": "0"})
+        pdf = page.pdf(
+            format="Letter", print_background=True,
+            display_header_footer=True,
+            header_template="<span></span>",
+            footer_template=(
+                "<div style='width:100%;font-size:7px;color:#8a8a8a;"
+                "font-family:Helvetica,Arial,sans-serif;padding-right:44px;text-align:right;'>"
+                "Page <span class='pageNumber'></span> of <span class='totalPages'></span></div>"),
+            margin={"top": "0", "bottom": "22px", "left": "0", "right": "0"})
         browser.close()
     name = (ctx["q"].get("name") or "quote").replace("/", "-")[:80]
     return app.response_class(pdf, mimetype="application/pdf", headers={
