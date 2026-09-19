@@ -55,6 +55,60 @@ Open `http://<server>:3000` and sign in with the email/password from
 
 ---
 
+## Connect Gmail
+
+Twenty can sync a mailbox's threads onto matching Contacts/Companies and read/write
+Calendar events. It talks to Google over OAuth, so this needs a one-time Google Cloud
+setup plus HTTPS on the CRM (Google won't redirect OAuth to a bare IP or plain HTTP).
+
+**Prerequisite:** the CRM must already be on `https://crm.usemce.com` (run
+`deploy/setup-https.sh` first if it's still on `http://<ip>:3000`).
+
+### 1. Create the Google OAuth client (one-time, in Google Cloud Console)
+1. Go to https://console.cloud.google.com, create a project (e.g. "MCE CRM").
+2. **APIs & Services → Library** — enable **Gmail API** and **Google Calendar API**.
+3. **APIs & Services → OAuth consent screen** — User type **External** (or **Internal**
+   if the Google Workspace is on `usemce.com`); fill in app name/support email; add scopes
+   `.../auth/gmail.readonly`, `.../auth/calendar`, `.../auth/userinfo.email`,
+   `.../auth/userinfo.profile`; add `jason@usemce.com` (and anyone else who'll connect a
+   mailbox) as a test user if the app stays in "Testing" mode.
+4. **APIs & Services → Credentials → Create Credentials → OAuth client ID** — type
+   **Web application** — add these **Authorized redirect URIs** exactly:
+   - `https://crm.usemce.com/auth/google/redirect`
+   - `https://crm.usemce.com/auth/google-apis/get-access-token`
+5. Save. Copy the **Client ID** and **Client secret**.
+
+### 2. Configure the server
+On the server, edit `/opt/mce-crm/deploy/.env` and add (or uncomment/fill in):
+```
+AUTH_GOOGLE_ENABLED=true
+MESSAGING_PROVIDER_GMAIL_ENABLED=true
+CALENDAR_PROVIDER_GOOGLE_ENABLED=true
+AUTH_GOOGLE_CLIENT_ID=<client id from step 1>
+AUTH_GOOGLE_CLIENT_SECRET=<client secret from step 1>
+AUTH_GOOGLE_CALLBACK_URL=https://crm.usemce.com/auth/google/redirect
+AUTH_GOOGLE_APIS_CALLBACK_URL=https://crm.usemce.com/auth/google-apis/get-access-token
+```
+Then apply it:
+```
+cd /opt/mce-crm/deploy
+docker compose -f docker-compose.yml -f docker-compose.renderer.yml -f docker-compose.caddy.yml up -d
+```
+
+### 3. Connect the mailbox in Twenty
+1. Log in at `https://crm.usemce.com`.
+2. **Settings → Accounts → Connect an account** → choose Google → sign in with the
+   Gmail address to sync and grant the requested permissions.
+3. Under that account's settings, confirm **Email** sync is on (and Calendar, if wanted)
+   and set the visibility rule (e.g. only sync emails linked to a known Contact).
+4. Give it a few minutes — Twenty backfills recent threads onto matching contacts
+   automatically after the first connect.
+
+Each teammate who wants their own mailbox synced repeats step 3 with their own Google
+account — step 1/2 (the OAuth client) is shared and only needs doing once.
+
+---
+
 ## Server operations (copy-paste)
 
 All commands run on the server, from the repo folder (e.g. `/opt/mce-crm`).
