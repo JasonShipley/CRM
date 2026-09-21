@@ -123,7 +123,7 @@
           "name": "Maintenance Gate — Electric Drive",
           "qty": 8,
           "unit_price": 10835.0,
-          "description": "• Mounted between the hammer mill discharge and the plenum chamber\n• Push rods with rack and pinion gear seal off the hammer mill for maintenance and prevent dropped parts from entering the plenum\n• Electric drive in lieu of hand crank: 1 HP Sumitomo right-angle gearmotor, 3 PH, TEFC\n• Two micro switches indicate gate open and gate closed at the control panel\n• [[Adder for the electric gearmotor drive and microswitches over MCE's standard hand-crank gate — pending engineering pricing; base gate price shown is the hand-crank list price]]"
+          "description": "• Mounted between the hammer mill discharge and the plenum chamber\n• Push rods with rack and pinion gear seal off the hammer mill for maintenance and prevent dropped parts from entering the plenum\n• Electric drive: 1 HP Sumitomo right-angle gearmotor, 3 PH, TEFC\n• Two micro switches indicate gate open and gate closed at the control panel"
         },
         {
           "name": "Custom Plenum Chamber — 350 FPM, for XM-4460 (MCE dwg. XM4460-350PL Rev A)",
@@ -236,6 +236,6 @@
     "screen": "Screen #5 (5/64\") confirmed by Jason Shipley Sep 17, 2026.",
     "plenum_drawing": "JB drawing XM4460-350PL Rev A, 9/17/26 (email '4460 CORN PLENUM' to Mike King, cc Jason/Mike B): 78x78 section, 218-1/8 over flanges, 212-13/16 body, 72 deep, 35 deg hopper to 19-13/16 outlet, 10 top flange, 55x60-3/4 filter opening, 2,500 lb. Air relief dwg 001 Rev A 6/17/26 shows filter on plenum end and airlock under screw discharge. Check for JB: 9,360 CFM through a 78x78 (42.25 sq ft) section is ~221 FPM, not 350 — confirm the 350 FPM designation. Drawings kept in reference/ — proprietary, do not attach to customer copy while Chris may self-build.",
     "screw_rfq": "RFQ to Marty Dzik (SCC) Sep 17, 2026. Marty is quoting 21' (not 24'): a 24' single-span 18in screw changes the deflection and would need a hanger bearing. Spec: 21' with 18' flared opening + angle flange, shroud after the opening, 3' covered trough to discharge. Item 6 stays at the H51445AW1 basis ($29,875 list) until his quote arrives; Jason is waiting on it.",
-    "maintenance_gate": "Per JB request 9/21/26: maintenance gate needs electric drive to open/close, not hand crank. Probable spec: 1 HP Sumitomo right-angle gearmotor + two microswitches (open/closed indication). No catalog or prior-quote price exists for the motorized version (prior gates were all hand-crank at $9,850 list). Base line still carries the hand-crank list price x1.10; need vendor/shop cost for the gearmotor + microswitch conversion before this can be firm."
+    "maintenance_gate": "Per JB request 9/21/26: maintenance gate electric drive (1 HP Sumitomo right-angle gearmotor + two microswitches). Jason confirmed 9/21/26: price the electric version at $10,835.00 (no separate adder)."
   }
 }
