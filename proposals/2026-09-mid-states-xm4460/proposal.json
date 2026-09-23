@@ -21,7 +21,7 @@
   "reference": [
     "MCE-Q-2609-MIDSTATES-R1",
     "Basis: Rough Rider hammer mill review of Sep 15, 2026 (C. Schaudt / J. Bliss / M. King) and MCE engineering of Sep 15, 2026",
-    "Validity: [[through December 31, 2026]]  ·  Currency: USD",
+    "Validity: 90 days from date of issue  ·  Currency: USD",
     "[[FOB MCE plant, Newkirk, OK]]"
   ],
   "intro": "Midwest Custom Engineering is pleased to quote eight (8) XM-4460 extra-heavy-duty hammer mills with feeders, self-cleaning magnet adapters, maintenance gates, 350 FPM plenum chambers and plenum transfer screws for corn grinding at the Mid-States ethanol project. Each mill is rated 48–50 TPH on corn with 7,200 sq in of screen area and a 500 HP drive. TECO MAX-E1 500 HP main drive motors are priced as item 7, with Toshiba Global SD motors offered as an alternate; Mid-States may instead purchase the motors directly and ship them to MCE for mounting. The air-relief system is by W.D. Patterson and is not included here.",
@@ -185,7 +185,7 @@
         ],
         [
           "Delivery",
-          "[[__ weeks after receipt of order, approval drawings and customer-supplied motors (if applicable).]] Order placement planned by Mid-States for December 2026; MCE will reserve fabrication capacity on receipt of a signed proposal."
+          "12–14 weeks after receipt of order, approval drawings and customer-supplied motors (if applicable), for the first shipment. Due to shop capacity, the eight mills ship two systems at a time (the maximum per truck); full order completion is estimated at 3–4 months. If the plenum or transfer screw interface requires additional engineering time beyond the approval-drawing stage, delivery will extend accordingly. Order placement planned by Mid-States for December 2026; MCE will reserve fabrication capacity on receipt of a signed proposal."
         ],
         [
           "Approval drawings",
@@ -200,7 +200,7 @@
     {
       "type": "prose",
       "title": "Commercial terms",
-      "text": "Payment: 50% down with order, balance before shipment. Prices are in US dollars and exclude sales tax, freight and installation. Pricing is valid [[through December 31, 2026]]; steel and motor pricing are subject to adjustment for orders placed after that date. Warranty per MCE standard terms and conditions. This proposal covers the equipment listed in Section 2 only; the air system is quoted separately by W.D. Patterson."
+      "text": "Payment: 50% down with order, balance before shipment. Prices are in US dollars and exclude sales tax, freight and installation. Pricing is valid 90 days from the date of this proposal; steel and motor pricing are subject to adjustment for orders placed after that date, and in particular for the December 2026 order date anticipated by Mid-States. Warranty per MCE standard terms and conditions. This proposal covers the equipment listed in Section 2 only; the air system is quoted separately by W.D. Patterson."
     },
     {
       "type": "signature",
@@ -236,6 +236,7 @@
     "screen": "Screen #5 (5/64\") confirmed by Jason Shipley Sep 17, 2026.",
     "plenum_drawing": "JB drawing XM4460-350PL Rev A, 9/17/26 (email '4460 CORN PLENUM' to Mike King, cc Jason/Mike B): 78x78 section, 218-1/8 over flanges, 212-13/16 body, 72 deep, 35 deg hopper to 19-13/16 outlet, 10 top flange, 55x60-3/4 filter opening, 2,500 lb. Air relief dwg 001 Rev A 6/17/26 shows filter on plenum end and airlock under screw discharge. Check for JB: 9,360 CFM through a 78x78 (42.25 sq ft) section is ~221 FPM, not 350 — confirm the 350 FPM designation. Drawings kept in reference/ — proprietary, do not attach to customer copy while Chris may self-build.",
     "screw_rfq": "SCC quote H51980CK received 9/22/26 from Marty Dzik: (8) 20\" dia x 21'-0\" screws, assembled, $21,275.00 each / $170,200.00 lot of 8, ex-factory. Marty confirmed a single-span 21' (not 24') to avoid a hanger bearing. Note: SCC quoted 20\" diameter, not the 18\" in our RFQ. Jason confirmed 9/23/26: MCE will build the plenum discharge opening to fit the 20\" screw rather than resize the screw — dwg XM4460-350PL to be updated accordingly before release. Item 6 unit price = $21,275.00 x 1.10 = $23,402.50, same markup/discount treatment as other equipment lines (not motor-exempt). Quote saved under reference/SCC_Quote_H51980CK.docx. SCC quote valid 10 days from 9/22/26 (steel cost volatility) — reconfirm before December order.",
-    "maintenance_gate": "Per JB request 9/21/26: maintenance gate electric drive (1 HP Sumitomo right-angle gearmotor + two microswitches). Jason confirmed 9/21/26: price the electric version at $10,835.00 (no separate adder)."
+    "maintenance_gate": "Per JB request 9/21/26: maintenance gate electric drive (1 HP Sumitomo right-angle gearmotor + two microswitches). Jason confirmed 9/21/26: price the electric version at $10,835.00 (no separate adder).",
+    "delivery_validity": "Per Guardian Energy - DRAFT thread, 9/18-9/19/26: Jason proposed 12-14 weeks delivery; Mike Buckskin agreed the lead time is tight (ties up both shops) but the pricing is worth it, and recommended NOT holding pricing to end of December given steel volatility -- use 60-90 days validity instead, or note steel pricing subject to change at time of approval; also flag that engineering time may extend delivery. JB separately noted building all 8 mills will take 3-4 months and they can only ship 2 systems at a time (max per truck). Delivery/validity flags cleared using this guidance; FOB point still not answered."
   }
 }
