@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}MCE Quoting{% endblock %}</title>
+<link rel="icon" href="{{ url_for('static', filename='favicon.svg') }}">
+<style>
+  @font-face { font-family: "Oswald"; font-weight: 400 700; font-style: normal;
+    src: url("{{ url_for('static', filename='fonts/oswald.woff2') }}") format("woff2");
+    font-display: swap; }
+  @font-face { font-family: "InterV"; font-weight: 100 900; font-style: normal;
+    src: url("{{ url_for('static', filename='fonts/inter.woff2') }}") format("woff2");
+    font-display: swap; }
+
+  :root {
+    --black: #111111; --orange: #ff6602; --gray: #575d5e; --silver: #c8c7c7;
+    --ink: #1f1f1f; --ink-soft: #6b6f71; --rule: #d9d9d9; --panel: #f5f5f5;
+    --field: #ffffff; --page: #eceff1; --ok: #1f7a37; --warn: #9a5b00;
+    --err: #a31515;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  /* `display` on .field/.tool would otherwise beat the UA's [hidden] rule, so
+     toggling el.hidden from JS would do nothing */
+  [hidden] { display: none !important; }
+  body { font-family: "InterV", Helvetica, Arial, sans-serif; color: var(--ink);
+    background: var(--page); font-size: 14px; line-height: 1.5; }
+  .cond { font-family: "Oswald", "Arial Narrow", sans-serif; }
+  a { color: #c24f01; }
+
+  /* ---- brand header ---- */
+  header.brand { background: var(--black); border-bottom: 4px solid var(--orange);
+    padding: 12px 24px; display: flex; align-items: center; gap: 24px;
+    flex-wrap: wrap; }
+  header.brand .mark { background: #fff; border-radius: 2px; padding: 7px 11px;
+    display: flex; line-height: 0; }
+  header.brand img { height: 30px; width: auto; }
+  header.brand nav { display: flex; gap: 4px; margin-left: auto; flex-wrap: wrap; }
+  header.brand nav a { font-family: "Oswald", sans-serif; font-weight: 500;
+    font-size: 12px; letter-spacing: .09em; text-transform: uppercase;
+    color: #cfcfcf; text-decoration: none; padding: 7px 13px; border-radius: 2px; }
+  header.brand nav a:hover { color: #fff; background: #262626; }
+  header.brand nav a.on { color: #fff; background: var(--orange); }
+
+  main { max-width: 1120px; margin: 0 auto; padding: 22px 20px 80px; }
+  .wide { max-width: 1320px; }
+
+  h1 { font-family: "Oswald", sans-serif; font-weight: 600; font-size: 25px;
+    letter-spacing: .02em; }
+  h1 .thin { color: var(--ink-soft); font-weight: 400; }
+  .lede { color: var(--ink-soft); margin-top: 4px; max-width: 70ch; }
+
+  /* ---- section bar, matching the PDF ---- */
+  .bar { background: var(--gray); color: #fff; display: flex; align-items: center;
+    justify-content: space-between; margin: 24px 0 0; border-radius: 2px 2px 0 0; }
+  .bar .t { font-family: "Oswald", sans-serif; font-weight: 600; font-size: 13px;
+    letter-spacing: .09em; text-transform: uppercase; padding: 7px 12px;
+    display: flex; align-items: center; gap: 11px; }
+  .bar .t::before { content: ""; width: 8px; height: 17px; background: var(--orange); }
+  .bar .hint { font-size: 12px; color: #e8e8e8; padding-right: 12px; }
+  .card { background: #fff; border: 1px solid var(--rule); border-top: 0;
+    padding: 18px; border-radius: 0 0 2px 2px; }
+  .card + .bar { margin-top: 22px; }
+
+  /* ---- forms ---- */
+  .grid { display: grid; gap: 14px 18px; }
+  .g2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .g3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .g4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  @media (max-width: 820px) { .g2, .g3, .g4 { grid-template-columns: 1fr; } }
+  .field { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+  .field.span2 { grid-column: span 2; }
+  @media (max-width: 820px) { .field.span2 { grid-column: span 1; } }
+  label, .lbl { font-size: 11px; font-weight: 700; letter-spacing: .09em;
+    color: var(--ink-soft); text-transform: uppercase; }
+  .help { font-size: 12px; color: var(--ink-soft); font-weight: 400;
+    letter-spacing: 0; text-transform: none; }
+  input[type=text], input[type=number], input[type=date], input[type=password],
+  select, textarea {
+    font: inherit; font-size: 14px; color: var(--ink); background: var(--field);
+    border: 1px solid var(--silver); border-radius: 2px; padding: 8px 10px;
+    width: 100%; }
+  input:focus, select:focus, textarea:focus { outline: 2px solid var(--orange);
+    outline-offset: -1px; border-color: var(--orange); }
+  textarea { resize: vertical; min-height: 78px; }
+  input[type=number] { font-variant-numeric: tabular-nums; }
+  .check { flex-direction: row; align-items: center; gap: 9px; }
+  .check input { width: 17px; height: 17px; accent-color: var(--orange); }
+  .check label { text-transform: none; letter-spacing: 0; font-size: 14px;
+    font-weight: 500; color: var(--ink); }
+
+  /* ---- buttons ---- */
+  button, .btn { font-family: "Oswald", sans-serif; font-weight: 500; font-size: 13px;
+    letter-spacing: .07em; text-transform: uppercase; cursor: pointer;
+    border: 1px solid var(--black); background: var(--black); color: #fff;
+    padding: 9px 17px; border-radius: 2px; text-decoration: none;
+    display: inline-block; }
+  button:hover, .btn:hover { background: #2c2c2c; }
+  .btn-primary { background: var(--orange); border-color: var(--orange); }
+  .btn-primary:hover { background: #e25c02; border-color: #e25c02; }
+  .btn-ghost { background: #fff; color: var(--ink); border-color: var(--silver); }
+  .btn-ghost:hover { background: var(--panel); color: var(--ink); }
+  .btn-sm { font-size: 11px; padding: 5px 10px; }
+  button:disabled { opacity: .5; cursor: not-allowed; }
+
+  /* ---- tables ---- */
+  table { width: 100%; border-collapse: collapse; }
+  th { background: #e4e4e4; font-size: 10.5px; font-weight: 700; letter-spacing: .08em;
+    text-transform: uppercase; color: #3c3c3c; text-align: left; padding: 7px 8px;
+    white-space: nowrap; }
+  td { padding: 8px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th.num, td.num { text-align: right; }
+  td.money, .num { font-variant-numeric: tabular-nums; }
+
+  /* ---- notices ---- */
+  .note { border-left: 4px solid var(--silver); background: var(--panel);
+    padding: 11px 14px; border-radius: 2px; font-size: 13px; }
+  .note.warn { border-left-color: var(--orange); background: #fff4ec; }
+  .note.err { border-left-color: var(--err); background: #fdf1f1; color: #7a1010; }
+  .note.ok { border-left-color: var(--ok); background: #f0f8f2; }
+  .note b { display: block; margin-bottom: 2px; }
+  .pill { font-family: "Oswald", sans-serif; font-size: 10.5px; letter-spacing: .09em;
+    text-transform: uppercase; border: 1px solid var(--silver); border-radius: 999px;
+    padding: 2px 9px; color: var(--ink-soft); white-space: nowrap; }
+  .pill.prov { border-color: var(--orange); color: #b04900; background: #fff4ec; }
+  .pill.soon { border-color: var(--silver); color: #8d8d8d; }
+  .muted { color: var(--ink-soft); }
+  .stack { display: flex; flex-direction: column; gap: 12px; }
+  .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  {% block style %}{% endblock %}
+</style>
+</head>
+<body>
+<header class="brand">
+  <a class="mark" href="{{ url_for('builder.index') }}"
+     title="Midwest Custom Engineering"><img
+     src="{{ url_for('static', filename='mce-logo.png') }}"
+     alt="Midwest Custom Engineering"></a>
+  <nav>
+    <a href="{{ url_for('builder.index') }}" {% if nav == 'quotes' %}class="on"{% endif %}>Quotes</a>
+    <a href="{{ url_for('builder.new_quote') }}" {% if nav == 'new' %}class="on"{% endif %}>New Quote</a>
+    <a href="{{ url_for('tools_index') }}" {% if nav == 'tools' %}class="on"{% endif %}>Calculators</a>
+    <a href="{{ url_for('crm.index') }}" {% if nav == 'crm' %}class="on"{% endif %}>CRM</a>
+  </nav>
+</header>
+<main class="{% block mainclass %}{% endblock %}">
+{% block body %}{% endblock %}
+</main>
+{% block script %}{% endblock %}
+</body>
+</html>

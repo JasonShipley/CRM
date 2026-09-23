@@ -1,15 +1,29 @@
-# Overlay: adds the MCE quote renderer beside the official Twenty stack.
+# Overlay: adds the MCE quote builder / renderer beside the official Twenty stack.
 # Usage: docker compose -f docker-compose.yml -f docker-compose.renderer.yml up -d
 services:
   quote-renderer:
     build: ../renderer
     ports:
-      - "8090:8090"
+      # Bound to loopback on purpose. This service exposes every quote, MCE's
+      # sizing calculators and its pricing basis, so it must not be reachable
+      # from the internet directly — Caddy (docker-compose.caddy.yml) terminates
+      # TLS, enforces basic auth, and proxies to it over the compose network.
+      # Publish it on 0.0.0.0 only for a local test with no proxy in front.
+      - "127.0.0.1:8090:8090"
     environment:
       TWENTY_URL: http://server:3000
       TWENTY_EMAIL: ${TWENTY_EMAIL}
       TWENTY_PASSWORD: ${TWENTY_PASSWORD}
+      RENDERER_DATA_DIR: /data
+      # Optional second lock behind Caddy's basic auth. Set both, or neither.
+      RENDERER_PASSWORD: ${RENDERER_PASSWORD:-}
+      SECRET_KEY: ${RENDERER_SECRET_KEY:-}
+    volumes:
+      - quote-data:/data
     depends_on:
       server:
         condition: service_healthy
     restart: always
+
+volumes:
+  quote-data:

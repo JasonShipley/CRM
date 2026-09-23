@@ -1,0 +1,304 @@
+{% extends "_shell.html" %}
+{% block title %}{{ "Edit quote" if quote else "New quote" }} — MCE{% endblock %}
+{% block mainclass %}wide{% endblock %}
+{% block body %}
+
+<div class="row" style="justify-content:space-between;align-items:flex-end">
+  <div>
+    <h1>{{ "Edit quote" if quote else "New quote" }}</h1>
+    <p class="lede">Fill in the customer and the job, size the equipment with MCE's
+      calculators, then save and print the proposal.</p>
+  </div>
+  {% if quote %}<a class="btn btn-ghost" href="{{ url_for('builder.quote_view', quote_id=quote.id) }}">View proposal</a>{% endif %}
+</div>
+
+<!-- 1 ------------------------------------------------------------ customer -->
+<div class="bar"><span class="t">1. Customer</span></div>
+<div class="card">
+  <div class="grid g3">
+    <div class="field span2">
+      <label for="c-company">Company</label>
+      <input type="text" id="c-company" placeholder="Acme Feed &amp; Grain">
+    </div>
+    <div class="field">
+      <label for="c-contact">Contact</label>
+      <input type="text" id="c-contact" placeholder="Pat Morgan">
+    </div>
+    <div class="field">
+      <label for="c-email">Email</label>
+      <input type="text" id="c-email" placeholder="pat@acmefeed.com">
+    </div>
+    <div class="field">
+      <label for="c-phone">Phone</label>
+      <input type="text" id="c-phone">
+    </div>
+    <div class="field">
+      <label for="c-street1">Street</label>
+      <input type="text" id="c-street1">
+    </div>
+    <div class="field">
+      <label for="c-street2">Street 2</label>
+      <input type="text" id="c-street2">
+    </div>
+    <div class="field">
+      <label for="c-city">City</label>
+      <input type="text" id="c-city">
+    </div>
+    <div class="field">
+      <label for="c-state">State</label>
+      <input type="text" id="c-state">
+    </div>
+    <div class="field">
+      <label for="c-postcode">ZIP</label>
+      <input type="text" id="c-postcode">
+    </div>
+  </div>
+</div>
+
+<!-- 2 --------------------------------------------------------------- quote -->
+<div class="bar"><span class="t">2. Quote details</span></div>
+<div class="card">
+  <div class="grid g3">
+    <div class="field span2">
+      <label for="q-name">Quote name</label>
+      <input type="text" id="q-name" placeholder="24,000 PPH Hammermill System — Acme Feed">
+    </div>
+    <div class="field">
+      <label for="q-ref">Quote #</label>
+      <input type="text" id="q-ref" value="{{ quote_number }}">
+    </div>
+    <div class="field span2">
+      <label for="q-project">Project</label>
+      <input type="text" id="q-project" placeholder="Mill line upgrade, Plant 2">
+    </div>
+    <div class="field">
+      <label for="q-expires">Valid until</label>
+      <input type="date" id="q-expires">
+    </div>
+    <div class="field">
+      <label for="q-status">Status</label>
+      <select id="q-status">
+        {% for value, label in statuses %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="field">
+      <label for="q-prepared">Prepared by</label>
+      <select id="q-prepared">
+        {% for value, label in prepared_by %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="field">
+      <label for="q-amount">Contract value <span class="help">blank = subtotal</span></label>
+      <input type="number" id="q-amount" step="0.01" placeholder="auto">
+    </div>
+    <div class="field span2">
+      <label for="q-comments">Comments to buyer <span class="help">the cover paragraph</span></label>
+      <textarea id="q-comments" placeholder="Thank you for the opportunity to quote…"></textarea>
+    </div>
+    <div class="field">
+      <label for="q-terms">Purchase terms</label>
+      <textarea id="q-terms">{{ default_terms }}</textarea>
+    </div>
+  </div>
+</div>
+
+<!-- 3 -------------------------------------------------------------- sizing -->
+<div class="bar"><span class="t">3. Size the equipment</span>
+  <span class="hint">MCE's own calculators — results drop into the line items</span></div>
+<div class="card">
+  <div class="tabs" id="calc-tabs">
+    {% for key, c in calculators.items() %}
+    <button type="button" class="tab {{ 'on' if loop.first }}" data-calc="{{ key }}">{{ c.label }}</button>
+    {% endfor %}
+    <a class="tab link" href="{{ url_for('tools_index') }}" target="_blank" rel="noopener">Full calculators &#8599;</a>
+  </div>
+
+  {% for key, c in calculators.items() %}
+  <div class="calcpanel" id="panel-{{ key }}" {% if not loop.first %}hidden{% endif %}>
+    <p class="muted" style="margin:12px 0 4px">{{ c.blurb }}</p>
+    <div class="grid g4" style="margin-top:12px">
+      {% for f in c.fields if not f.advanced %}
+      <div class="field{{ ' span2' if f.type == 'select' and f.options|length > 8 }}"
+           data-field="{{ f.key }}"
+           {% if f.showWhen %}data-show-when="{{ f.showWhen|tojson|forceescape }}"{% endif %}>
+        <label for="{{ key }}-{{ f.key }}">{{ f.label }}{% if f.unit %}
+          <span class="help">{{ f.unit }}</span>{% endif %}</label>
+        {% if f.type == 'select' %}
+        <select id="{{ key }}-{{ f.key }}" name="{{ f.key }}">
+          {% for v, lbl in f.options %}
+          <option value="{{ v }}" {{ 'selected' if v == f.default }}>{{ lbl }}</option>
+          {% endfor %}
+        </select>
+        {% else %}
+        <input type="number" id="{{ key }}-{{ f.key }}" name="{{ f.key }}"
+               value="{{ f.default }}"
+               {% if f.step %}step="{{ f.step }}"{% endif %}
+               {% if f.min is not none %}min="{{ f.min }}"{% endif %}
+               {% if f.max is not none %}max="{{ f.max }}"{% endif %}>
+        {% endif %}
+        {% if f.help %}<span class="help">{{ f.help }}</span>{% endif %}
+      </div>
+      {% endfor %}
+    </div>
+
+    {% if key == 'hammermill' %}
+    <div class="note" id="hm-chart" hidden style="margin-top:12px"></div>
+    {% endif %}
+
+    {% if key == 'cooler' %}
+    <details style="margin-top:14px">
+      <summary class="cond">Cooler options</summary>
+      <div class="grid g3" style="margin-top:12px">
+        {% for o in cooler_options %}
+        <div class="field check">
+          <input type="checkbox" id="cooler-opt-{{ o.id }}" data-cooler-opt="{{ o.id }}"
+                 {{ 'checked' if o.std }}>
+          <label for="cooler-opt-{{ o.id }}">{{ o.label }}{% if o.std %}
+            <span class="pill">std</span>{% endif %}</label>
+        </div>
+        {% endfor %}
+      </div>
+      <p class="help" style="margin-top:8px">Standard items are bundled into the base
+        price — unticking one deducts it.</p>
+    </details>
+    {% endif %}
+
+    {% set adv = c.fields | selectattr('advanced') | list %}
+    {% if adv %}
+    <details style="margin-top:14px">
+      <summary class="cond">Pricing &amp; build assumptions</summary>
+      <div class="grid g4" style="margin-top:12px">
+        {% for f in adv %}
+        <div class="field">
+          <label for="{{ key }}-{{ f.key }}">{{ f.label }}{% if f.unit %}
+            <span class="help">{{ f.unit }}</span>{% endif %}</label>
+          <input type="number" id="{{ key }}-{{ f.key }}" name="{{ f.key }}"
+                 value="{{ f.default }}" step="{{ f.step }}"
+                 {% if f.min is not none %}min="{{ f.min }}"{% endif %}>
+        </div>
+        {% endfor %}
+      </div>
+    </details>
+    {% endif %}
+
+    <div class="row" style="margin-top:16px">
+      <button type="button" class="btn-primary" data-run="{{ key }}">Size it</button>
+      <button type="button" class="btn-ghost" data-add="{{ key }}" disabled>Add to quote</button>
+      <span class="muted" id="status-{{ key }}"></span>
+    </div>
+
+    <div class="results" id="results-{{ key }}" hidden></div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- 4 ---------------------------------------------------------- line items -->
+<div class="bar"><span class="t">4. Line items</span>
+  <span class="hint">leave Line total blank to compute qty &times; (unit &minus; discount)</span></div>
+<div class="card" style="padding:0">
+  <table id="lines">
+    <thead>
+      <tr>
+        <th style="width:26px"></th>
+        <th>Item &amp; description</th>
+        <th style="width:78px">SKU</th>
+        <th class="num" style="width:62px">Qty</th>
+        <th class="num" style="width:110px">Unit price</th>
+        <th class="num" style="width:74px">Disc %</th>
+        <th class="num" style="width:120px">Line total</th>
+        <th style="width:34px"></th>
+      </tr>
+    </thead>
+    <tbody id="lines-body"></tbody>
+  </table>
+  <div class="row" style="padding:12px">
+    <button type="button" class="btn-ghost btn-sm" id="add-line">+ Add line</button>
+    <span class="muted" id="lines-empty">No lines yet — size something above, or add one by hand.</span>
+  </div>
+</div>
+
+<!-- 5 ---------------------------------------------------------------- save -->
+<div class="savebar">
+  <div class="totals">
+    <span>Subtotal <b id="t-subtotal">$0.00</b></span>
+    <span id="t-discount-wrap" hidden>Discount <b id="t-discount">$0.00</b></span>
+    <span class="grand">Total <b id="t-total">$0.00</b></span>
+  </div>
+  <div class="row">
+    <span class="muted" id="save-status"></span>
+    <button type="button" class="btn-ghost" id="save">Save</button>
+    <button type="button" class="btn-primary" id="save-pdf">Save &amp; open PDF</button>
+  </div>
+</div>
+
+<script id="boot" type="application/json">{{ {
+  "quote": quote,
+  "productDefaults": product_defaults,
+  "calcKeys": calculators.keys()|list,
+  "createUrl": url_for('builder.api_create'),
+  "updateUrl": url_for('builder.api_update', quote_id='__ID__'),
+  "calcUrl": url_for('builder.api_calc', key='__KEY__')
+}|tojson }}</script>
+{% endblock %}
+
+{% block style %}
+  .tabs { display: flex; gap: 4px; flex-wrap: wrap; border-bottom: 2px solid var(--rule); }
+  .tab { font-family: "Oswald", sans-serif; font-size: 12.5px; letter-spacing: .07em;
+    text-transform: uppercase; background: none; color: var(--ink-soft);
+    border: 0; border-bottom: 3px solid transparent; border-radius: 0;
+    padding: 8px 13px; margin-bottom: -2px; cursor: pointer; text-decoration: none; }
+  .tab:hover { background: var(--panel); color: var(--ink); }
+  .tab.on { color: var(--ink); border-bottom-color: var(--orange); }
+  .tab.link { margin-left: auto; color: var(--orange); }
+
+  .results { margin-top: 16px; border-top: 1px solid var(--rule); padding-top: 14px; }
+  .formula { font-size: 13px; background: var(--panel); border-left: 4px solid var(--orange);
+    padding: 9px 12px; border-radius: 2px; margin-bottom: 12px;
+    font-variant-numeric: tabular-nums; }
+  .outs { display: grid; grid-template-columns: repeat(auto-fill, minmax(215px, 1fr));
+    background: #fff; border: 1px solid var(--rule); border-radius: 2px;
+    border-width: 1px 0 0 1px; overflow: hidden; }
+  .out { background: #fff; padding: 8px 11px;
+    border: 0 solid var(--rule); border-width: 0 1px 1px 0; }
+  .out .k { font-size: 10.5px; font-weight: 700; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--ink-soft); display: block; }
+  .out .v { font-size: 15px; font-variant-numeric: tabular-nums; }
+  .out.head { background: #fff8f3; }
+  .out.head .v { font-weight: 700; color: #b04900; }
+  .out .n { font-size: 11.5px; color: var(--ink-soft); display: block; margin-top: 2px; }
+  .pricenotes { font-size: 12.5px; color: var(--ink-soft); margin-top: 10px; }
+  .pricenotes div { margin: 2px 0; }
+
+  #lines td { vertical-align: top; }
+  #lines td.dragcell { color: var(--silver); text-align: center; padding-top: 12px; }
+  #lines input, #lines textarea { border: 1px solid transparent; background: transparent;
+    padding: 5px 6px; }
+  #lines input:hover, #lines textarea:hover { border-color: var(--rule); }
+  #lines input:focus, #lines textarea:focus { background: #fff; }
+  #lines .nm { font-weight: 600; }
+  #lines textarea { min-height: 34px; font-size: 12.5px; color: #3a3a3a; }
+  #lines .num input { text-align: right; }
+  #lines tr.needsprice { background: #fff8f3; }
+  .rm { border: 0; background: none; color: var(--ink-soft); font-size: 17px;
+    cursor: pointer; padding: 4px 7px; border-radius: 2px; }
+  .rm:hover { background: #fdf1f1; color: var(--err); }
+
+  .savebar { position: sticky; bottom: 0; margin: 22px -20px 0; padding: 12px 20px;
+    background: #fff; border-top: 3px solid var(--orange);
+    box-shadow: 0 -2px 14px rgba(0,0,0,.09); display: flex; gap: 18px;
+    align-items: center; justify-content: space-between; flex-wrap: wrap; }
+  .savebar .totals { display: flex; gap: 20px; align-items: baseline; font-size: 13px;
+    color: var(--ink-soft); flex-wrap: wrap; }
+  .savebar .totals b { font-variant-numeric: tabular-nums; color: var(--ink);
+    font-size: 15px; margin-left: 5px; }
+  .savebar .grand { font-family: "Oswald", sans-serif; letter-spacing: .06em;
+    text-transform: uppercase; }
+  .savebar .grand b { font-size: 21px; color: var(--orange); }
+  details > summary { cursor: pointer; font-size: 12.5px; letter-spacing: .07em;
+    text-transform: uppercase; color: var(--ink-soft); }
+  details > summary:hover { color: var(--orange); }
+{% endblock %}
+
+{% block script %}
+<script src="{{ url_for('static', filename='builder.js') }}"></script>
+{% endblock %}

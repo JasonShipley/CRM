@@ -1,0 +1,33 @@
+{% extends "_shell.html" %}
+{% block title %}CRM Quotes{% endblock %}
+{% block body %}
+<h1>Quotes in Twenty CRM</h1>
+<p class="lede">The quotes migrated from HubSpot and anything created in the CRM
+  directly. Rendered with the same Equipment Proposal layout. Quotes built here
+  are separate for now — the CRM tie-in is the next step.</p>
+
+{% if error %}
+<div class="bar"><span class="t">CRM unreachable</span></div>
+<div class="card">
+  <div class="note err"><b>Could not reach Twenty.</b>{{ error }}</div>
+  <p style="margin-top:10px">The quote builder and the calculators do not need the
+    CRM — they keep working.</p>
+</div>
+{% else %}
+<div class="bar"><span class="t">{{ rows|length }} quote{{ "s" if rows|length != 1 }}</span></div>
+<div class="card" style="padding:0">
+<table>
+  <tr><th>Quote</th><th>Ref</th><th>Status</th><th class="num">Amount</th><th></th></tr>
+  {% for r in rows %}
+  <tr>
+    <td><a href="{{ url_for('crm.quote_view', quote_id=r.id) }}">{{ r.name }}</a></td>
+    <td class="muted">{{ r.quoteNumber or "—" }}</td>
+    <td><span class="pill">{{ r.status or "" }}</span></td>
+    <td class="num money">{{ r._amount }}</td>
+    <td><a class="btn btn-ghost btn-sm" href="{{ url_for('crm.quote_pdf', quote_id=r.id) }}">PDF</a></td>
+  </tr>
+  {% endfor %}
+</table>
+</div>
+{% endif %}
+{% endblock %}

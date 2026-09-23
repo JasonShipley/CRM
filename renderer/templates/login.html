@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MCE Quoting — sign in</title>
+<style>
+  body { font-family: Helvetica, Arial, sans-serif; background: #111; color: #fff;
+    display: flex; align-items: center; justify-content: center; min-height: 100vh;
+    margin: 0; padding: 20px; }
+  .box { width: 100%; max-width: 340px; }
+  img { width: 100%; max-width: 260px; display: block; margin: 0 auto 26px; }
+  h1 { font-size: 15px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase;
+    color: #ff6602; text-align: center; margin: 0 0 16px; }
+  input { width: 100%; font-size: 15px; padding: 11px 12px; border: 1px solid #575d5e;
+    border-radius: 2px; background: #1c1c1c; color: #fff; }
+  input:focus { outline: 2px solid #ff6602; outline-offset: -1px; }
+  button { width: 100%; margin-top: 12px; font-size: 13px; font-weight: 600;
+    letter-spacing: .09em; text-transform: uppercase; padding: 11px; cursor: pointer;
+    background: #ff6602; color: #fff; border: 0; border-radius: 2px; }
+  button:hover { background: #e25c02; }
+  .err { margin-top: 12px; font-size: 13px; color: #ff9a6a; text-align: center; }
+</style>
+</head>
+<body>
+<form class="box" method="post">
+  <img src="{{ url_for('static', filename='mce-logo.png') }}" alt="Midwest Custom Engineering">
+  <h1>Quoting</h1>
+  <input type="password" name="password" placeholder="Password" autofocus
+         autocomplete="current-password" required>
+  <button type="submit">Sign in</button>
+  {% if error %}<div class="err">{{ error }}</div>{% endif %}
+</form>
+</body>
+</html>

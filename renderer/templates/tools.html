@@ -1,0 +1,45 @@
+{% extends "_shell.html" %}
+{% block title %}MCE Calculators{% endblock %}
+{% block body %}
+<h1>Sizing calculators</h1>
+<p class="lede">MCE's own calculators, hosted here behind the same login instead of
+  living on one desktop. These are the full engineering workbenches — model
+  reference tables, index charts, pricing multipliers. The
+  <a href="{{ url_for('builder.new_quote') }}">quote builder</a> runs the same math
+  and drops the result straight onto a quote.</p>
+
+<div class="bar"><span class="t">Live</span></div>
+<div class="card">
+  <div class="grid g3">
+    {% for slug, t in tools.items() %}
+    <a class="tool" href="{{ url_for('tool', slug=slug) }}">
+      <b class="cond">{{ t[0] }}</b>
+      <span>{{ t[2] }}</span>
+      <span class="go">Open calculator &rarr;</span>
+    </a>
+    {% endfor %}
+  </div>
+</div>
+
+<div class="bar"><span class="t">Planned</span>
+  <span class="hint">next to be built</span></div>
+<div class="card">
+  <div class="grid g4">
+    {% for name, blurb in planned %}
+    <div class="tool soon"><b class="cond">{{ name }}</b><span>{{ blurb }}</span>
+      <span class="pill soon">Not built yet</span></div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}
+{% block style %}
+  .tool { display: flex; flex-direction: column; gap: 6px; padding: 16px;
+    border: 1px solid var(--rule); border-radius: 2px; text-decoration: none;
+    color: var(--ink); background: #fff; }
+  a.tool:hover { border-color: var(--orange); box-shadow: 0 1px 8px rgba(0,0,0,.08); }
+  .tool b { font-size: 15px; letter-spacing: .01em; }
+  .tool span { font-size: 13px; color: var(--ink-soft); }
+  .tool .go { color: var(--orange); font-weight: 600; margin-top: 4px; }
+  .tool.soon { background: var(--panel); opacity: .72; }
+  .tool.soon .pill { align-self: flex-start; margin-top: 4px; }
+{% endblock %}

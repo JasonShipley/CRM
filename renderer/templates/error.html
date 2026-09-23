@@ -1,0 +1,9 @@
+{% extends "_shell.html" %}
+{% block title %}{{ title or "Something went wrong" }}{% endblock %}
+{% block body %}
+<h1>{{ title or "Something went wrong" }}</h1>
+<div class="card" style="border-top:1px solid var(--rule);margin-top:14px">
+  <div class="note err">{{ message }}</div>
+  <p style="margin-top:12px"><a class="btn btn-ghost" href="{{ url_for('builder.index') }}">Back to quotes</a></p>
+</div>
+{% endblock %}
