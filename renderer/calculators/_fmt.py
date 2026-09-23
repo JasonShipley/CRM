@@ -20,6 +20,12 @@ def num(value, places=0):
     return f"{q:,.{places}f}"
 
 
+def fixed(value, places=0):
+    """JS Number.toFixed: half away from zero, no thousands separator."""
+    q = Decimal(str(value)).quantize(Decimal(1).scaleb(-places), rounding=ROUND_HALF_UP)
+    return f"{q:.{places}f}"
+
+
 def money(value, places=0):
     v = Decimal(str(value))
     return ("−$" if v < 0 else "$") + num(abs(v), places)

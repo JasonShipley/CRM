@@ -12,7 +12,7 @@ own JavaScript headless — run it after touching either side.
 This module is the registry: it declares each calculator's inputs so the form UI
 and the JSON API are generated from one description, and dispatches `run()`.
 """
-from . import baghouse, cooler, hammermill
+from . import baghouse, cooler, cyclone, hammer_pattern, hammermill
 from ._data import CL_CHECK_DEFS, CL_PELLETS, MCE_XM_MILLS, PRODUCTS, XM_CHART
 
 # --------------------------------------------------------------- input specs --
@@ -118,6 +118,58 @@ BAGHOUSE_FIELDS = [
                  ("10", "10 ft")]},
 ]
 
+CYCLONE_FIELDS = [
+    {"key": "series", "label": "Cyclone line", "type": "select", "default": "mce",
+     "options": [("mce", "MCE — HE and H series"),
+                 ("budget", "Budget — primed gray")],
+     "help": "The MCE line matches HE up to 12,600 CFM and H above that."},
+    {"key": "mode", "label": "Airflow basis", "type": "select", "default": "cfm",
+     "options": [("cfm", "Enter rated CFM"),
+                 ("measure", "From inlet dimensions and velocity")]},
+    {"key": "cfm", "label": "Rated airflow", "type": "number", "unit": "CFM",
+     "default": 3500, "step": 50, "min": 0, "showWhen": {"mode": "cfm"}},
+    {"key": "inletShape", "label": "Inlet shape", "type": "select", "default": "round",
+     "options": [("round", "Round"), ("rect", "Rectangular")],
+     "showWhen": {"mode": "measure"}},
+    {"key": "inletId", "label": "Inlet ID", "type": "number", "unit": "in",
+     "default": 12, "step": 1, "min": 0,
+     "showWhen": {"mode": "measure", "inletShape": "round"}},
+    {"key": "inletW", "label": "Inlet width (ID)", "type": "number", "unit": "in",
+     "default": 10, "step": 1, "min": 0,
+     "showWhen": {"mode": "measure", "inletShape": "rect"}},
+    {"key": "inletH", "label": "Inlet height (ID)", "type": "number", "unit": "in",
+     "default": 18, "step": 1, "min": 0,
+     "showWhen": {"mode": "measure", "inletShape": "rect"}},
+    {"key": "fpm", "label": "Inlet velocity", "type": "select", "default": "3500",
+     "options": cyclone.FPM_PRESETS, "showWhen": {"mode": "measure"}},
+    {"key": "wg", "label": "Static pressure", "type": "select", "default": "3",
+     "options": cyclone.WG_OPTIONS,
+     "help": "H-series rating basis. Ignored below 12,600 CFM, where HE applies."},
+]
+
+HAMMER_PATTERN_FIELDS = [
+    {"key": "motorHp", "label": "Motor HP", "type": "number", "unit": "HP",
+     "default": 200, "step": 5, "min": 0},
+    {"key": "hpPerHammer", "label": "HP per hammer", "type": "number", "unit": "HP",
+     "default": 1.5, "step": 0.05, "min": 0.1,
+     "help": "Corn is 1.5 standard, 1.75 alternate. MCE has no other material on "
+             "record — get the number from engineering rather than guessing."},
+    {"key": "rows", "label": "Pattern", "type": "select", "default": "8",
+     "options": [("8", "8-row — high-fat / fibrous / fine"),
+                 ("4", "4-row — inside coarse, outside fine")]},
+    {"key": "pinLength", "label": "Pin length", "type": "number", "unit": "in",
+     "default": 40, "step": 1, "min": 6,
+     "help": "Usually the chamber width."},
+    {"key": "thickness", "label": "Hammer thickness", "type": "number", "unit": "in",
+     "default": 0.25, "step": 0.0625, "min": 0.125},
+    {"key": "pinAllowance", "label": "Pin end allowance", "type": "number", "unit": "in",
+     "default": 7.5, "step": 0.25, "min": 0,
+     "help": "Pin length taken up by the rotor plates — 7.5\" on the 38/44-40 drawing."},
+    {"key": "countOverride", "label": "Count override", "type": "number",
+     "unit": "hammers", "default": "", "step": 1, "min": 1, "advanced": True,
+     "help": "Lay out a count engineering has already set."},
+]
+
 CALCULATORS = {
     "hammermill": {
         "key": "hammermill", "label": "Hammermill + Plenum",
@@ -133,6 +185,20 @@ CALCULATORS = {
         "fields": COOLER_FIELDS, "run": cooler.size, "prices": True,
         "tool": "counterflow-cooler-sizing-calculator.html",
     },
+    "cyclone": {
+        "key": "cyclone", "label": "Cyclone",
+        "blurb": "Rated CFM — entered, or from the inlet and its velocity — to an "
+                 "MCE HE/H or budget cyclone, with the full dimension set.",
+        "fields": CYCLONE_FIELDS, "run": cyclone.size, "prices": False,
+        "tool": "cyclone-cfm-calculator.html",
+    },
+    "hammer_pattern": {
+        "key": "hammer_pattern", "label": "Hammer Pattern",
+        "blurb": "Motor HP to hammer count, the balanced row split and the pin "
+                 "stack check — a shop and parts tool, not a quote line.",
+        "fields": HAMMER_PATTERN_FIELDS, "run": hammer_pattern.size, "prices": False,
+        "tool": "hammer-pattern-calculator.html",
+    },
     "baghouse": {
         "key": "baghouse", "label": "Baghouse Filter",
         "blurb": "Cloth area and MCE filter model from system airflow or a mill "
@@ -147,9 +213,15 @@ CALCULATORS = {
 PLANNED = [
     ("Dryer", "Dryer sizing from moisture removal duty."),
     ("Fan", "CFM and static pressure to fan size, model and HP."),
-    ("Cyclone", "Airflow, material and loading to cyclone size."),
     ("Ductwork", "Airflow and run layout to duct diameter and gauge."),
+    ("Airlock", "Airflow and material to rotary airlock size and drive."),
 ]
+
+# Hosted calculators the quote builder cannot yet size with, because no Python
+# port exists. The tools page labels them so nobody goes looking for the field.
+NOT_PORTED = {
+    "rotary-cooler": "Hosted only — no quote-builder port yet",
+}
 
 PRODUCT_DEFAULTS = [
     {"index": p["index"], "sqInHp": p["sqInHp"], "bulkDensity": p["bulkDensity"],

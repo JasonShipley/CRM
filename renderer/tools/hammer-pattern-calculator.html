@@ -1,0 +1,543 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>MCE — Hammer Pattern Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  /* Midwest Custom Engineering brand — Brand Guidelines v1.0 (2025)
+     Orange #FF6602 · Black #000000 · Steel #575D5E · White #FFFFFF · Neutral #C8C7C7
+     Headings: Oswald (condensed, uppercase) · Body: Inter */
+  :root {
+    --bg: #0c0c0c; --surface: #161616; --surface-2: #1f1f1f; --ink: #f2f2f0;
+    --ink-muted: #c8c7c7; --ink-faint: #8b8b8b; --accent: #ff6602; --accent-ink: #ff8a3d;
+    --accent-soft: rgba(255, 102, 2, 0.14); --line: #2b2b2b; --good: #5fbf8a; --good-soft: #16281f;
+    --warn: #d8ab4d; --warn-soft: #2c2412;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px -8px rgba(0, 0, 0, 0.6);
+    --radius: 6px;
+    --mono: ui-monospace, "SF Mono", "Cascadia Mono", "Roboto Mono", Consolas, monospace;
+    --sans: "Inter", -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    --display: "Oswald", "Arial Narrow", "Roboto Condensed", "Helvetica Neue Condensed", var(--sans);
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #f1f1f0; --surface: #ffffff; --surface-2: #f7f7f6; --ink: #171717;
+      --ink-muted: #575d5e; --ink-faint: #8b9192; --accent: #ff6602; --accent-ink: #c14e00;
+      --accent-soft: #ffe9da; --line: #dcdcda; --good: #2f7d52; --good-soft: #e3f2e9;
+      --warn: #9a6a08; --warn-soft: #fbf1dc;
+      --shadow: 0 1px 2px rgba(23, 23, 23, 0.06), 0 6px 20px -8px rgba(23, 23, 23, 0.12);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0c0c0c; --surface: #161616; --surface-2: #1f1f1f; --ink: #f2f2f0;
+    --ink-muted: #c8c7c7; --ink-faint: #8b8b8b; --accent: #ff6602; --accent-ink: #ff8a3d;
+    --accent-soft: rgba(255, 102, 2, 0.14); --line: #2b2b2b; --good: #5fbf8a; --good-soft: #16281f;
+    --warn: #d8ab4d; --warn-soft: #2c2412;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px -8px rgba(0, 0, 0, 0.6);
+  }
+  :root[data-theme="light"] {
+    --bg: #f1f1f0; --surface: #ffffff; --surface-2: #f7f7f6; --ink: #171717;
+    --ink-muted: #575d5e; --ink-faint: #8b9192; --accent: #ff6602; --accent-ink: #c14e00;
+    --accent-soft: #ffe9da; --line: #dcdcda; --good: #2f7d52; --good-soft: #e3f2e9;
+    --warn: #9a6a08; --warn-soft: #fbf1dc;
+    --shadow: 0 1px 2px rgba(23, 23, 23, 0.06), 0 6px 20px -8px rgba(23, 23, 23, 0.12);
+  }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--sans); font-size: 15px; line-height: 1.5; }
+  .page { max-width: 1220px; margin: 0 auto; padding: 32px 24px 80px; }
+
+  header.top {
+    display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap;
+    border-bottom: 3px solid var(--accent); padding-bottom: 18px; margin-bottom: 28px;
+  }
+  .brand { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+  .logo { height: 58px; width: auto; display: block; }
+  h1 {
+    font-family: var(--display); font-stretch: condensed; font-weight: 700; letter-spacing: 0.03em;
+    text-transform: uppercase; font-size: 27px; line-height: 1.1; margin: 0; color: var(--ink); text-wrap: balance;
+  }
+  .eyebrow {
+    font-family: var(--display); font-size: 11.5px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--accent); align-self: flex-start;
+  }
+  .eyebrow::before { content: ""; display: inline-block; width: 26px; height: 2px; background: var(--accent); vertical-align: 3px; margin-right: 9px; }
+  .sub { color: var(--ink-muted); font-size: 13.5px; max-width: 52ch; }
+
+  .layout { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr); gap: 24px; align-items: start; }
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; }
+    .results { position: static !important; }
+  }
+
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
+  .form-card { padding: 22px 24px 8px; }
+
+  .section-title {
+    font-family: var(--display); font-stretch: condensed; font-weight: 600; font-size: 13px;
+    letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink); margin: 0 0 4px;
+  }
+  .section-title::before { content: ""; display: inline-block; width: 18px; height: 2px; background: var(--accent); vertical-align: 4px; margin-right: 8px; }
+  .section-hint { color: var(--ink-faint); font-size: 12.5px; margin: 0 0 14px; }
+  fieldset { border: 0; padding: 0; margin: 0 0 26px; }
+  fieldset:last-of-type { margin-bottom: 18px; }
+
+  .toggle { display: inline-flex; border: 1px solid var(--line); border-radius: 7px; overflow: hidden; margin-bottom: 12px; width: 100%; }
+  .toggle button {
+    flex: 1; font-family: var(--sans); font-size: 12.5px; font-weight: 700; padding: 8px 8px;
+    border: 0; background: var(--surface); color: var(--ink-muted); cursor: pointer; text-align: center; line-height: 1.3;
+  }
+  .toggle button span { display: block; font-weight: 400; font-size: 11px; }
+  .toggle button + button { border-left: 1px solid var(--line); }
+  .toggle button[aria-pressed="true"] { background: var(--accent); color: #fff; }
+  .toggle button[aria-pressed="true"] span { color: #ffe3cf; }
+
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  .field label { font-size: 11.5px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-muted); }
+  .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px 16px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px 16px; }
+  .unit-input { position: relative; display: flex; align-items: center; }
+  .unit-input input {
+    width: 100%; font-family: var(--mono); font-variant-numeric: tabular-nums; font-size: 14.5px;
+    padding: 9px 12px; border: 1px solid var(--line); border-radius: 7px; background: var(--surface-2); color: var(--ink);
+  }
+  .unit-input input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .unit-input .unit { position: absolute; right: 10px; font-size: 12px; color: var(--ink-faint); pointer-events: none; }
+  .field-row { margin-top: 12px; }
+  .field-hint { font-size: 12px; color: var(--ink-faint); margin-top: 4px; line-height: 1.5; }
+  .field-hint .hi { color: var(--accent-ink); font-weight: 600; }
+
+  .results { position: sticky; top: 20px; display: flex; flex-direction: column; gap: 16px; }
+  .result-card { padding: 20px 22px; }
+  .result-label { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-faint); margin-bottom: 5px; }
+  .result-value {
+    font-family: var(--mono); font-variant-numeric: tabular-nums; font-size: 32px; font-weight: 600;
+    color: var(--accent-ink); line-height: 1.1; display: flex; align-items: baseline; gap: 7px; flex-wrap: wrap;
+  }
+  .result-value .unit-lg { font-size: 14px; color: var(--ink-muted); font-weight: 500; }
+  .formula-strip {
+    font-family: var(--mono); font-size: 11.5px; color: var(--ink-faint); background: var(--surface-2);
+    border: 1px dashed var(--line); border-radius: 7px; padding: 9px 11px; margin-top: 12px;
+    line-height: 1.6; overflow-x: auto; white-space: nowrap;
+  }
+  .formula-strip .hi { color: var(--accent-ink); font-weight: 600; }
+
+  .pill {
+    display: inline-flex; align-items: center; gap: 5px; font-size: 10.5px; font-weight: 700;
+    letter-spacing: 0.04em; text-transform: uppercase; padding: 3px 8px; border-radius: 99px; white-space: nowrap;
+  }
+  .pill.good { background: var(--good-soft); color: var(--good); }
+  .pill.warn { background: var(--warn-soft); color: var(--warn); }
+
+  .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line); }
+  .stat-grid .stat-label { font-size: 10.5px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink-faint); margin-bottom: 2px; }
+  .stat-grid .stat-value { font-family: var(--mono); font-variant-numeric: tabular-nums; font-size: 14px; font-weight: 600; color: var(--ink); }
+  .aux-note { margin-top: 10px; font-size: 11.5px; color: var(--ink-faint); }
+  .aux-note.warn { color: var(--warn); font-weight: 600; }
+  .match-detail { font-size: 12px; color: var(--ink-muted); margin-top: 2px; }
+
+  .row-viz { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 14px; }
+  .row-chip {
+    flex: 1 1 90px; text-align: center; background: var(--surface-2); border: 1px solid var(--line);
+    border-radius: 7px; padding: 8px 6px;
+  }
+  .row-chip .rc-rows { font-size: 10.5px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-faint); }
+  .row-chip .rc-count { font-family: var(--mono); font-size: 18px; font-weight: 600; color: var(--ink); }
+  .row-chip .rc-sub { font-size: 10.5px; color: var(--ink-faint); }
+
+  .guideline-card { padding: 15px 18px; font-size: 12px; color: var(--ink-muted); }
+  .guideline-card summary {
+    cursor: pointer; font-family: var(--display); font-stretch: condensed; font-weight: 700; font-size: 12px;
+    letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent-ink);
+  }
+  .guideline-card[open] summary { margin-bottom: 8px; }
+
+  .table-card { margin-top: 26px; padding: 20px 24px 22px; }
+  .table-card-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; }
+  .table-scroll { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; min-width: 520px; font-size: 12.5px; }
+  thead th {
+    text-align: right; font-family: var(--display); font-stretch: condensed; font-weight: 700; font-size: 10.5px;
+    letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink-muted); padding: 7px 9px;
+    border-bottom: 2px solid var(--line); white-space: nowrap;
+  }
+  thead th:first-child, tbody td:first-child { text-align: left; }
+  tbody td { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; padding: 6px 9px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  tbody td:first-child { font-family: var(--sans); }
+  tbody tr:hover { background: var(--surface-2); }
+
+  footer.foot { margin-top: 30px; font-size: 11px; color: var(--ink-faint); text-align: center; }
+  .foot-brand {
+    font-family: var(--display); font-weight: 600; font-size: 12px; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--ink-muted); margin-bottom: 8px;
+  }
+  .foot-brand .o { color: var(--accent); }
+  .foot-rule { width: 42px; height: 2px; background: var(--accent); margin: 0 auto 14px; }
+  @media (prefers-reduced-motion: no-preference) { .toggle button { transition: background 0.12s ease; } }
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="top">
+    <div class="brand">
+      <img class="logo" src="../assets/mce-logo.png" alt="Midwest Custom Engineering" onerror="this.style.display='none'" />
+      <div>
+        <h1>Hammer Pattern Calculator</h1>
+        <span class="eyebrow">Equipment Sizing · Hammer Patterns</span>
+      </div>
+    </div>
+    <p class="sub">Motor HP + material → hammer count → balanced row distribution → pattern BOM starting point. For MCE XM mills and Bliss mills we build parts for. Spacer stagger widths come from the pattern drawing — engineering finalizes those.</p>
+  </header>
+
+  <div class="layout">
+    <!-- FORM -->
+    <div class="card form-card">
+      <fieldset>
+        <div class="section-title">Motor &amp; Material</div>
+        <p class="section-hint">HP per hammer is a material property. Corn runs 1.5 HP per hammer — sometimes 1.75. Other materials: enter your number (values pending for the chart).</p>
+        <div class="grid-2">
+          <div class="field">
+            <label for="motor-hp">Motor HP</label>
+            <div class="unit-input"><input type="number" id="motor-hp" min="1" step="5" value="200" /><span class="unit">HP</span></div>
+          </div>
+          <div class="field">
+            <label for="hp-per-hammer">HP per hammer</label>
+            <div class="unit-input"><input type="number" id="hp-per-hammer" min="0.1" step="0.05" value="1.5" /><span class="unit">HP</span></div>
+          </div>
+        </div>
+        <div class="toggle field-row" id="material-toggle">
+          <button type="button" data-hph="1.5" aria-pressed="true">Corn — 1.5<span>standard</span></button>
+          <button type="button" data-hph="1.75" aria-pressed="false">Corn — 1.75<span>alternate</span></button>
+          <button type="button" data-hph="custom" aria-pressed="false">Other material<span>enter HP/hammer</span></button>
+        </div>
+        <p class="field-hint">Only corn's HP-per-hammer is on record (1.5, sometimes 1.75). Don't guess other materials — get the number from engineering.</p>
+      </fieldset>
+
+      <fieldset>
+        <div class="section-title">Pattern</div>
+        <div class="toggle" id="pattern-toggle">
+          <button type="button" data-rows="8" aria-pressed="true">8-Row<span>high-fat / fibrous / fine</span></button>
+          <button type="button" data-rows="4" aria-pressed="false">4-Row<span>inside = coarse · outside = fine</span></button>
+        </div>
+        <p class="field-hint">Rotor carries 8 pins; a 4-row pattern loads 4 of them (opposite pairs). 4-row inside sits 3/8" off the screen (coarse), 4-row outside 3/16" (fine, wipes screens); 8-row runs both.</p>
+      </fieldset>
+
+      <fieldset>
+        <div class="section-title">Frame &amp; Hammer</div>
+        <div class="grid-3">
+          <div class="field">
+            <label for="chamber-width">Chamber width</label>
+            <div class="unit-input"><input type="number" id="chamber-width" min="6" step="1" value="40" /><span class="unit">in</span></div>
+          </div>
+          <div class="field">
+            <label for="pin-length">Pin length</label>
+            <div class="unit-input"><input type="number" id="pin-length" min="6" step="1" value="40" /><span class="unit">in</span></div>
+          </div>
+          <div class="field">
+            <label for="hammer-thickness">Hammer thickness</label>
+            <div class="unit-input"><input type="number" id="hammer-thickness" min="0.125" step="0.0625" value="0.25" /><span class="unit">in</span></div>
+          </div>
+        </div>
+        <p class="field-hint">Pin length ≈ chamber width (model suffix: a "-40" mill runs 40" pins). 38"/44" frames: 1-1/4" pins, 1/4" × 2-1/2" × 8-1/4" swing hammers, one 1/2" squeeze collar per loaded pin (per the 38/44-40 BOM). 19"/22" frames run 3/4" pins — confirm pin count before using this tool below a 38" rotor.</p>
+        <div class="grid-2 field-row">
+          <div class="field">
+            <label for="pin-allowance">Pin end allowance</label>
+            <div class="unit-input"><input type="number" id="pin-allowance" min="0" step="0.25" value="7.5" /><span class="unit">in</span></div>
+          </div>
+          <div class="field">
+            <label for="count-override">Count override <span style="text-transform:none; font-weight:400;">(optional)</span></label>
+            <div class="unit-input"><input type="number" id="count-override" min="1" step="1" placeholder="—" /><span class="unit">hammers</span></div>
+          </div>
+        </div>
+        <p class="field-hint">End allowance = pin length sitting in the rotor plates / outside the stack. Default 7.5" is derived from the 38/44-40 drawing (≈32.5" of stack on 40" pins). Override the count to match an existing pattern.</p>
+      </fieldset>
+    </div>
+
+    <!-- RESULTS -->
+    <div class="results">
+      <div class="card result-card">
+        <div class="result-label">Hammer Count</div>
+        <div class="result-value"><span id="count-result">—</span><span class="unit-lg">hammers</span><span class="pill good" id="count-pill">—</span></div>
+        <div class="formula-strip" id="count-formula">—</div>
+        <div class="stat-grid">
+          <div><div class="stat-label">Actual HP / Hammer</div><div class="stat-value" id="actual-hph">—</div></div>
+          <div><div class="stat-label">Pattern Capacity @ 1.5–1.75</div><div class="stat-value" id="capacity-range">—</div></div>
+        </div>
+        <div class="aux-note" id="count-note"></div>
+      </div>
+
+      <div class="card result-card">
+        <div class="section-title" style="margin-bottom:2px;">Row Distribution</div>
+        <div class="match-detail" id="dist-detail">Opposite rows carry equal counts for rotor balance.</div>
+        <div class="row-viz" id="row-viz"></div>
+        <div class="aux-note" id="balance-note"></div>
+      </div>
+
+      <div class="card result-card">
+        <div class="section-title" style="margin-bottom:10px;">Pin Stack Check</div>
+        <div class="stat-grid" style="margin-top:0; padding-top:0; border-top:0;">
+          <div><div class="stat-label">Hammers / Loaded Pin (max)</div><div class="stat-value" id="stack-hammers">—</div></div>
+          <div><div class="stat-label">Hammer + Collar Stack</div><div class="stat-value" id="stack-length">—</div></div>
+          <div><div class="stat-label">Left for Spacers</div><div class="stat-value" id="spacer-length">—</div></div>
+          <div><div class="stat-label">Spacer Fill (all loaded pins)</div><div class="stat-value" id="spacer-total">—</div></div>
+        </div>
+        <div class="aux-note" id="stack-note">Spacer widths per row come from the stagger layout (see the 38/44-40 drawing) so hammer paths wash the full screen width — this tool sizes the totals, engineering picks the widths.</div>
+      </div>
+
+      <div class="card result-card">
+        <div class="section-title" style="margin-bottom:10px;">Pattern BOM — Starting Point</div>
+        <div class="table-scroll">
+          <table style="min-width:0;">
+            <thead><tr><th>Item</th><th>Qty</th></tr></thead>
+            <tbody id="bom-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <details class="card guideline-card">
+        <summary>Balance &amp; pattern rules</summary>
+        <p style="margin:10px 0 6px;">Total hammer count must be even, and opposite rows (1&amp;5, 2&amp;6, 3&amp;7, 4&amp;8) must carry equal counts — the tool distributes total ÷ 2 across the row pairs as evenly as possible (pairs differ by at most one hammer).</p>
+        <p style="margin:0 0 6px;">Reference: the 38/44-40 corn pattern runs 132 hammers on 8 rows — pairs of 17, 17, 16, 16 per row — ≈198 HP at 1.5 HP/hammer.</p>
+        <p style="margin:0;">HP per hammer is a starting estimate like the index number — confirm against factory experience for the specific product and grind.</p>
+      </details>
+    </div>
+  </div>
+
+  <!-- REFERENCE PATTERN -->
+  <div class="card table-card">
+    <div class="table-card-head">
+      <div class="section-title" style="margin:0;">Reference Pattern — Model 38/44-40 (Rev A, issued 7/2/26)</div>
+      <span class="match-detail">132 hammers · 8 rows · ≈198 HP @ 1.5 HP/hammer — the template for spacer stagger widths</span>
+    </div>
+    <div class="table-scroll">
+      <table id="ref-table">
+        <thead><tr><th>Item</th><th>Qty</th></tr></thead>
+        <tbody id="ref-tbody"></tbody>
+      </table>
+    </div>
+    <p class="aux-note" style="margin-top:10px;">Transcribed verbatim from the manufacturing drawing. Note: 1-1/2" × 1-9/32" spacers appear on two lines (qty 2 and qty 20) — as drawn; confirm with engineering whether one line should read a different width. All spacers are 1-9/32" tall.</p>
+  </div>
+
+  <footer class="foot">
+    <div class="foot-rule"></div>
+    <div class="foot-brand">Midwest Custom Engineering <span class="o">·</span> Precision<span class="o">.</span> Quality<span class="o">.</span> Integrity<span class="o">.</span></div>
+    Hammer count = Motor HP ÷ HP per hammer, balanced across opposite rows. Corn = 1.5 (sometimes 1.75) HP per hammer; other materials pending. Spacer stagger widths from the pattern drawing. Sizing only — confirm against factory engineering before cutting steel.
+  </footer>
+</div>
+
+<script>
+  // Reference pattern BOM — transcribed verbatim from "HAMMER PATTERN for MODEL 38-44-40" (Rev A, 7/2/26, drawn ASH, approved JS).
+  const REF_BOM = [
+    ["1/4\" × 2-1/2\" × 8-1/4\" swing hammer", 132],
+    ["1-1/4\" dia × 40\" long hammer pin", 8],
+    ["1-1/4\" ID × 1/2\" wide squeeze collar", 8],
+    ["7/8\" wide × 1-9/32\" spacer", 22],
+    ["1-1/2\" wide × 1-9/32\" spacer", 2],
+    ["1-11/16\" wide × 1-9/32\" spacer", 2],
+    ["1\" wide × 1-9/32\" spacer", 20],
+    ["1/2\" wide × 1-9/32\" spacer", 2],
+    ["2-9/16\" wide × 1-9/32\" spacer", 4],
+    ["1-5/16\" wide × 1-9/32\" spacer", 22],
+    ["1-1/16\" wide × 1-9/32\" spacer", 22],
+    ["1-1/4\" wide × 1-9/32\" spacer", 2],
+    ["15/16\" wide × 1-9/32\" spacer", 2],
+    ["1-1/2\" wide × 1-9/32\" spacer", 20],
+    ["1-7/16\" wide × 1-9/32\" spacer", 18],
+    ["9/16\" wide × 1-9/32\" spacer", 24],
+    ["2\" wide × 1-9/32\" spacer", 20],
+  ];
+  const COLLAR_W = 0.5;      // squeeze collar width, in
+  const COLLARS_PER_PIN = 1; // per the 38/44-40 BOM: 8 collars for 8 loaded pins
+  const TOTAL_PINS = 8;      // rotor pin count on the 38/44 frame
+
+  const $ = (s) => document.querySelector(s);
+  const $$ = (s) => Array.from(document.querySelectorAll(s));
+
+  (function renderRefTable() {
+    const tbody = $("#ref-tbody");
+    REF_BOM.forEach(([item, qty]) => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td>${item}</td><td>${qty}</td>`;
+      tbody.appendChild(tr);
+    });
+  })();
+
+  $$("#material-toggle button[data-hph]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      $$("#material-toggle button[data-hph]").forEach((b) => b.setAttribute("aria-pressed", "false"));
+      btn.setAttribute("aria-pressed", "true");
+      if (btn.dataset.hph !== "custom") $("#hp-per-hammer").value = btn.dataset.hph;
+      else $("#hp-per-hammer").focus();
+      compute();
+    });
+  });
+  // Typing a custom HP/hammer flips the toggle to "Other material" unless it matches a preset
+  $("#hp-per-hammer").addEventListener("input", () => {
+    const n = Number($("#hp-per-hammer").value);
+    $$("#material-toggle button[data-hph]").forEach((b) =>
+      b.setAttribute("aria-pressed", String(b.dataset.hph === "custom" ? (n !== 1.5 && n !== 1.75) : Number(b.dataset.hph) === n)));
+    compute();
+  });
+
+  $$("#pattern-toggle button[data-rows]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      $$("#pattern-toggle button[data-rows]").forEach((b) => b.setAttribute("aria-pressed", "false"));
+      btn.setAttribute("aria-pressed", "true");
+      compute();
+    });
+  });
+
+  // Chamber width drives pin length until the user edits pin length by hand
+  let pinLenTouched = false;
+  $("#pin-length").addEventListener("input", () => { pinLenTouched = true; compute(); });
+  $("#chamber-width").addEventListener("input", () => {
+    if (!pinLenTouched) $("#pin-length").value = $("#chamber-width").value;
+    compute();
+  });
+  ["motor-hp", "hammer-thickness", "count-override", "pin-allowance"].forEach((id) => {
+    document.getElementById(id).addEventListener("input", compute);
+  });
+
+  // Distribute total across row pairs: total must be even; total/2 spread over
+  // pairs as evenly as possible (pairs differ by ≤1). Returns per-row counts by pair.
+  function distribute(total, loadedRows) {
+    const pairs = loadedRows / 2;
+    const half = total / 2;
+    const base = Math.floor(half / pairs);
+    const extra = half % pairs;
+    return Array.from({ length: pairs }, (_, i) => (i < extra ? base + 1 : base));
+  }
+
+  function compute() {
+    const hp = Number($("#motor-hp").value);
+    const hph = Number($("#hp-per-hammer").value);
+    const rows = Number(document.querySelector('#pattern-toggle button[aria-pressed="true"]').dataset.rows);
+    const pinLen = Number($("#pin-length").value);
+    const t = Number($("#hammer-thickness").value);
+    const overrideRaw = $("#count-override").value;
+    const override = Number(overrideRaw);
+
+    const pill = $("#count-pill");
+    const valid = hp > 0 && hph > 0;
+    if (!valid && !(override > 0)) {
+      $("#count-result").textContent = "—";
+      $("#count-formula").textContent = "Enter motor HP and HP per hammer.";
+      pill.textContent = "—"; pill.className = "pill";
+      $("#actual-hph").textContent = "—";
+      $("#capacity-range").textContent = "—";
+      $("#count-note").textContent = "";
+      $("#row-viz").innerHTML = "";
+      $("#balance-note").textContent = "";
+      $("#dist-detail").textContent = "Opposite rows carry equal counts for rotor balance.";
+      ["stack-hammers", "stack-length", "spacer-length", "spacer-total"].forEach((id) => $("#" + id).textContent = "—");
+      const sn = $("#stack-note");
+      sn.textContent = "Spacer widths per row come from the stagger layout (see the 38/44-40 drawing) so hammer paths wash the full screen width — this tool sizes the totals, engineering picks the widths.";
+      sn.className = "aux-note";
+      $("#bom-tbody").innerHTML = "";
+      return;
+    }
+
+    // Recommended count: HP ÷ HP/hammer, rounded to the nearest even number (balance requires even)
+    const raw = valid ? hp / hph : null;
+    let total, isManual = false, oddWarn = false, ovAdjusted = null;
+    if (override > 0) {
+      total = Math.max(2, Math.round(override));
+      if (total !== override) ovAdjusted = override;
+      isManual = true;
+      if (total % 2 !== 0) oddWarn = true;
+    } else {
+      // Round DOWN to even — the 38/44-40 drawing's own convention (200 HP ÷ 1.5 = 133.3 → 132)
+      total = Math.floor(raw / 2) * 2;
+      if (total < rows) total = rows; // at least one hammer per loaded row
+    }
+
+    $("#count-result").textContent = total.toLocaleString();
+    if (isManual) {
+      pill.textContent = oddWarn ? "Override · Odd Count" : "Override";
+      pill.className = oddWarn ? "pill warn" : "pill good";
+    } else {
+      pill.textContent = "Balanced"; pill.className = "pill good";
+    }
+
+    if (valid) {
+      $("#count-formula").innerHTML =
+        `${hp.toLocaleString()} HP ÷ <span class="hi">${hph}</span> HP/hammer = ${raw.toFixed(1)} → <span class="hi">${total}</span> hammers${isManual ? (ovAdjusted != null ? ` (override — adjusted from ${ovAdjusted})` : " (override)") : " (rounded down to even for balance)"}`;
+      $("#actual-hph").textContent = (hp / total).toFixed(2) + " HP";
+    } else {
+      $("#count-formula").innerHTML = `<span class="hi">${total}</span> hammers (override${ovAdjusted != null ? ` — adjusted from ${ovAdjusted}` : ""} — enter motor HP to check loading)`;
+      $("#actual-hph").textContent = "—";
+    }
+    $("#capacity-range").textContent = `${Math.round(total * 1.5).toLocaleString()}–${Math.round(total * 1.75).toLocaleString()} HP`;
+
+    const notes = [];
+    if (valid) {
+      const actual = hp / total;
+      if (actual > 1.8 && (hph === 1.5 || hph === 1.75)) notes.push(`${actual.toFixed(2)} HP/hammer runs hot for corn — consider more hammers.`);
+      if (total === 132 && rows === 8) notes.push("Matches the 38/44-40 reference pattern (132 hammers).");
+    }
+    $("#count-note").textContent = notes.join(" ");
+
+    // Row distribution
+    const distTotal = oddWarn ? total - 1 : total; // an odd override can't balance; show nearest even layout
+    const pairCounts = distribute(distTotal, rows);
+    const pairLabels = rows === 8 ? ["Rows 1 & 5", "Rows 2 & 6", "Rows 3 & 7", "Rows 4 & 8"] : ["Rows A & C (opposite)", "Rows B & D (opposite)"];
+    // Order pairs so equal-count pairs sit opposite in the display like the drawing (17,16,17,16)
+    const displayPairs = pairCounts.slice().sort((a, b) => b - a);
+    const interleaved = [];
+    for (let i = 0; i < displayPairs.length; i++) {
+      interleaved.push(displayPairs[i % 2 === 0 ? Math.floor(i / 2) : displayPairs.length - 1 - Math.floor(i / 2)]);
+    }
+    $("#row-viz").innerHTML = interleaved.map((c, i) =>
+      `<div class="row-chip"><div class="rc-rows">${pairLabels[i]}</div><div class="rc-count">${c}</div><div class="rc-sub">per row</div></div>`
+    ).join("");
+    $("#dist-detail").textContent = `${rows}-row pattern · ${rows} loaded pins of ${TOTAL_PINS} · opposite rows equal for balance`;
+    const balanceNotes = [];
+    if (oddWarn) balanceNotes.push(`⚠ ${total} hammers can't balance (odd count) — layout shown for ${distTotal}; add or drop one hammer.`);
+    if (isManual && distTotal < rows) balanceNotes.push(`⚠ Fewer hammers than loaded rows — some rows run empty; consider a ${rows === 8 ? "4-row pattern" : "smaller frame"}.`);
+    $("#balance-note").textContent = balanceNotes.join(" ");
+
+    // Pin stack check — against USABLE length (pin minus the ends sitting in the rotor plates)
+    const allowance = Math.max(0, Number($("#pin-allowance").value) || 0);
+    const usable = pinLen - allowance;
+    const maxPerRow = Math.max(...interleaved);
+    const stack = maxPerRow * t + COLLARS_PER_PIN * COLLAR_W;
+    const spacerLen = usable - stack;
+    $("#stack-hammers").textContent = `${maxPerRow} × ${t}"`;
+    $("#stack-length").textContent = stack.toFixed(2) + "\"";
+    $("#spacer-length").textContent = spacerLen.toFixed(2) + "\" / pin";
+    const spacerFillTotal = pairCountsToSpacerTotal(interleaved, usable, t);
+    $("#spacer-total").textContent = spacerFillTotal.toFixed(1) + "\"";
+    const stackNote = $("#stack-note");
+    if (spacerLen < 0) {
+      stackNote.textContent = `⚠ ${maxPerRow} hammers × ${t}" + collars = ${stack.toFixed(2)}" exceeds the ${usable.toFixed(1)}" usable stack length (${pinLen}" pin − ${allowance}" end allowance) — this pattern physically won't fit. Fewer hammers per row (more rows / bigger frame) needed.`;
+      stackNote.className = "aux-note warn";
+    } else if (spacerLen < maxPerRow * 0.25) {
+      stackNote.textContent = `Tight: only ${spacerLen.toFixed(2)}" of spacer room around ${maxPerRow} hammers in the ${usable.toFixed(1)}" usable stack — verify the stagger layout fits before committing.`;
+      stackNote.className = "aux-note warn";
+    } else {
+      stackNote.textContent = "Spacer widths per row come from the stagger layout (see the 38/44-40 drawing) so hammer paths wash the full screen width — this tool sizes the totals, engineering picks the widths.";
+      stackNote.className = "aux-note";
+    }
+
+    // BOM starting point
+    const bom = [
+      [`1/4" × 2-1/2" × 8-1/4" swing hammer${t !== 0.25 ? ` (thickness ${t}")` : ""}`, oddWarn ? `${distTotal} (balanced from ${total})` : distTotal],
+      [`Hammer pin × ${pinLen}" long`, TOTAL_PINS],
+      [`Squeeze collar (1/2" wide)`, rows * COLLARS_PER_PIN],
+      [`Spacer stock, 1-9/32" tall (total width to cut per stagger drawing)`, `≈${spacerFillTotal.toFixed(0)}"`],
+    ];
+    $("#bom-tbody").innerHTML = bom.map(([item, qty]) => `<tr><td>${item}</td><td>${qty}</td></tr>`).join("");
+  }
+
+  function pairCountsToSpacerTotal(perRowCounts, usableLen, t) {
+    // perRowCounts holds one count per PAIR (each pair = 2 rows at that count)
+    return perRowCounts.reduce((s, c) => s + 2 * Math.max(0, usableLen - (c * t + COLLARS_PER_PIN * COLLAR_W)), 0);
+  }
+
+  compute();
+</script>
+</body>
+</html>

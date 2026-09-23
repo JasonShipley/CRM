@@ -17,6 +17,7 @@ working.
 |---|---|---|
 | **The originals** | `renderer/tools/*.html` | MCE's calculators, byte for byte. Served at `/tools/<slug>`. The engineering source of truth. |
 | **The ports** | `renderer/calculators/*.py` | The same math in Python, so the quote form can size and price server-side. |
+| *(hosted, not ported)* | `renderer/tools/rotary-cooler-sizing-calculator.html` | Direct air-swept drum cooler — a different machine from the counterflow cooler, with no quote path yet. Hosted at `/tools/rotary-cooler`; the quote builder cannot size one. |
 
 The originals are **never edited by this project**. They are the full
 workbenches — index charts, model reference tables, pricing multipliers — and
@@ -45,8 +46,10 @@ python3 tests/test_ports.py       # prove the ports still match the originals
 `test_ports.py` runs each original's **own JavaScript** headless (Node, plus a
 small DOM shim in `tests/domshim.js`), feeds both sides several hundred
 randomized jobs, and asserts they agree — model selection, every displayed
-figure, and every price, down to JavaScript's half-up rounding. It currently
-covers 273 cases and must stay at zero mismatches.
+figure, and every price, down to JavaScript's half-up rounding. The cyclone and
+hammer-pattern cases go further still: they drive the original's own `compute()`
+and read the rendered values back out of the shim, so the wording is diffed too.
+It currently covers 454 cases and must stay at zero mismatches.
 
 If the *math* changed and not just the tables, the extractor won't catch it: the
 test will fail, and the matching Python function needs the same change.
@@ -82,7 +85,9 @@ input is free text.
 | Product could match two index rows | Uses the closer one, flags it — the pet food entries grind very differently |
 | Stated HP disagrees with the calculation | Quotes the calculated figure; the conflict goes to MCE internally |
 | Named mill too small for the motor | Quotes the mill asked for; the shortfall goes to MCE internally, **not** onto the proposal |
-| No calculator exists (fan, cyclone, duct) | Lists the item unpriced rather than omitting or guessing it |
+| Rep names a cyclone instead of a filter | Sizes the cyclone from the mill's own plenum airflow, quotes no baghouse |
+| No calculator exists (fan, duct, airlock) | Lists the item unpriced rather than omitting or guessing it |
+| A calculator sizes but MCE has no price basis (cyclone, baghouse shell) | Quotes the size, leaves the price at zero and says so internally |
 | Governing spec missing entirely | Quotes nothing, says what it needs |
 
 Unresolved values print **orange**, matching the convention on MCE's own draft
@@ -119,6 +124,21 @@ Hammermill:  PPH / index / screen-64ths  ->  next standard motor HP
 
 Baghouse:    the same "screen area x 1.3" gives system CFM
              CFM / air-to-cloth ratio    ->  required cloth area -> MCE model
+             the matched AirPro fan comes with the model (_vendor.py)
+
+Cyclone:     rated CFM, or inlet ID area / 144 x inlet FPM
+             <= 12,600 CFM -> HE series on its rated min/opt/max
+             >  12,600 CFM -> H series on its rating at 2" / 3" / 4" WG
+             quoted only when there is no baghouse: with a filter the fan
+             discharges to atmosphere after it and no cyclone is needed
+
+Hammer
+pattern:     motor HP / HP-per-hammer, rounded DOWN to even -> hammer count
+             count split over 4 or 8 rows, opposite rows equal (17/16/17/16)
+             max per row x thickness + collar <= pin length - end allowance
+             HP per hammer is on record for corn only (1.5, 1.75) — the
+             calculator takes any number but supplies none, and the quote
+             builder does not use it, so no pattern is ever guessed
 
 Cooler:      pellets — volume first:  (TPH x 2000/60) x retention / density
              meal    — airflow first: (TPH x CFM/ton) / face-velocity cap

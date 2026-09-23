@@ -20,7 +20,8 @@ import sys
 HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent))
 
-from calculators import baghouse as bh, cooler as cl, hammermill as hm  # noqa: E402
+from calculators import (baghouse as bh, cooler as cl, cyclone as cy,  # noqa: E402
+                         hammer_pattern as hp, hammermill as hm)
 from calculators._data import CL_PELLETS, PRODUCTS  # noqa: E402
 
 FAILS = []
@@ -168,9 +169,111 @@ def test_cooler():
     return len(cases)
 
 
+def test_cyclone():
+    """Drives the original's own compute() and diffs everything it renders:
+    matched model, fit pill, the detail sentence and the overlap note."""
+    random.seed(11)
+    cases = [
+        {"mode": "cfm", "cfm": 3200}, {"mode": "cfm", "cfm": 2510},
+        {"mode": "cfm", "cfm": 12600}, {"mode": "cfm", "cfm": 12601},
+        {"mode": "cfm", "cfm": 2000}, {"mode": "cfm", "cfm": 90000},
+        {"mode": "cfm", "series": "budget", "cfm": 4600},
+        {"mode": "cfm", "series": "budget", "cfm": 25000},
+        {"mode": "measure", "inletId": 12}, {"mode": "measure", "inletId": 6},
+        {"mode": "measure", "inletShape": "rect", "inletW": 10, "inletH": 18},
+    ]
+    for _ in range(90):
+        mode = random.choice(["cfm", "cfm", "measure"])
+        c = {"mode": mode, "series": random.choice(["mce", "mce", "budget"]),
+             "wg": random.choice([2, 3, 4])}
+        if mode == "cfm":
+            c["cfm"] = random.choice([900, 2150, 2500, 2525, 6000, 9800, 12600,
+                                      12700, 18000, 31000, 52000, 71605, 88000])
+        else:
+            c["fpm"] = random.choice([3000, 3500, 4000, 4500])
+            if random.random() < 0.5:
+                c["inletId"] = random.choice([4, 6, 8, 10, 12, 16, 20, 26, 33])
+            else:
+                c["inletShape"] = "rect"
+                c["inletW"] = random.choice([6, 8, 10, 14, 20])
+                c["inletH"] = random.choice([8, 12, 18, 24, 30])
+        cases.append(c)
+
+    ref = node("cy_hp_ref.js", "cyclone", json.dumps(cases))
+    for c, r in zip(cases, ref):
+        got = cy.size(c)
+        if got.get("error"):
+            FAILS.append(f"cy errored: {got['error']}\n    case={c}")
+            continue
+        check("cy rated cfm", r["ratedCfm"], f'{got["cfm"]:,}', c)
+        check("cy match", r["matchSize"], got["matchSize"], c)
+        check("cy pill", r["pill"], got["fit"], c)
+        check("cy detail", r["detail"], got["detail"], c)
+        check("cy alt note", r["altNote"], got["altNote"], c)
+        # the original only renders the formula strip in measure mode
+        if c["mode"] == "measure":
+            check("cy formula", r["formula"], got["formula"], c)
+    return len(cases)
+
+
+def test_hammer_pattern():
+    random.seed(13)
+    cases = [
+        {"motorHp": 200, "hpPerHammer": 1.5, "rows": 8, "pinLength": 40,
+         "thickness": 0.25, "pinAllowance": 7.5},
+        {"motorHp": 200, "hpPerHammer": 1.75, "rows": 8, "pinLength": 40,
+         "thickness": 0.25, "pinAllowance": 7.5},
+        {"motorHp": 300, "hpPerHammer": 1.5, "rows": 4, "pinLength": 40,
+         "thickness": 0.25, "pinAllowance": 7.5},
+        # an odd override, and one that cannot physically stack
+        {"motorHp": 200, "hpPerHammer": 1.5, "rows": 8, "pinLength": 40,
+         "thickness": 0.25, "pinAllowance": 7.5, "countOverride": 101},
+        {"motorHp": 400, "hpPerHammer": 1.5, "rows": 4, "pinLength": 22,
+         "thickness": 0.25, "pinAllowance": 7.5},
+    ]
+    for _ in range(75):
+        c = {"motorHp": random.choice([30, 60, 75, 100, 150, 200, 250, 300, 400, 600]),
+             "hpPerHammer": random.choice([1.5, 1.75, 1.2, 2.0, 2.5]),
+             "rows": random.choice([4, 8]),
+             "pinLength": random.choice([20, 28, 34, 40, 48]),
+             "thickness": random.choice([0.25, 0.3125, 0.375, 0.5]),
+             "pinAllowance": random.choice([0, 4, 7.5, 10])}
+        if random.random() < 0.25:
+            c["countOverride"] = random.choice([2, 33, 64, 101, 132, 180])
+        cases.append(c)
+
+    ref = node("cy_hp_ref.js", "hammer", json.dumps(cases))
+    for c, r in zip(cases, ref):
+        got = hp.size(c)
+        if got.get("error"):
+            FAILS.append(f"hp errored: {got['error']}\n    case={c}")
+            continue
+        check("hp count", r["count"], out(got, "Hammers"), c)
+        check("hp pill", r["pill"], got["pill"], c)
+        check("hp actual hp/hammer", r["actualHph"], got["actualHph"], c)
+        check("hp capacity range", r["capacityRange"], got["capacityRange"], c)
+        check("hp count note", r["countNote"], got["countNote"], c)
+        check("hp dist detail", r["distDetail"], got["distDetail"], c)
+        check("hp balance note", r["balanceNote"], got["balanceNote"], c)
+        check("hp stack note", r["stackNote"], got["stackNote"], c)
+        check("hp row split", r["perPair"], got["perPair"], c)
+        # compare the port's own rendered strings, not a re-format here — the
+        # point of the diff is that the two sides print the same thing
+        check("hp stack hammers", r["stackHammers"],
+              out(got, "Hammers / loaded pin (max)"), c)
+        check("hp stack length", r["stackLength"], out(got, "Hammer + collar stack"), c)
+        check("hp spacer length", r["spacerLength"], out(got, "Left for spacers"), c)
+        check("hp spacer total", r["spacerTotal"],
+              out(got, "Spacer fill (all loaded pins)"), c)
+        check("hp bom", [list(x) for x in r["bom"]],
+              [[b["item"], b["qty"]] for b in got["bom"]], c)
+    return len(cases)
+
+
 def main():
     counts = {"hammermill": test_hammermill(), "baghouse": test_baghouse(),
-              "cooler": test_cooler()}
+              "cooler": test_cooler(), "cyclone": test_cyclone(),
+              "hammer pattern": test_hammer_pattern()}
     for name, n in counts.items():
         print(f"  {name}: {n} cases")
     if FAILS:

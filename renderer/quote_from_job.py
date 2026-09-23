@@ -202,7 +202,10 @@ def build(job, today=None):
     # --- air system -------------------------------------------------------------
     if job.include_air_system:
         screen_area = result.get("screen_area") if result else None
-        if screen_area:
+        # A baghouse unless the rep named a cyclone: MCE's standard air relief is a
+        # filter, and with one the fan ducts to atmosphere after it — no cyclone.
+        want_cyclone = getattr(job, "dust_collection", None) == "cyclone"
+        if screen_area and not want_cyclone:
             bh = calculators.run("baghouse", {"mode": "mill", "screenArea": screen_area,
                                               "ratio": 7, "lenFilter": "any"})
             if not bh.get("error"):
@@ -217,8 +220,31 @@ def build(job, today=None):
         # to atmosphere after it — no cyclone, and no fan line of its own: the
         # baghouse calculator already selected and priced the matched AirPro fan.
         have_baghouse = any("Baghouse" in ln["name"] for ln in lines)
-        outstanding = ["Ductwork", "Airlock"] if have_baghouse else [
-            "Fan", "Cyclone", "Ductwork", "Airlock"]
+        outstanding = ["Ductwork", "Airlock"]
+        if not have_baghouse:
+            # No filter, so the air goes through a cyclone. MCE's cyclone
+            # calculator sizes it off the same plenum airflow the mill produces;
+            # it carries no price basis, so the line stays needsPrice.
+            plenum_cfm = result.get("plenum_cfm") if result else None
+            cyc = (calculators.run("cyclone", {"mode": "cfm", "cfm": plenum_cfm,
+                                               "series": "mce", "wg": "3"})
+                   if plenum_cfm else {"error": "no plenum airflow"})
+            if cyc.get("error"):
+                outstanding.insert(0, "Cyclone")
+            else:
+                for line in cyc["lines"]:
+                    lines.append({**line, "quantity": qty})
+                sizing.append({"calculator": cyc["calculator"], "inputs": {
+                    "mode": "cfm", "cfm": plenum_cfm, "series": "mce", "wg": "3"},
+                    "formula": cyc.get("formula", ""), "outputs": cyc.get("outputs", []),
+                    "warnings": cyc.get("warnings", [])})
+                open_items.extend(cyc.get("warnings", []))
+                open_items.append(
+                    f'Cyclone sized {cyc["matchSize"]} from the mill\'s '
+                    f'{cyc["cfm"]:,} CFM plenum airflow at 3" WG. MCE has given no '
+                    "cyclone price basis, so the line is unpriced — fabrication "
+                    "estimate required.")
+            outstanding.insert(0, "Fan")
         for item in outstanding:
             lines.append({
                 "name": f"{item} — size and price TBD", "quantity": qty,
@@ -234,9 +260,14 @@ def build(job, today=None):
                 "Ductwork and the airlock have no MCE calculator yet and are unpriced.")
         else:
             open_items.append(
-                "Air system requested but no baghouse was sized, so the fan, cyclone, "
-                "ductwork and airlock are all unpriced — size them in engineering or quote "
-                "the air system by others.")
+                ("Air system requested with a cyclone rather than a filter, as the rep "
+                 "wrote it."
+                 if want_cyclone else
+                 "Air system requested but no baghouse could be sized, so the quote shows "
+                 "a cyclone instead — confirm that is what the customer wants.")
+                + " The cyclone is sized above but carries no price; the fan, ductwork and "
+                  "airlock are neither sized nor priced — take them to engineering or "
+                  "quote the air system by others.")
     else:
         by_others.insert(0, "Air-relief system for the mill — fans, dust filters, ducting, "
                             "airlocks and explosion protection")

@@ -51,6 +51,15 @@ TOOLS = {
                "Cooler model, air system and option pricing, for pellets and meal."),
     "baghouse": ("Baghouse Filter", "baghouse-filter-calculator.html",
                  "Cloth area, MCE model and the Kice PneuJet equivalent."),
+    "cyclone": ("Cyclone CFM", "cyclone-cfm-calculator.html",
+                "Rated CFM to an MCE HE/H or budget cyclone, with the full "
+                "dimension and weight charts."),
+    "hammer-pattern": ("Hammer Pattern", "hammer-pattern-calculator.html",
+                       "Hammer count, balanced row split and pin stack, against "
+                       "the 38/44-40 reference pattern."),
+    "rotary-cooler": ("Rotary Cooler Sizing", "rotary-cooler-sizing-calculator.html",
+                      "Direct air-swept drum — psychrometrics, drum selection, "
+                      "drive and fan, with a summer sweep."),
 }
 
 app = Flask(__name__, static_folder="assets", static_url_path="/assets")
@@ -97,7 +106,8 @@ def logout():
 @app.route("/tools")
 def tools_index():
     return render_template("tools.html", nav="tools", tools=TOOLS,
-                           planned=calculators.PLANNED)
+                           planned=calculators.PLANNED,
+                           not_ported=calculators.NOT_PORTED)
 
 
 @app.route("/tools/<slug>")

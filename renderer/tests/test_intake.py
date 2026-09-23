@@ -159,6 +159,39 @@ def test_no_air_system():
           any("Air-relief system" in x for x in q["byOthers"]), str(q["byOthers"]))
 
 
+def test_cyclone_when_the_rep_asks_for_one():
+    """A rep who names a cyclone gets a sized cyclone and no baghouse. The
+    cyclone has no price basis, so the line must stay unpriced and say why."""
+    q = qfj.build(jb_request(dust_collection="cyclone"), today=TODAY)
+    names = [l["name"] for l in q["lines"]]
+    check("no baghouse quoted", not any("Baghouse" in n for n in names), str(names))
+    cyc = next((l for l in q["lines"] if l["name"].startswith("Cyclone")), None)
+    check("cyclone line present", cyc is not None, str(names))
+    if cyc:
+        check("cyclone is sized, not TBD", "TBD" not in cyc["name"], cyc["name"])
+        check("cyclone carries no price", cyc["unitPrice"] == 0 and cyc["needsPrice"])
+        check("no vendor or pricing commentary on the customer line",
+              "estimate" in cyc["description"], cyc["description"])
+    # the fan came with the baghouse; without one it is back to TBD
+    check("fan back to TBD", any(n.startswith("Fan — size and price TBD") for n in names),
+          str(names))
+    check("unpriced cyclone flagged internally",
+          "cyclone" in open_text(q).lower(), open_text(q))
+    # and the size itself is the calculator's, off the mill's own plenum airflow
+    cy = next((s for s in q["sizing"] if s["calculator"] == "Cyclone"), None)
+    check("cyclone sizing recorded", cy is not None, str([s["calculator"] for s in q["sizing"]]))
+
+
+def test_baghouse_is_still_the_default():
+    """Silence about dust collection keeps MCE's standard: a filter, and with it
+    no cyclone at all."""
+    q = qfj.build(jb_request(), today=TODAY)
+    names = [l["name"] for l in q["lines"]]
+    check("baghouse quoted by default", any("Baghouse" in n for n in names), str(names))
+    check("no cyclone alongside a baghouse",
+          not any(n.startswith("Cyclone") for n in names), str(names))
+
+
 def test_quantity():
     q = qfj.build(jb_request(quantity=8), today=TODAY)
     check("quantity on every line", all(l["quantity"] == 8 for l in q["lines"]))
@@ -199,8 +232,9 @@ def test_reference_slug():
 
 def main():
     for fn in (test_jb_request, test_motor_conflict, test_thin_request,
-               test_no_air_system, test_quantity, test_fan_quote_validity,
-               test_reference_slug):
+               test_no_air_system, test_cyclone_when_the_rep_asks_for_one,
+               test_baghouse_is_still_the_default, test_quantity,
+               test_fan_quote_validity, test_reference_slug):
         fn()
         print(f"  {fn.__name__}")
     if FAILS:

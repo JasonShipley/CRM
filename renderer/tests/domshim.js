@@ -41,7 +41,8 @@ function buildDocument(seed) {
 
 function runCalc(htmlPath, seed, exportNames) {
   const html = fs.readFileSync(htmlPath, "utf8");
-  const m = html.match(/<script>([\s\S]*)<\/script>\s*$/);
+  // greedy to the LAST </script>: one calculator closes with </body></html>
+  const m = html.match(/<script>([\s\S]*)<\/script>/);
   if (!m) throw new Error("no script block");
   const { document, get } = buildDocument(seed);
   const sandbox = { document, window: {}, console, Math, Number, String, Array, Object, JSON, parseInt, parseFloat, isNaN };

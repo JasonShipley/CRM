@@ -86,6 +86,11 @@ class JobRequest(BaseModel):
     include_screw: bool = Field(False, description="Rep asked for a discharge/transfer screw.")
     include_air_system: bool = Field(
         False, description="Rep asked for an air system (fans, cyclone, filter, ducting).")
+    dust_collection: Optional[Literal["baghouse", "cyclone"]] = Field(
+        None, description='Which dust collection the rep named, if they named one: '
+                          '"baghouse" for a bag/dust filter or collector, "cyclone" for a '
+                          "cyclone. Null if they only said \"air system\" or named neither "
+                          "— do not infer one from the rest of the request.")
     include_magnet: bool = Field(False, description="Rep asked for a magnet or magnet adapter.")
     other_items: List[str] = Field(
         default_factory=list,

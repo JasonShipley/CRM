@@ -15,6 +15,7 @@
     <a class="tool" href="{{ url_for('tool', slug=slug) }}">
       <b class="cond">{{ t[0] }}</b>
       <span>{{ t[2] }}</span>
+      {% if not_ported.get(slug) %}<span class="pill soon">{{ not_ported[slug] }}</span>{% endif %}
       <span class="go">Open calculator &rarr;</span>
     </a>
     {% endfor %}

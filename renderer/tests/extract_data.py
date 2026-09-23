@@ -75,6 +75,15 @@ def to_python(text):
     return json.loads(s)
 
 
+def js_const(src, name):
+    """Value of a scalar `const <name> = <number>;` declaration."""
+    m = re.search(r"const\s+" + re.escape(name) + r"\s*=\s*(-?[\d.]+)\s*;", src)
+    if not m:
+        raise SystemExit(f"not found: {name}")
+    text = m.group(1)
+    return float(text) if "." in text else int(text)
+
+
 def dump(name, obj):
     # pprint, not json.dumps: JSON emits true/false/null, which are not Python.
     return f"{name} = {pprint.pformat(obj, width=96, sort_dicts=False)}\n\n"
@@ -83,6 +92,9 @@ def dump(name, obj):
 hm = (TOOLS / "hammermill-sizing-calculator.html").read_text()
 bh = (TOOLS / "baghouse-filter-calculator.html").read_text()
 cl = (TOOLS / "counterflow-cooler-sizing-calculator.html").read_text()
+cy = (TOOLS / "cyclone-cfm-calculator.html").read_text()
+hp = (TOOLS / "hammer-pattern-calculator.html").read_text()
+rc = (TOOLS / "rotary-cooler-sizing-calculator.html").read_text()
 
 parts = ['"""Data tables extracted verbatim from MCE\'s calculators in renderer/tools/.\n\n'
          'Generated, do not hand-edit: change the calculator HTML and re-run the\n'
@@ -100,6 +112,18 @@ for name in ["BAG_COUNTS", "BAG_LENGTHS", "KICE_MODELS"]:
 for name in ["PELLETS", "SERIES", "MODELS", "OPTS", "ADDERS", "DUCT_SIZES", "PD_4500",
              "CHECK_DEFS"]:
     parts.append(dump("CL_" + name, to_python(js_body(cl, name))))
+
+for name in ["BUDGET_SPEC", "HE_SPEC", "HE_COLS", "H_SPEC", "H_COLS_1", "H_COLS_2",
+             "SERIES_NOTES"]:
+    parts.append(dump("CY_" + name, to_python(js_body(cy, name))))
+parts.append(dump("CY_HE_MAX_CFM", js_const(cy, "HE_MAX_CFM")))
+
+parts.append(dump("HP_REF_BOM", to_python(js_body(hp, "REF_BOM"))))
+for name in ["COLLAR_W", "COLLARS_PER_PIN", "TOTAL_PINS"]:
+    parts.append(dump("HP_" + name, js_const(hp, name)))
+
+for name in ["STD_MOTORS", "PRESETS", "GRID"]:
+    parts.append(dump("RC_" + name, to_python(js_body(rc, name))))
 
 pathlib.Path("/home/user/CRM/renderer/calculators/_data.py").write_text("".join(parts))
 print("wrote _data.py")
