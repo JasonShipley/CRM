@@ -169,17 +169,33 @@ source quote and expiry:
   therefore *selected against the filter*, never sized independently. Sell price
   is cost x 2. When a baghouse is in the scope the air is cleaned by the filter
   and the fan discharges to atmosphere after it, so **no cyclone is quoted**.
-- **SCC screw conveyors** — the net cost of a real unit MCE bought, x MCE's
-  screw markup (1 / 0.8). Each basis records its diameter, length, material and
-  drive. Selection prefers the calculated diameter, but only when that basis is
-  long enough to stand in for the run: stretching an 8 ft quote over a 12 ft
-  conveyor understates it, so it steps up to the nearest basis that does cover
-  the length. A long run therefore budgets high rather than low, and the open
-  items say which unit it came from and why.
+- **SCC screw conveyors** — MCE never buys the same screw twice, so there is no
+  list to look up. `SCREW_QUOTES` holds every SCC quotation on file (diameter,
+  length, material, date, cost) and `SCREW_MODEL` is a least-squares fit over the
+  carbon-steel ones:
 
-  Material matters as much as size. The 12" basis is an all-T304 stainless unit
-  built for rice bran, so a mild-steel conveyor for a grinding line will price
-  under it — that caveat is raised every time it is used.
+  ```
+  cost = BASE + PER_IN x diameter + PER_IN_FT x diameter x length
+  ```
+
+  Each quote is escalated to a common date first, at a rate derived from the one
+  like-for-like pair across time (11.5%/yr). Mean absolute error 6.6%, worst 16%
+  across nine quotes spanning 6" to 18" and 8 to 25 ft. Outside that envelope the
+  model extrapolates and says so on the open items.
+
+  Because it is a model rather than a quote, the screw markup carries extra
+  cover: MCE's usual "divide by 0.8" plus 10%, i.e. 1.375. Every screw line
+  raises an open item saying it is modelled and that SCC should price the real
+  configuration.
+
+  `tests/fit_screw_model.py` re-fits from the quote list and tells you if
+  `_vendor.py` has drifted. Add a new quote to `SCREW_QUOTES`, re-run it, paste
+  the coefficients back.
+
+  One open question it surfaced: the single T304 stainless quote lands within 1%
+  of what the model predicts for carbon at that size, so no material premium is
+  applied. That is one data point against a model that may simply over-predict at
+  12" — worth confirming with SCC before leaning on it for a sanitary job.
 
 A quote past its expiry still prices, but says so on the line and raises an open
 item — a stale basis is visible rather than silent. Update the numbers here when

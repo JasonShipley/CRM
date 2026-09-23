@@ -100,10 +100,12 @@ def test_jb_request():
           screw and "SCC H51" not in screw["description"], str(screw))
     check("no stainless commentary on the customer line",
           screw and "stainless" not in screw["description"].lower(), str(screw))
-    # The 12" MCE actually ordered is the nearest basis covering a 12 ft run, and
-    # it is an all-stainless unit — both facts have to reach the open items.
-    check("substituted basis disclosed", "no 9\" quote on file" in open_text(q), open_text(q))
-    check("stainless premium disclosed", "stainless" in open_text(q).lower(), open_text(q))
+    # The budget is modelled from MCE's SCC quote history, so it must say so and
+    # point at getting a real quote.
+    check("modelled budget says so", "not a quote for this unit" in open_text(q),
+          open_text(q))
+    check("points at SCC for a real price", "have scc price" in open_text(q).lower(),
+          open_text(q))
 
     unpriced = [l["name"] for l in q["lines"] + q["netItems"] if l.get("needsPrice")]
     check("uncalculated items are unpriced, not zero-priced",
@@ -113,8 +115,8 @@ def test_jb_request():
     check("remaining air items openly unpriced", "no MCE calculator" in open_text(q),
           str(unpriced))
     check("stale fan quote flagged", "expired" in open_text(q), open_text(q))
-    check("screw basis confirmation flagged", "confirm with scc" in open_text(q).lower(),
-          open_text(q))
+    check("screw budget flagged as modelled",
+          "modelled budget" in open_text(q).lower(), open_text(q))
 
     check("proposal sections present",
           all(q[k] for k in ("designBasis", "byOthers", "schedule")))

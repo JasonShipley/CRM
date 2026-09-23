@@ -64,57 +64,86 @@ AIRPRO_ASSUMED = {"9-4"}
 
 
 # ------------------------------------------------------------ SCC screw conveyor --
-# Screw Conveyor Corporation, complete units: conveyor + drive, assembled,
-# net cost ex-factory. Each entry records what was actually quoted, because the
-# material matters as much as the size — a stainless unit carries a large
-# premium over the carbon-steel equivalent.
-SCREW_MARKUP = 1 / 0.8   # "We will divide by 0.8 for pricing" — Jason, 2026-01-09
-
-SCREW_BASES = [
-    {
-        "dia": 9, "length_ft": 8.0, "cost": 6175.00,
-        "material": "carbon steel", "stainless": False,
-        "drive": "1 HP Baldor, Dodge reducer, 48 RPM",
-        "quote": "SCC H51445AW", "date": datetime.date(2026, 6, 29),
-        "duty": "400 CFH (4,000 PPH) sawdust at 10 PCF, 45% trough loading",
-    },
-    {
-        # Ordered on PO 40140 / SCC order 175260. All-stainless: T304 screw,
-        # pipe, trough, cover and hardware, for rice bran.
-        "dia": 12, "length_ft": 20.0, "cost": 15495.00,
-        "material": "T304 stainless", "stainless": True,
-        "drive": "3 HP Nord shaft-mount gearmotor, 42 RPM",
-        "quote": "SCC H51032CK", "date": datetime.date(2026, 5, 6),
-        "duty": "10 TPH (572 CFH) rice bran at 32-35 PCF, 30% trough loading",
-    },
+# MCE does not buy the same screw twice, so there is no table to look up — the
+# budget comes from a cost model fitted to every SCC quotation on file. Each
+# quote is a complete unit: conveyor plus drive, assembled, net cost ex-factory.
+#
+#   quote,        date,        dia, ft, material, cost,   notes
+SCREW_QUOTES = [
+    ("H49887CK-1", "2025-12-10", 6,  10, "CS", 7875,  "choke fed, variable-pitch feeder screw"),
+    ("H49887CK-2", "2025-12-10", 6,  20, "CS", 8975,  "30° incline, hanger"),
+    ("H49887CK-3", "2025-12-10", 9,  15, "CS", 10775, "20° incline, hi-temp paint, vents"),
+    ("H49887CK-4", "2025-12-10", 9,  25, "CS", 15775, "20° incline, paddles, 2 hangers"),
+    ("H49887CK-5", "2025-12-10", 9,  15, "CS", 9875,  "20° incline"),
+    ("H49887CK-6", "2025-12-10", 9,  10, "CS", 6975,  "30° incline"),
+    ("H51445AW",   "2026-06-29", 9,   8, "CS", 6175,  "horizontal, 1 HP Baldor"),
+    ("H51006CK",   "2026-05-01", 18, 21, "CS", 20875, "horizontal, 10 HP Baldor + Dodge"),
+    ("H51032CK",   "2026-05-06", 12, 20, "SS", 15495, "T304 throughout, 3 HP Nord"),
 ]
 
+# Least-squares fit of cost = BASE + PER_IN x dia + PER_IN_FT x dia x length over
+# the eight carbon-steel quotes, each escalated to SCREW_MODEL_DATE first. Mean
+# absolute error 6.6%, worst 16%. Re-fit with tests/fit_screw_model.py when a new
+# quote lands.
+SCREW_MODEL_DATE = datetime.date(2026, 9, 23)
+SCREW_MODEL = {"base": 6612.0, "per_in": -494.0, "per_in_ft": 64.10}
+# Implied by the one like-for-like pair across time: a 9" x 8 ft unit that the
+# Dec-2025 quotes put at $5,815 was quoted at $6,175 six and a half months later.
+SCREW_ESCALATION = 0.115
+# The quotes span these sizes. Outside them the model is extrapolating and says so.
+SCREW_FIT_DIA = (6, 18)
+SCREW_FIT_LENGTH = (8, 25)
+# The one T304 stainless quote lands within 1% of what the model predicts for
+# carbon at that size, so no material premium is applied. That is a single data
+# point against a model that may simply over-predict at 12" — worth confirming
+# with SCC before leaning on it for a sanitary job.
+SCREW_STAINLESS_FACTOR = 1.0
 
-def screw_basis_for(diameter_in, length_ft=None):
-    """Pick the vendor basis to budget a screw conveyor from.
+# MCE's screw markup is "divide by 0.8" (Jason to Lorand, 2026-01-09). The budget
+# comes off a fitted model rather than a firm quote, so it carries 10% more cover
+# — equivalent to dividing by 0.727 instead (Jason, 2026-09-23).
+SCREW_DIVISOR = 0.80
+SCREW_COVER = 1.10
+SCREW_MARKUP = (1 / SCREW_DIVISOR) * SCREW_COVER
 
-    Prefers the basis for the calculated diameter, but only when that basis is
-    long enough to stand in for the run — stretching an 8 ft quote over a 12 ft
-    conveyor understates it. Otherwise it steps up to the next basis that does
-    cover the length, which quotes high rather than low. Returns
-    (basis, substituted) or (None, False).
+
+def screw_cost(diameter_in, length_ft, stainless=False, today=None):
+    """Modelled SCC net cost for a complete screw conveyor, escalated to today.
+
+    Returns (cost, notes) where notes lists anything that weakens the estimate —
+    a size outside the quoted range, or a stainless build.
     """
-    dia = int(diameter_in)
-    exact = next((b for b in SCREW_BASES if b["dia"] == dia), None)
-    if exact and (length_ft is None or length_ft <= exact["length_ft"] + 0.5):
-        return exact, False
-    covering = [b for b in SCREW_BASES
-                if b["dia"] >= dia and (length_ft is None
-                                        or length_ft <= b["length_ft"] + 0.5)]
-    if covering:
-        best = min(covering, key=lambda b: (b["dia"], b["cost"]))
-        return best, best is not exact
-    # Nothing on file is long enough. Fall back to the longest basis at or above
-    # the diameter (else the longest on file) so a long run budgets high rather
-    # than low; the caller states the gap either way.
-    pool = [b for b in SCREW_BASES if b["dia"] >= dia] or SCREW_BASES
-    best = max(pool, key=lambda b: (b["length_ft"], b["dia"]))
-    return best, best is not exact
+    dia, length = float(diameter_in), float(length_ft)
+    m = SCREW_MODEL
+    cost = m["base"] + m["per_in"] * dia + m["per_in_ft"] * dia * length
+    years = ((today or datetime.date.today()) - SCREW_MODEL_DATE).days / 365.25
+    if years > 0:
+        cost *= (1 + SCREW_ESCALATION) ** years
+    if stainless:
+        cost *= SCREW_STAINLESS_FACTOR
+
+    notes = []
+    lo_d, hi_d = SCREW_FIT_DIA
+    lo_l, hi_l = SCREW_FIT_LENGTH
+    if not lo_d <= dia <= hi_d:
+        notes.append(f'{dia:g}" is outside the {lo_d}-{hi_d}" range MCE has quotes for')
+    if not lo_l <= length <= hi_l:
+        notes.append(f"{length:g} ft is outside the {lo_l}-{hi_l} ft range MCE has "
+                     "quotes for")
+    if stainless:
+        notes.append("stainless is modelled at carbon cost — MCE has only one T304 "
+                     "quote and it sits on the carbon curve")
+    # The model can invert on very short runs, where the diameter term dominates.
+    if dia > lo_d and cost < screw_cost_raw(dia - 2, length):
+        notes.append("the model is unreliable at this length — it prices this unit "
+                     "below a smaller one")
+    return max(cost, 0.0), notes
+
+
+def screw_cost_raw(diameter_in, length_ft):
+    m = SCREW_MODEL
+    return m["base"] + m["per_in"] * float(diameter_in) + \
+        m["per_in_ft"] * float(diameter_in) * float(length_ft)
 
 
 def fan_for(baghouse_model):

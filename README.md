@@ -91,9 +91,11 @@ block disappears.
 
 Lines nothing prices yet — the baghouse shell, ductwork, airlocks, the main
 drive motor — come in at **$0.00 and are highlighted**. Put a price on them
-before the quote goes out. Screws and fans *are* priced, from MCE's SCC and
-AirPro quotes; if the vendor quote behind one has expired, the open items say
-so.
+before the quote goes out. Screws and fans *are* priced: the fan from MCE's AirPro
+OEM lineup, the screw from a cost model fitted to every SCC quote on file. Both
+say in the open items where the number came from — and if the vendor quote
+behind one has expired or the size is outside what MCE has bought before, they
+say that too.
 
 ### The calculators on their own
 
