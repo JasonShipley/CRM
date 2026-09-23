@@ -64,20 +64,57 @@ AIRPRO_ASSUMED = {"9-4"}
 
 
 # ------------------------------------------------------------ SCC screw conveyor --
-# Screw Conveyor Corporation quote H51445AW, 2026-06-29: a 9" screw conveyor
-# 8'0" long inside trough ends, 400 CFH (4,000 PPH) sawdust at 10 PCF, 45%
-# trough loading, 48 RPM, horizontal — complete with a 1 HP Baldor drive,
-# Dodge reducer, guard and approval drawings, assembled. $6,175.00 net cost.
-SCREW_QUOTE = "SCC H51445AW"
-SCREW_QUOTE_DATE = datetime.date(2026, 6, 29)
-# MCE's screw markup: "We will divide by 0.8 for pricing" — Jason to Lorand on
-# the Insta-Pro screw conveyor quotes, 2026-01-09. 1 / 0.8 = 1.25.
-SCREW_MARKUP = 1 / 0.8
+# Screw Conveyor Corporation, complete units: conveyor + drive, assembled,
+# net cost ex-factory. Each entry records what was actually quoted, because the
+# material matters as much as the size — a stainless unit carries a large
+# premium over the carbon-steel equivalent.
+SCREW_MARKUP = 1 / 0.8   # "We will divide by 0.8 for pricing" — Jason, 2026-01-09
 
-#  dia in: (basis length ft, net cost $)
-SCREW_BASIS = {
-    9: (8.0, 6175.00),
-}
+SCREW_BASES = [
+    {
+        "dia": 9, "length_ft": 8.0, "cost": 6175.00,
+        "material": "carbon steel", "stainless": False,
+        "drive": "1 HP Baldor, Dodge reducer, 48 RPM",
+        "quote": "SCC H51445AW", "date": datetime.date(2026, 6, 29),
+        "duty": "400 CFH (4,000 PPH) sawdust at 10 PCF, 45% trough loading",
+    },
+    {
+        # Ordered on PO 40140 / SCC order 175260. All-stainless: T304 screw,
+        # pipe, trough, cover and hardware, for rice bran.
+        "dia": 12, "length_ft": 20.0, "cost": 15495.00,
+        "material": "T304 stainless", "stainless": True,
+        "drive": "3 HP Nord shaft-mount gearmotor, 42 RPM",
+        "quote": "SCC H51032CK", "date": datetime.date(2026, 5, 6),
+        "duty": "10 TPH (572 CFH) rice bran at 32-35 PCF, 30% trough loading",
+    },
+]
+
+
+def screw_basis_for(diameter_in, length_ft=None):
+    """Pick the vendor basis to budget a screw conveyor from.
+
+    Prefers the basis for the calculated diameter, but only when that basis is
+    long enough to stand in for the run — stretching an 8 ft quote over a 12 ft
+    conveyor understates it. Otherwise it steps up to the next basis that does
+    cover the length, which quotes high rather than low. Returns
+    (basis, substituted) or (None, False).
+    """
+    dia = int(diameter_in)
+    exact = next((b for b in SCREW_BASES if b["dia"] == dia), None)
+    if exact and (length_ft is None or length_ft <= exact["length_ft"] + 0.5):
+        return exact, False
+    covering = [b for b in SCREW_BASES
+                if b["dia"] >= dia and (length_ft is None
+                                        or length_ft <= b["length_ft"] + 0.5)]
+    if covering:
+        best = min(covering, key=lambda b: (b["dia"], b["cost"]))
+        return best, best is not exact
+    # Nothing on file is long enough. Fall back to the longest basis at or above
+    # the diameter (else the longest on file) so a long run budgets high rather
+    # than low; the caller states the gap either way.
+    pool = [b for b in SCREW_BASES if b["dia"] >= dia] or SCREW_BASES
+    best = max(pool, key=lambda b: (b["length_ft"], b["dia"]))
+    return best, best is not exact
 
 
 def fan_for(baghouse_model):
@@ -90,9 +127,3 @@ def fan_for(baghouse_model):
 
 def fan_quote_stale(today=None):
     return (today or datetime.date.today()) > AIRPRO_QUOTE_EXPIRES
-
-
-def screw_basis_for(diameter_in):
-    """(basis length ft, net cost $) for a screw diameter, or None if MCE has no
-    vendor quote on file for that size."""
-    return SCREW_BASIS.get(int(diameter_in))

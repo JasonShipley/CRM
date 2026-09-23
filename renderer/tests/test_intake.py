@@ -95,8 +95,15 @@ def test_jb_request():
     screw = next((l for l in q["lines"] if "Screw Conveyor" in l["name"]), None)
     check("screw priced from the SCC basis",
           screw and not screw.get("needsPrice") and screw["unitPrice"] > 0, str(screw))
-    check("screw states its vendor basis", screw and "H51445AW" in screw["description"],
-          str(screw))
+    # Pricing provenance stays internal — the line says what is supplied.
+    check("no vendor quote number on the customer line",
+          screw and "SCC H51" not in screw["description"], str(screw))
+    check("no stainless commentary on the customer line",
+          screw and "stainless" not in screw["description"].lower(), str(screw))
+    # The 12" MCE actually ordered is the nearest basis covering a 12 ft run, and
+    # it is an all-stainless unit — both facts have to reach the open items.
+    check("substituted basis disclosed", "no 9\" quote on file" in open_text(q), open_text(q))
+    check("stainless premium disclosed", "stainless" in open_text(q).lower(), open_text(q))
 
     unpriced = [l["name"] for l in q["lines"] + q["netItems"] if l.get("needsPrice")]
     check("uncalculated items are unpriced, not zero-priced",
@@ -106,7 +113,7 @@ def test_jb_request():
     check("remaining air items openly unpriced", "no MCE calculator" in open_text(q),
           str(unpriced))
     check("stale fan quote flagged", "expired" in open_text(q), open_text(q))
-    check("screw length mismatch flagged", "confirm with scc" in open_text(q).lower(),
+    check("screw basis confirmation flagged", "confirm with scc" in open_text(q).lower(),
           open_text(q))
 
     check("proposal sections present",

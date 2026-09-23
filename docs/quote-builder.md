@@ -86,7 +86,12 @@ input is free text.
 | Governing spec missing entirely | Quotes nothing, says what it needs |
 
 Unresolved values print **orange**, matching the convention on MCE's own draft
-proposals ("orange items require MCE input before release"). While a quote is
+proposals ("orange items require MCE input before release").
+
+**Pricing provenance never reaches the customer.** A line says what is being
+supplied; which vendor quote it was budgeted from, which substitution was made,
+and how a basis differs from the job all go to the internal open items — as do
+fit findings like an undersized mill or a horsepower conflict. While a quote is
 Draft the proposal also carries an internal open-items block listing all of them,
 with the original sentence it was built from; that block disappears when the
 quote leaves Draft.
@@ -164,9 +169,17 @@ source quote and expiry:
   therefore *selected against the filter*, never sized independently. Sell price
   is cost x 2. When a baghouse is in the scope the air is cleaned by the filter
   and the fan discharges to atmosphere after it, so **no cyclone is quoted**.
-- **SCC screw conveyors** — the net cost of the quoted unit x MCE's screw markup
-  (1 / 0.8). The basis is a specific length; when the calculated run differs, the
-  line is labelled a budget figure and an open item says to confirm with SCC.
+- **SCC screw conveyors** — the net cost of a real unit MCE bought, x MCE's
+  screw markup (1 / 0.8). Each basis records its diameter, length, material and
+  drive. Selection prefers the calculated diameter, but only when that basis is
+  long enough to stand in for the run: stretching an 8 ft quote over a 12 ft
+  conveyor understates it, so it steps up to the nearest basis that does cover
+  the length. A long run therefore budgets high rather than low, and the open
+  items say which unit it came from and why.
+
+  Material matters as much as size. The 12" basis is an all-T304 stainless unit
+  built for rice bran, so a mild-steel conveyor for a grinding line will price
+  under it — that caveat is raised every time it is used.
 
 A quote past its expiry still prices, but says so on the line and raises an open
 item — a stale basis is visible rather than silent. Update the numbers here when

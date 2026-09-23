@@ -277,7 +277,7 @@ def size(f):
             ])})
 
         if screw:
-            basis = _vendor.screw_basis_for(screw["dia"])
+            basis, substituted = _vendor.screw_basis_for(screw["dia"], std_len_ft)
             desc = [
                 f'{screw["dia"]}" dia at {TROUGH_LABELS[trough].lower()}',
                 f"{num(cuft_hr)} ft³/hr at {num(pph)} PPH and {density:g} lb/ft³",
@@ -287,23 +287,30 @@ def size(f):
                 "Complete with drive motor, reducer, guard and approval drawings",
             ]
             if basis:
-                basis_len, basis_cost = basis
-                screw_price = basis_cost * _vendor.SCREW_MARKUP
-                desc.append(
-                    f'Budget price from {_vendor.SCREW_QUOTE} '
-                    f'({_vendor.SCREW_QUOTE_DATE:%b %-d, %Y}) for a {screw["dia"]}" × '
-                    f'{basis_len:g} ft unit')
+                screw_price = basis["cost"] * _vendor.SCREW_MARKUP
                 price_notes.append(
-                    f'Screw: {_vendor.SCREW_QUOTE} {screw["dia"]}" × {basis_len:g} ft '
-                    f'{money(basis_cost)} net × {_vendor.SCREW_MARKUP:.2f} = '
+                    f'Basis {basis["quote"]} ({basis["date"]:%b %-d, %Y}): '
+                    f'{basis["dia"]}" × {basis["length_ft"]:g} ft {basis["material"]}, '
+                    f'{basis["drive"]}')
+                price_notes.append(
+                    f'Screw: {basis["quote"]} {basis["dia"]}" × {basis["length_ft"]:g} ft '
+                    f'{money(basis["cost"])} net × {_vendor.SCREW_MARKUP:.2f} = '
                     f"{money(screw_price)}")
-                if abs(std_len_ft - basis_len) > 0.5:
-                    desc.append(f"Budget only — the vendor basis is {basis_len:g} ft, this "
-                                f"run is {std_len_ft} ft. Confirm with SCC.")
+                if substituted:
                     warnings.append(
-                        f'The {screw["dia"]}" screw is priced from an {basis_len:g} ft '
-                        f"vendor quote but this run is {std_len_ft} ft — budget figure only, "
-                        "confirm with SCC before release.")
+                        f'The {screw["dia"]}" × {std_len_ft} ft screw is budgeted from '
+                        f'MCE\'s {basis["dia"]}" × {basis["length_ft"]:g} ft '
+                        f'{basis["quote"]} — no {screw["dia"]}" quote on file covers this '
+                        "length. Budgets high; confirm with SCC.")
+                if basis["stainless"]:
+                    # The unit MCE bought was all-T304 for rice bran. A mild-steel
+                    # conveyor for a grinding line costs materially less, so this
+                    # budget sits above what the job should come in at.
+                    warnings.append(
+                        f'The screw budget comes from {basis["quote"]}, an all-T304 '
+                        "stainless unit built for rice bran. Unless this job needs "
+                        "stainless, a mild-steel conveyor will come in under this number — "
+                        "have SCC quote the actual configuration before release.")
                 lines.append({
                     "name": f'{screw["dia"]}" Screw Conveyor — {std_len_ft} ft',
                     "quantity": 1, "unitPrice": round(screw_price, 2),
@@ -317,6 +324,7 @@ def size(f):
                     "name": f'{screw["dia"]}" Screw Conveyor — {std_len_ft} ft',
                     "quantity": 1, "unitPrice": 0, "needsPrice": True,
                     "description": "\n".join(desc)})
+
     else:
         warnings.append(f"No price basis on file for {mill['model']}.")
 
