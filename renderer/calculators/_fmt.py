@@ -26,6 +26,21 @@ def fixed(value, places=0):
     return f"{q:.{places}f}"
 
 
+def locale(value):
+    """Bare JS `Number.toLocaleString("en-US")` — grouped, and up to three
+    fraction digits with trailing zeros dropped. `num()` fixes the digit count;
+    this one matches a calculator that passes no options at all."""
+    q = Decimal(str(value)).quantize(Decimal("0.001"), rounding=ROUND_HALF_UP)
+    q = q.normalize()
+    if -1 < q < 1 and q != 0:
+        out = f"{q:,f}"
+    else:
+        out = f"{q:,f}" if q == q.to_integral_value() else f"{q:,f}"
+    if "." in out:
+        out = out.rstrip("0").rstrip(".")
+    return out or "0"
+
+
 def money(value, places=0):
     v = Decimal(str(value))
     return ("−$" if v < 0 else "$") + num(abs(v), places)

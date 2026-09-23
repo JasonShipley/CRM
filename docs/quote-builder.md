@@ -49,7 +49,7 @@ randomized jobs, and asserts they agree — model selection, every displayed
 figure, and every price, down to JavaScript's half-up rounding. The cyclone and
 hammer-pattern cases go further still: they drive the original's own `compute()`
 and read the rendered values back out of the shim, so the wording is diffed too.
-It currently covers 454 cases and must stay at zero mismatches.
+It currently covers 527 cases and must stay at zero mismatches.
 
 If the *math* changed and not just the tables, the extractor won't catch it: the
 test will fail, and the matching Python function needs the same change.
@@ -126,6 +126,9 @@ Baghouse:    the same "screen area x 1.3" gives system CFM
              CFM / air-to-cloth ratio    ->  required cloth area -> MCE model
              the matched AirPro fan comes with the model (_vendor.py)
 
+Duct:        CFM / velocity -> ft2 x 144 -> D = 2 x sqrt(area/pi)
+             rounded UP to the next even inch, which is how duct is bought
+
 Cyclone:     rated CFM, or inlet ID area / 144 x inlet FPM
              <= 12,600 CFM -> HE series on its rated min/opt/max
              >  12,600 CFM -> H series on its rating at 2" / 3" / 4" WG
@@ -189,9 +192,14 @@ writing these into Twenty later is a mapping job, not a rewrite.
 | Screw conveyor | least-squares fit over 9 SCC quotations | `SCREW_QUOTES` |
 | Fan (with a baghouse) | AirPro OEM lineup cost × 2.0 | AirPro Q117935R1 |
 | Cyclone | sold price where MCE has sold that model, else $/lb of shipping weight | NEMO Feed 20260428, LETEK MCE-Q-2609-LETEK-R2 |
-| Airlock | Airlanco FT-12 vendor cost ÷ 0.70 | Airlanco quote 024350 |
+| Airlock | FT-12 vendor cost ÷ 0.70 | Airlanco quote 024350 |
+| Main drive motor | vendor cost ÷ 0.70, by horsepower | `MOTOR_QUOTES` |
 | Baghouse | $40.20/ft² of cloth ÷ 0.70 — **budget only, upper bound** | Airlanco quote 024350 vs NEMO Feed sell |
-| Ductwork, main drive motor | nothing on file | — |
+| Ductwork | sized from the system CFM; **priced on request** — run, fittings and whether it vents to atmosphere come from the layout | duct calculator |
+
+Buy-out lines print the **model number and the specification** — airflow, static,
+RPM, HP, frame. The vendor's name never reaches a customer line; it lives in the
+internal open items with the quote that set the price.
 
 MCE's own markup rules, transcribed rather than inferred, are in `_vendor.py`:
 buy-out `cost / 0.70`, fabrication `cost × 1.10 / 0.75`, parts `cost / 0.77`. The

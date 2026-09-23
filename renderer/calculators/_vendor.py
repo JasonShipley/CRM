@@ -337,3 +337,25 @@ def baghouse_budget(cloth_sqft):
             f"marked up at MCE's buy-out divisor {BUYOUT_DIVISOR:g}. That unit is a "
             "free-standing Airlanco with hopper and access steel, so this is an upper "
             "bound on an MCE plenum-mount build, not a quote for one")
+
+
+# --------------------------------------------------------------- drive motors --
+# Main drive motors are a buy-out. Cost is MCE's net cost; the sell price uses
+# the documented buy-out divisor like any other bought-in item.
+#   hp: (make, model, cost, date, source)
+MOTOR_QUOTES = {
+    200: ("Teco", "EP2004", 10125.70, "2026-09-23", "Jason, current Teco cost"),
+}
+# A Toshiba equivalent was requested and is not back yet — when it lands, add it
+# here rather than overwriting the Teco line, so both bases stay visible.
+MOTOR_ALTERNATE_PENDING = {200: "Toshiba equivalent quoted, price not yet received"}
+
+
+def motor(hp):
+    """(model, sell price, date, make, source) for a main drive motor, or None
+    when MCE has no cost on file for that horsepower."""
+    entry = MOTOR_QUOTES.get(int(hp)) if hp else None
+    if not entry:
+        return None
+    make, model, cost, date, source = entry
+    return model, buyout_price(cost), date, make, source

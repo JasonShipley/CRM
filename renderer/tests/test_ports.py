@@ -12,6 +12,7 @@ domshim.js), feeds both sides the same randomized inputs, and asserts they agree
 Run it after changing either side. Needs node on PATH; nothing else.
 """
 import json
+import math
 import pathlib
 import random
 import subprocess
@@ -21,7 +22,7 @@ HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent))
 
 from calculators import (baghouse as bh, cooler as cl, cyclone as cy,  # noqa: E402
-                         hammer_pattern as hp, hammermill as hm)
+                         duct as dc, hammer_pattern as hp, hammermill as hm)
 from calculators._data import CL_PELLETS, PRODUCTS  # noqa: E402
 
 FAILS = []
@@ -270,10 +271,42 @@ def test_hammer_pattern():
     return len(cases)
 
 
+def test_duct():
+    random.seed(17)
+    cases = [{"mode": "dia", "cfm": 4602, "velocity": 4000},
+             {"mode": "cfm", "diameter": 8, "velocity": 4000},
+             # an exact even-inch hit, so the "Exact fit" branch is covered
+             {"mode": "dia", "cfm": 4000 * (math.pi / 4) * 16 * 16 / 144, "velocity": 4000}]
+    for _ in range(70):
+        mode = random.choice(["cfm", "dia"])
+        c = {"mode": mode, "velocity": random.choice([4000, 4500, 3500, 5000, 2750])}
+        if mode == "cfm":
+            c["diameter"] = random.choice([4, 6, 7.5, 8, 10, 12, 14, 17, 21, 26, 30])
+        else:
+            c["cfm"] = random.choice([400, 900, 1400, 2300, 4602, 6240, 11000, 22000])
+        cases.append(c)
+
+    ref = node("cy_hp_ref.js", "duct", json.dumps(cases))
+    for c, r in zip(cases, ref):
+        got = dc.size(c)
+        if got.get("error"):
+            FAILS.append(f"dc errored: {got['error']}\n    case={c}")
+            continue
+        check("dc formula", r["formula"], got["formula"], c)
+        if c["mode"] == "cfm":
+            check("dc min cfm", r["minCfm"], out(got, "Minimum airflow").replace(" CFM", ""), c)
+        else:
+            check("dc min dia", r["minDia"],
+                  out(got, "Minimum diameter").rstrip('"'), c)
+            check("dc recommended", r["recDia"], out(got, "Recommended duct").rstrip('"'), c)
+            check("dc fit pill", r["pill"], out(got, "Fit"), c)
+    return len(cases)
+
+
 def main():
     counts = {"hammermill": test_hammermill(), "baghouse": test_baghouse(),
               "cooler": test_cooler(), "cyclone": test_cyclone(),
-              "hammer pattern": test_hammer_pattern()}
+              "hammer pattern": test_hammer_pattern(), "duct": test_duct()}
     for name, n in counts.items():
         print(f"  {name}: {n} cases")
     if FAILS:

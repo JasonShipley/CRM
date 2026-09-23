@@ -130,10 +130,23 @@ def test_jb_request():
     unpriced = [l["name"] for l in q["lines"] + q["netItems"] if l.get("needsPrice")]
     check("uncalculated items are unpriced, not zero-priced",
           all(l.get("unitPrice") in (0, "", None) for l in q["lines"] if l.get("needsPrice")))
-    check("motor is net-priced and flagged",
-          q["netItems"] and q["netItems"][0].get("needsPrice"), str(q["netItems"]))
-    check("the one remaining air item is openly unpriced",
-          "neither a calculator nor a price basis" in open_text(q), str(unpriced))
+    motor = q["netItems"][0] if q["netItems"] else None
+    check("motor priced from the vendor cost on file",
+          motor and motor["unitPrice"] > 0 and not motor.get("needsPrice"), str(motor))
+    check("motor still says it is net-priced",
+          motor and "Priced net" in motor["description"], str(motor))
+    check("motor basis is internal",
+          "buy-out divisor" in open_text(q) and "Teco" in open_text(q), open_text(q))
+    check("no motor make on the customer line",
+          motor and "Teco" not in motor["description"], str(motor))
+    duct = next((l for l in q["lines"] if l["name"].startswith("Ductwork")), None)
+    check("ductwork is sized but priced on request",
+          duct and duct.get("needsPrice") and "priced upon request" in duct["name"],
+          str(duct))
+    check("ductwork carries a diameter from the calculator",
+          duct and "dia duct at" in duct["description"], str(duct))
+    check("ductwork reason is recorded internally",
+          "priced on request" in open_text(q), open_text(q))
     check("screw budget flagged as modelled",
           "modelled budget" in open_text(q).lower(), open_text(q))
 

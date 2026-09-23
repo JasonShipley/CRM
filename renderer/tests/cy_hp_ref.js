@@ -9,7 +9,10 @@ const TOOLS = path_.join(__dirname, "..", "tools");
 const mode = process.argv[2];
 const cases = JSON.parse(process.argv[3]);
 
-const text = (get, sel) => get("q:" + sel).textContent;
+// a real browser coerces whatever is assigned to textContent into a string;
+// the shim stores it raw, so a calculator that assigns a Number would
+// otherwise come back as a JSON number and never match the port's string
+const text = (get, sel) => String(get("q:" + sel).textContent);
 // the originals write a few strips as innerHTML with <span class="hi"> markers
 const plain = (get, sel) => get("q:" + sel).innerHTML
   .replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim();
@@ -81,6 +84,26 @@ if (mode === "hammer") {
       spacerLength: text(get, "#spacer-length"),
       spacerTotal: text(get, "#spacer-total"),
       perPair, bom,
+    };
+  });
+  console.log(JSON.stringify(results));
+}
+
+if (mode === "duct") {
+  const { exports: ex, get } = runCalc(
+    TOOLS + "/duct-sizing-calculator.html", {}, ["state", "compute"]);
+  const results = cases.map(c => {
+    ex.state.mode = c.mode;
+    ex.state.velocity = c.velocity;
+    get("q:#diameter-in").value = c.diameter != null ? String(c.diameter) : "";
+    get("q:#target-cfm").value = c.cfm != null ? String(c.cfm) : "";
+    ex.compute();
+    return {
+      minCfm: text(get, "#min-cfm"),
+      minDia: text(get, "#min-dia"),
+      recDia: text(get, "#recommend-dia"),
+      pill: text(get, "#recommend-pill"),
+      formula: plain(get, "#formula-strip"),
     };
   });
   console.log(JSON.stringify(results));

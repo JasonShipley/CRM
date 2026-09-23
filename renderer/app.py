@@ -57,6 +57,8 @@ TOOLS = {
     "hammer-pattern": ("Hammer Pattern", "hammer-pattern-calculator.html",
                        "Hammer count, balanced row split and pin stack, against "
                        "the 38/44-40 reference pattern."),
+    "duct": ("Duct Sizing", "duct-sizing-calculator.html",
+             "Airflow to duct diameter at the conveying velocity, and back."),
     "rotary-cooler": ("Rotary Cooler Sizing", "rotary-cooler-sizing-calculator.html",
                       "Direct air-swept drum — psychrometrics, drum selection, "
                       "drive and fan, with a summer sweep."),

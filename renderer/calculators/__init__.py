@@ -12,7 +12,7 @@ own JavaScript headless — run it after touching either side.
 This module is the registry: it declares each calculator's inputs so the form UI
 and the JSON API are generated from one description, and dispatches `run()`.
 """
-from . import baghouse, cooler, cyclone, hammer_pattern, hammermill
+from . import baghouse, cooler, cyclone, duct, hammer_pattern, hammermill
 from ._data import CL_CHECK_DEFS, CL_PELLETS, MCE_XM_MILLS, PRODUCTS, XM_CHART
 
 # --------------------------------------------------------------- input specs --
@@ -170,6 +170,19 @@ HAMMER_PATTERN_FIELDS = [
      "help": "Lay out a count engineering has already set."},
 ]
 
+DUCT_FIELDS = [
+    {"key": "mode", "label": "Solve for", "type": "select", "default": "dia",
+     "options": [("dia", "Duct diameter from an airflow"),
+                 ("cfm", "Airflow from a duct diameter")]},
+    {"key": "cfm", "label": "Airflow", "type": "number", "unit": "CFM",
+     "default": 1400, "step": 10, "min": 0, "showWhen": {"mode": "dia"}},
+    {"key": "diameter", "label": "Duct diameter", "type": "number", "unit": "in",
+     "default": 8, "step": 0.5, "min": 0, "showWhen": {"mode": "cfm"}},
+    {"key": "velocity", "label": "Minimum conveying velocity", "type": "select",
+     "default": "4000", "options": duct.VELOCITY_PRESETS,
+     "help": "Below this the material drops out of the airstream."},
+]
+
 CALCULATORS = {
     "hammermill": {
         "key": "hammermill", "label": "Hammermill + Plenum",
@@ -199,6 +212,13 @@ CALCULATORS = {
         "fields": HAMMER_PATTERN_FIELDS, "run": hammer_pattern.size, "prices": False,
         "tool": "hammer-pattern-calculator.html",
     },
+    "duct": {
+        "key": "duct", "label": "Duct Sizing",
+        "blurb": "Airflow to duct diameter at the conveying velocity, rounded up "
+                 "to the next even inch — or the airflow a given duct carries.",
+        "fields": DUCT_FIELDS, "run": duct.size, "prices": False,
+        "tool": "duct-sizing-calculator.html",
+    },
     "baghouse": {
         "key": "baghouse", "label": "Baghouse Filter",
         "blurb": "Cloth area and MCE filter model from system airflow or a mill "
@@ -213,7 +233,6 @@ CALCULATORS = {
 PLANNED = [
     ("Dryer", "Dryer sizing from moisture removal duty."),
     ("Fan", "CFM and static pressure to fan size, model and HP."),
-    ("Ductwork", "Airflow and run layout to duct diameter and gauge."),
     ("Airlock", "Airflow and material to rotary airlock size and drive."),
 ]
 

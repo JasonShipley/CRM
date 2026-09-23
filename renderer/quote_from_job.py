@@ -75,6 +75,16 @@ def _validity(today=None):
     return year_end
 
 
+# MCE's grain/feed conveying velocity, the duct calculator's own default.
+DUCT_VELOCITY_FPM = 4000
+
+
+def _hp_number(label):
+    """"200 HP" -> 200.0, so a motor named as text still finds its cost."""
+    m = re.search(r"([\d.]+)", str(label or ""))
+    return float(m.group(1)) if m else None
+
+
 def build(job, today=None):
     """JobRequest -> (quote dict, open items). Never raises on a thin request."""
     open_items = list(job.ambiguities or [])
@@ -269,6 +279,32 @@ def build(job, today=None):
                     f'{cyc["cfm"]:,} CFM plenum airflow at 3" WG. Price basis: '
                     f'{cyc["priceBasis"]}.')
             outstanding.insert(0, "Fan")
+        # Ductwork is sized from the same system airflow as everything else, but the
+        # run length, the fittings and whether it vents to atmosphere all come out
+        # of the site layout, so it is quoted on request rather than guessed at.
+        if "Ductwork" in outstanding:
+            outstanding.remove("Ductwork")
+            plenum_cfm = result.get("plenum_cfm") if result else None
+            dk = (calculators.run("duct", {"mode": "dia", "cfm": plenum_cfm,
+                                           "velocity": DUCT_VELOCITY_FPM})
+                  if plenum_cfm else {"error": "no plenum airflow"})
+            if dk.get("error"):
+                desc = ["Ductwork for the mill air-relief system.",
+                        "Quoted on request once the site layout fixes the run and fittings."]
+            else:
+                desc = [f'{dk["diameter"]}" dia duct at {DUCT_VELOCITY_FPM:,} FPM conveying '
+                        f'velocity on {dk["cfm"]:,.0f} CFM '
+                        f'({dk["minDiameter"]:.2f}" minimum, rounded up to the next even inch)',
+                        "Straight run, elbows, transitions and supports to suit the layout",
+                        "May vent to atmosphere depending on the arrangement"]
+                sizing.append({"calculator": dk["calculator"], "inputs": {
+                    "mode": "dia", "cfm": plenum_cfm, "velocity": DUCT_VELOCITY_FPM},
+                    "formula": dk.get("formula", ""), "outputs": dk.get("outputs", []),
+                    "warnings": dk.get("warnings", [])})
+            desc.append("Priced upon request once the layout is determined")
+            lines.append({
+                "name": "Ductwork — priced upon request", "quantity": qty,
+                "unitPrice": 0, "needsPrice": True, "description": "\n".join(desc)})
         for item in outstanding:
             lines.append({
                 "name": f"{item} — size and price TBD", "quantity": qty,
@@ -281,8 +317,9 @@ def build(job, today=None):
             open_items.append(
                 "Air system requested: baghouse sized from the mill screen area with its "
                 "matched AirPro fan, discharging to atmosphere after the filter — no cyclone. "
-                "Ductwork is the one air item with neither a calculator nor a price basis, "
-                "and is unpriced.")
+                "Ductwork is sized from the same airflow but priced on request — the run, "
+                "the fittings and whether it vents to atmosphere all come out of the site "
+                "layout.")
         else:
             open_items.append(
                 ("Air system requested with a cyclone rather than a filter, as the rep "
@@ -312,17 +349,35 @@ def build(job, today=None):
     net_items = []
     if motor or job.motor_hp:
         hp = motor or f"{job.motor_hp:g} HP"
-        net_items.append({
-            "name": f"Main Drive Motor — {hp}", "quantity": qty, "unitPrice": 0,
-            "needsPrice": True,
-            "description": "\n".join([
-                f"{hp}, 1800 RPM, 460 V/3/60, TEFC premium efficiency, 1.15 SF",
-                "Mounted, aligned and guarded on the mill at MCE",
-                "Priced net — any project discount does not apply to motors",
-                "Price from the current motor quotation — confirm make and availability",
-            ])})
-        open_items.append(f"Main drive motor ({hp}) is unpriced — add the current motor "
-                          "quotation, or the customer may supply and ship motors to MCE.")
+        hp_num = job.motor_hp or _hp_number(motor)
+        mq = _vendor.motor(hp_num)
+        notes = [f"{hp}, 1800 RPM, 460 V/3/60, TEFC premium efficiency, 1.15 SF",
+                 "Mounted, aligned and guarded on the mill at MCE",
+                 "Priced net — any project discount does not apply to motors"]
+        if mq:
+            # Model number on the line; the make and the cost basis stay internal.
+            m_model, m_price, m_date, m_make, m_source = mq
+            notes.insert(1, f"Model {m_model}")
+            net_items.append({
+                "name": f"Main Drive Motor — {hp}", "quantity": qty,
+                "unitPrice": round(m_price, 2), "sku": m_model,
+                "description": "\n".join(notes)})
+            open_items.append(
+                f"Main drive motor priced as {m_make} {m_model} from {m_source} "
+                f"({m_date}), marked up at MCE's buy-out divisor "
+                f"{_vendor.BUYOUT_DIVISOR:g}."
+                + (f" {_vendor.MOTOR_ALTERNATE_PENDING[int(hp_num)]} — compare before "
+                   "release." if int(hp_num or 0) in _vendor.MOTOR_ALTERNATE_PENDING else ""))
+        else:
+            notes.append("Price from the current motor quotation — confirm make and "
+                         "availability")
+            net_items.append({
+                "name": f"Main Drive Motor — {hp}", "quantity": qty, "unitPrice": 0,
+                "needsPrice": True, "description": "\n".join(notes)})
+            open_items.append(
+                f"Main drive motor ({hp}) is unpriced — MCE has no cost on file at that "
+                "horsepower. Add the current motor quotation, or the customer may supply "
+                "and ship motors to MCE.")
 
     title_model = out.get("Mill") or job.mill_model or "Hammermill"
     product_label = product["name"] if product else (job.product_as_written or "")
