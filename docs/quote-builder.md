@@ -87,7 +87,7 @@ input is free text.
 | Named mill too small for the motor | Quotes the mill asked for; the shortfall goes to MCE internally, **not** onto the proposal |
 | Rep names a cyclone instead of a filter | Sizes the cyclone from the mill's own plenum airflow, quotes no baghouse |
 | No calculator exists (fan, duct, airlock) | Lists the item unpriced rather than omitting or guessing it |
-| A calculator sizes but MCE has no price basis (cyclone, baghouse shell) | Quotes the size, leaves the price at zero and says so internally |
+| A price is a budget or a model, not a quote | Prices it anyway, marks it budget, and names the source document internally |
 | Governing spec missing entirely | Quotes nothing, says what it needs |
 
 Unresolved values print **orange**, matching the convention on MCE's own draft
@@ -180,6 +180,24 @@ writing these into Twenty later is a mapping job, not a rewrite.
 ---
 
 ## Vendor cost bases
+
+### Where each price comes from
+
+| Item | Basis | Source |
+|---|---|---|
+| Mill, feeder, plenum | MCE's own calculator multipliers | `hammermill-sizing-calculator.html` |
+| Screw conveyor | least-squares fit over 9 SCC quotations | `SCREW_QUOTES` |
+| Fan (with a baghouse) | AirPro OEM lineup cost × 2.0 | AirPro Q117935R1 |
+| Cyclone | sold price where MCE has sold that model, else $/lb of shipping weight | NEMO Feed 20260428, LETEK MCE-Q-2609-LETEK-R2 |
+| Airlock | Airlanco FT-12 vendor cost ÷ 0.70 | Airlanco quote 024350 |
+| Baghouse | $40.20/ft² of cloth ÷ 0.70 — **budget only, upper bound** | Airlanco quote 024350 vs NEMO Feed sell |
+| Ductwork, main drive motor | nothing on file | — |
+
+MCE's own markup rules, transcribed rather than inferred, are in `_vendor.py`:
+buy-out `cost / 0.70`, fabrication `cost × 1.10 / 0.75`, parts `cost / 0.77`. The
+fabrication rule reproduces the "1D3D-60 CYCLONE — BUDGET PRICE MODEL" sheet's
+sell price to the cent, and the buy-out rule reproduces the NEMO Feed baghouse
+sell price from the Airlanco cost exactly — both are checked in code.
 
 `renderer/calculators/_vendor.py` holds the figures MCE buys at, each with its
 source quote and expiry:

@@ -15,6 +15,7 @@ import datetime
 import re
 
 import calculators
+from calculators import _vendor
 from calculators._data import PRODUCTS
 
 FALLBACK_PLENUM_VELOCITY = "300"
@@ -220,7 +221,29 @@ def build(job, today=None):
         # to atmosphere after it — no cyclone, and no fan line of its own: the
         # baghouse calculator already selected and priced the matched AirPro fan.
         have_baghouse = any("Baghouse" in ln["name"] for ln in lines)
-        outstanding = ["Ductwork", "Airlock"]
+        outstanding = ["Ductwork"]
+        # The airlock under the filter (or cyclone) hopper is a buy-out. MCE's
+        # standard mill-scale unit is the Airlanco FT-12; price it at MCE's own
+        # buy-out divisor rather than listing it TBD.
+        al = _vendor.airlock()
+        if al:
+            al_model, al_price, al_date, al_source, al_desc = al
+            lines.append({
+                "name": f"Rotary Airlock — {al_model}", "quantity": qty,
+                "unitPrice": round(al_price, 2), "sku": al_model,
+                "description": "\n".join([
+                    al_desc,
+                    "Drop-through, under the dust filter hopper",
+                    "Budgetary price — firm on receipt of a current vendor quote",
+                ])})
+            open_items.append(
+                f"Airlock priced as {al_model} from {al_source} ({al_date}), marked up at "
+                f"MCE's buy-out divisor {_vendor.BUYOUT_DIVISOR:g}. It is the standard "
+                "mill-scale drop-through; an ATEX/NFPA 69 certified valve costs "
+                "substantially more and should be priced separately if the dust hazard "
+                "assessment calls for one.")
+        else:
+            outstanding.append("Airlock")
         if not have_baghouse:
             # No filter, so the air goes through a cyclone. MCE's cyclone
             # calculator sizes it off the same plenum airflow the mill produces;
@@ -241,9 +264,8 @@ def build(job, today=None):
                 open_items.extend(cyc.get("warnings", []))
                 open_items.append(
                     f'Cyclone sized {cyc["matchSize"]} from the mill\'s '
-                    f'{cyc["cfm"]:,} CFM plenum airflow at 3" WG. MCE has given no '
-                    "cyclone price basis, so the line is unpriced — fabrication "
-                    "estimate required.")
+                    f'{cyc["cfm"]:,} CFM plenum airflow at 3" WG. Price basis: '
+                    f'{cyc["priceBasis"]}.')
             outstanding.insert(0, "Fan")
         for item in outstanding:
             lines.append({
@@ -257,7 +279,8 @@ def build(job, today=None):
             open_items.append(
                 "Air system requested: baghouse sized from the mill screen area with its "
                 "matched AirPro fan, discharging to atmosphere after the filter — no cyclone. "
-                "Ductwork and the airlock have no MCE calculator yet and are unpriced.")
+                "Ductwork is the one air item with neither a calculator nor a price basis, "
+                "and is unpriced.")
         else:
             open_items.append(
                 ("Air system requested with a cyclone rather than a filter, as the rep "

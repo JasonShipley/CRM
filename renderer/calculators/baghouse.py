@@ -104,9 +104,13 @@ def size(f):
             {"label": "Plan", "value": f'{mce["plan"]}" × {mce["plan"]}"'},
             {"label": "Housing height", "value": f'{mce["housingH"]}"'},
         ]
+        bh_price, bh_basis = _vendor.baghouse_budget(mce["area"])
+        warnings.append(
+            f'Baghouse price is a budget figure only: {bh_basis}. Confirm against a '
+            "current vendor quote or the shop estimate before release.")
         lines.append({
             "name": f'Baghouse Filter — MCE {mce["model"]}', "quantity": 1,
-            "unitPrice": 0, "needsPrice": True,
+            "unitPrice": round(bh_price, 2), "budgetPrice": True,
             "description": "\n".join([
                 f'{mce["bags"]} × {mce["len"]} ft bags in a {mce["grid"]} grid, '
                 f'6" dia on {BAG_PITCH}" centers',
@@ -114,8 +118,9 @@ def size(f):
                 f'{mce["plan"]}" × {mce["plan"]}" plan, {mce["housingH"]}" housing height, '
                 "plenum-mount (no hopper)",
                 f'{mce["pulse"]:.2f} SCFM pulse air required',
-                "Price from the fabrication estimate — this calculator sizes only",
+                "Budgetary price — firm on receipt of the fabrication estimate",
             ])})
+        total += bh_price
 
         # The fan is selected against the baghouse, not sized independently:
         # MCE's OEM lineup pairs one AirPro fan with each filter model.

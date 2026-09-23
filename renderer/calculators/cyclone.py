@@ -9,11 +9,13 @@ budget line — are extracted verbatim into _data.py.
     MCE  = HE series up to 12,600 CFM, H series above, matched on rated CFM
     Budget = smallest barrel size whose single rated CFM covers the requirement
 
-This calculator sizes only. MCE has given no price basis for a cyclone, so the
-quote line it produces carries no price and is flagged for the estimate.
+Prices come from _vendor.CYCLONE_QUOTES — the HE-30, HE-39 and HE-47 sold on the
+NEMO Feed proposal and the H74 on the LETEK proposal. A size MCE has not sold is
+interpolated from its published shipping weight, and the line says so internally.
 """
 import math
 
+from . import _vendor
 from ._data import (CY_BUDGET_SPEC, CY_H_SPEC, CY_HE_MAX_CFM, CY_HE_SPEC,
                     CY_SERIES_NOTES)
 from ._fmt import fixed, jsround, num
@@ -125,9 +127,11 @@ def size(f):
             {"label": "Weight (12 Ga – 1/4\")",
              "value": f'{num(row["w12"])}–{num(row["w25"])} lb'},
         ]
+        price, price_basis = _vendor.cyclone_price(f'Budget {model}', row["w10"])
         lines.append({
-            "name": f'Cyclone — Budget {model}', "quantity": 1, "unitPrice": 0,
-            "needsPrice": True, "description": "\n".join([
+            "name": f'Cyclone — Budget {model}', "quantity": 1,
+            "unitPrice": round(price, 2) if price else 0,
+            "needsPrice": not price, "description": "\n".join([
                 f'{row["A"]}" dia barrel × {row["B"]}" straight side, {row["C"]}" cone, '
                 f'{row["G"]}" overall height',
                 f'{row["D"]}" inlet, {row["E"]}" air outlet, {row["F"]}" cone outlet, '
@@ -135,7 +139,6 @@ def size(f):
                 f'Rated {num(row["cfm"])} CFM · {detail}',
                 "Three-piece construction, primed gray",
                 f'Shipping weight {num(row["w12"])} lb (12 Ga) to {num(row["w25"])} lb (1/4")',
-                "Price from the fabrication estimate — this calculator sizes only",
             ])})
         note = CY_SERIES_NOTES["budget"]
     elif rated > CY_HE_MAX_CFM:
@@ -163,15 +166,16 @@ def size(f):
             {"label": "Overall height", "value": str(row["d1"]["B"])},
             {"label": "Weight", "value": f'~{num(row["weight"])} lb'},
         ]
+        price, price_basis = _vendor.cyclone_price(row["series"], row["weight"])
         lines.append({
-            "name": f'Cyclone — MCE {row["series"]}', "quantity": 1, "unitPrice": 0,
-            "needsPrice": True, "description": "\n".join([
+            "name": f'Cyclone — MCE {row["series"]}', "quantity": 1,
+            "unitPrice": round(price, 2) if price else 0,
+            "needsPrice": not price, "description": "\n".join([
                 f'{row["d1"]["A"]}" dia barrel, {row["d1"]["B"]} overall height',
                 f'Rated {num(row[key])} CFM at {wg}" WG · {detail}',
                 f'{num(row["cfm2"])} / {num(row["cfm3"])} / {num(row["cfm4"])} CFM at '
                 '2" / 3" / 4" WG',
                 f'Shipping weight ~{num(row["weight"])} lb',
-                "Price from the fabrication estimate — this calculator sizes only",
             ])})
         note = CY_SERIES_NOTES["mce"]
     else:
@@ -217,14 +221,18 @@ def size(f):
                         "H = lower cost-per-CFM at volume.")
             outputs.append({"label": "Alternative", "value": alt_note})
             desc.append(alt_note)
-        desc.append("Price from the fabrication estimate — this calculator sizes only")
+        price, price_basis = _vendor.cyclone_price(row["series"], row["weight"])
         lines.append({"name": f'Cyclone — MCE {row["series"]}', "quantity": 1,
-                      "unitPrice": 0, "needsPrice": True, "description": "\n".join(desc)})
+                      "unitPrice": round(price, 2) if price else 0,
+                      "needsPrice": not price, "description": "\n".join(desc)})
         note = CY_SERIES_NOTES["mce"]
 
+    if price:
+        outputs.append({"label": "Cyclone price", "value": f"${price:,.0f}"})
     outputs.append({"label": "Series basis", "value": note})
     return {"calculator": "Cyclone", "outputs": outputs, "warnings": warnings,
-            "lines": lines, "total": 0.0, "formula": formula,
+            "lines": lines, "total": round(price or 0.0, 2), "formula": formula,
+            "priceBasis": price_basis,
             "cfm": jsround(rated), "model": lines[0]["name"].split("— ", 1)[1],
             "matchSize": match_size, "fit": fit, "detail": detail,
             "altNote": alt_note}

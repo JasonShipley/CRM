@@ -90,6 +90,16 @@ SCREW_QUOTES = [
 # the eight carbon-steel quotes, each escalated to SCREW_MODEL_DATE first. Mean
 # absolute error 6.6%, worst 16%. Re-fit with tests/fit_screw_model.py when a new
 # quote lands.
+# OPEN — two more SS points surfaced from MCE PO 520244-BSC (2026-06-10, SCC quote
+# H47978CK) that the fit above does NOT explain and that are NOT in the fit set:
+#     12" T304, 36 ft  $18,955      model predicts $28,375  (+50%)
+#     12" T304, 18 ft  $7,425 ea    model predicts $14,530  (+96%)
+# Neither PO line mentions a drive, while most of the fitted quotes carry a motor
+# (the 12" x 20 ft T304 in the fit set is $15,495 WITH a 3 HP Nord). If those two
+# are bare conveyors, the model is pricing a drive into every budget and reads
+# high for a screw supplied without one. Do not refit on these until SCC confirms
+# what H47978CK included — refitting on an unknown scope would be worse than the
+# current over-prediction, which at least errs toward covering MCE.
 SCREW_MODEL_DATE = datetime.date(2026, 9, 23)
 SCREW_MODEL = {"base": 6612.0, "per_in": -494.0, "per_in_ft": 64.10}
 # Implied by the one like-for-like pair across time: a 9" x 8 ft unit that the
@@ -165,3 +175,157 @@ def fan_quote_stale(today=None):
     if AIRPRO_CONFIRMED and today <= AIRPRO_CONFIRMED + AIRPRO_CONFIRMED_GOOD_FOR:
         return False
     return today > AIRPRO_QUOTE_EXPIRES
+
+
+# ------------------------------------------------------- MCE's own markup rules --
+# Transcribed from MCE's own cost sheets, not inferred:
+#
+#   Buy-out equipment  price = cost / 0.70   "1D3D-60 CYCLONE - BUDGET PRICE MODEL",
+#                                            dial "Buy-out margin 0.3". Verified
+#                                            exactly against a real pair: Airlanco
+#                                            quote 024350 priced the 49AST10 filter
+#                                            at $32,321 cost and the NEMO Feed
+#                                            proposal sold it at $46,172.
+#   MCE fabrication    sell  = (cost x 1.10) / 0.75   same sheet: contingency 0.10
+#                                            of cost, margin 0.25 *of sell*.
+#   Replacement parts  sell  = cost / 0.77   HET Levelland Q-20260713-HET internal
+#                                            note, "23% gross margin".
+# OPEN — MCE currently has three different markups in play on bought-in equipment:
+#   fans   x2.00   ("double our cost", Jason, 2026-09-23)
+#   screws x1.375  (1/0.80 with 10% cover, Jason, 2026-09-23)
+#   sheet  x1.4286 (1/0.70, MCE's own buy-out dial)
+# The calculators use whichever Jason specified for that item, so nothing here
+# quietly overrides an instruction. Worth a single ruling.
+BUYOUT_DIVISOR = 0.70
+FAB_CONTINGENCY = 0.10
+FAB_MARGIN = 0.25                       # of sell, not of cost
+PARTS_DIVISOR = 0.77
+
+# Shop dials from the same fabrication model, for reference when a weldment has
+# to be estimated from scratch rather than from a sold price.
+SHOP_RATE_PER_HR = 85.0
+STEEL_SHEET_PER_LB = 0.85
+STEEL_PLATE_PER_LB = 0.75
+FLAT_BAR_PER_LB = 1.10
+
+
+def buyout_price(cost):
+    """Vendor cost -> MCE sell price, at MCE's documented buy-out margin."""
+    return cost / BUYOUT_DIVISOR
+
+
+def fab_price(cost):
+    """MCE shop cost -> sell price, at MCE's documented fabrication margin."""
+    return cost * (1 + FAB_CONTINGENCY) / (1 - FAB_MARGIN)
+
+
+# ------------------------------------------------------------------- cyclones --
+# Sell prices MCE has actually put in front of a customer, by the model the
+# cyclone calculator selects. 10 ga mild steel unless noted.
+#   HE-30 / HE-39 / HE-47   NEMO Feed "Budgetary quote - Wheat Straw Line",
+#                           ref 20260428-101712645, April 28 2026.
+#   H74                     LETEK DCG MCE-Q-2609-LETEK-R2, September 12 2026,
+#                           listed there as "HE-74" but rated 16,263 CFM at 3 in
+#                           WG, which is the H74 line of MCE's own H chart. That
+#                           one carries a weather hood, lined inlet and first-
+#                           impact area and a removable top, so it prices high
+#                           per pound against the plain HE units.
+CYCLONE_QUOTES = {
+    "HE-30": (7950.0, "2026-04-28", "NEMO Feed 20260428", '10 ga mild steel, rated to 4,900 CFM'),
+    "HE-39": (11950.0, "2026-04-28", "NEMO Feed 20260428", '10 ga mild steel, rated to 8,800 CFM'),
+    "HE-47": (15950.0, "2026-04-28", "NEMO Feed 20260428", '10 ga mild steel, rated to 12,600 CFM'),
+    "H74": (30940.0, "2026-09-12", "LETEK MCE-Q-2609-LETEK-R2",
+            "three-piece with weather hood, lined inlet and first-impact area, removable top"),
+}
+CYCLONE_QUOTE_DATE = datetime.date(2026, 4, 28)
+
+# Sizes with no sold price fall back to dollars per pound of published shipping
+# weight. The four quotes above land at $11.39-13.03/lb; the fabrication model
+# for a bare 12 ga cyclone computes $10.03/lb of finished weldment, which brackets
+# it from below. $11.50/lb is the low end of the sold range, so an interpolated
+# price is never optimistic about a size MCE has not actually sold.
+CYCLONE_PER_LB = 11.50
+
+# Adders quoted alongside the HE cyclones, same NEMO Feed proposal.
+CYCLONE_ADDERS = {
+    "HE-30": {"stand": 2500.0, "insulated": 2995.0},
+    "HE-39": {"stand": 2500.0, "insulated": 4995.0},
+    "HE-47": {"stand": 3500.0, "insulated": 5995.0, "ss304": 9000.0},
+}
+
+# -------------------------------------------------------------------- airlocks --
+# (cost, sell, date, source, description). Sell is MCE's own quoted price where
+# one exists; where only a cost exists, sell is left None and buyout_price()
+# applies. The Airlanco FT-12 is the mill-scale drop-through airlock that goes
+# under a hammermill filter hopper, and is the default this quote builder uses.
+AIRLOCK_QUOTES = [
+    ("Airlanco FT-12", 9026.0, None, "2026-04-23", "Airlanco quote 024350",
+     "drop-through rotary, cast iron housing and end plates, 8-vane open-end mild "
+     "steel bevelled rotor, outboard bearings, 1.5 HP TEFC gearmotor at 18 RPM"),
+    ("Prater BAV 10", 23124.0, None, "2025-04-03", "MCE PO 520214 / Prater KT012025111600",
+     "BAV 10 configured, engineering master, ambient service"),
+    ("EMVDL-RVEX-HT37", None, 10272.50, "2026-04-28", "NEMO Feed 20260428",
+     "ATEX EN 15089 and NFPA 69 certified rotary valve to 40 in WG, cast iron, "
+     "8-vane polyurethane flex-tip rotor, 1 HP at 30 RPM, 0.70 ft3 per rotation"),
+    ("EMVDL-RVEX-HT45", None, 22998.0, "2026-04-28", "NEMO Feed 20260428",
+     "ATEX EN 15089 and NFPA 69 certified rotary valve to 40 in WG, cast iron, "
+     "8-vane polyurethane flex-tip rotor, 2 HP at 30 RPM, 1.23 ft3 per rotation"),
+]
+AIRLOCK_DEFAULT = "Airlanco FT-12"
+
+# -------------------------------------------------------- baghouse, bought out --
+# One real pair: Airlanco quote 024350 (April 23 2026) costed the 60 Series
+# 49AST10 Style II at $32,321 for 804 ft2 of cloth on 6,240 CFM of ground corn
+# dust, and the NEMO Feed proposal sold it at $46,172.
+#
+# That is an Airlanco A-60: a free-standing filter with a hopper, ladder, cage,
+# guardrail and safety gate. MCE's own line is plenum-mount with no hopper and
+# none of that access steel, so this rate is an UPPER bound on an MCE-built unit
+# of the same cloth area, not a price for one. It is carried here so the quote
+# shows a defensible budget number instead of a zero, and every line built from
+# it says which it is.
+BAGHOUSE_REF = ("Airlanco 49AST10 Style II", 32321.0, 804.0, "2026-04-23",
+                "Airlanco quote 024350")
+BAGHOUSE_COST_PER_SQFT = 32321.0 / 804.0          # $40.20/ft2 of cloth, vendor cost
+BAGHOUSE_QUOTE_DATE = datetime.date(2026, 4, 23)
+
+
+def airlock(name=None):
+    """(name, sell price, date, source, description) for one airlock."""
+    want = name or AIRLOCK_DEFAULT
+    for entry in AIRLOCK_QUOTES:
+        if entry[0] == want:
+            model, cost, sell, date, source, desc = entry
+            return model, (sell if sell is not None else buyout_price(cost)), date, source, desc
+    return None
+
+
+def cyclone_price(model, weight_lb=None):
+    """(price, basis) for a cyclone model the calculator selected.
+
+    A model MCE has sold prices at that price. Anything else is interpolated from
+    the published shipping weight at CYCLONE_PER_LB, and the basis string says so
+    — the caller keeps that out of the customer-facing description.
+    """
+    quoted = CYCLONE_QUOTES.get(model)
+    if quoted:
+        price, date, source, note = quoted
+        return price, f"sold price, {source} ({date}) — {note}"
+    if weight_lb:
+        return (weight_lb * CYCLONE_PER_LB,
+                f"interpolated at ${CYCLONE_PER_LB:.2f}/lb on {weight_lb:,.0f} lb "
+                f"shipping weight — MCE has sold {', '.join(sorted(CYCLONE_QUOTES))} "
+                f"at $11.39–13.03/lb; not a quoted price for this size")
+    return None, ""
+
+
+def baghouse_budget(cloth_sqft):
+    """(price, basis) for a filter of this cloth area, from the one Airlanco pair."""
+    cost = cloth_sqft * BAGHOUSE_COST_PER_SQFT
+    ref, ref_cost, ref_area, ref_date, ref_source = BAGHOUSE_REF
+    return (buyout_price(cost),
+            f"budget only — scaled from {ref} at ${BAGHOUSE_COST_PER_SQFT:.2f}/ft² "
+            f"cost ({ref_source}, {ref_date}: ${ref_cost:,.0f} for {ref_area:,.0f} ft²), "
+            f"marked up at MCE's buy-out divisor {BUYOUT_DIVISOR:g}. That unit is a "
+            "free-standing Airlanco with hopper and access steel, so this is an upper "
+            "bound on an MCE plenum-mount build, not a quote for one")

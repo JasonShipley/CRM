@@ -90,8 +90,24 @@ def test_jb_request():
     check("fan selected from the AirPro lineup", fan and "AirPro" in fan["name"], str(fan))
     check("fan is priced, not TBD", fan and not fan.get("needsPrice") and fan["unitPrice"] > 0,
           str(fan))
-    for item in ("Ductwork", "Airlock"):
-        check(f"{item} listed unpriced", any(n.startswith(item) for n in names), str(names))
+    check("ductwork listed unpriced — still no calculator or basis for it",
+          any(n.startswith("Ductwork") for n in names), str(names))
+    # The airlock is a buy-out with a real vendor cost on file, so it is priced.
+    airlock = next((l for l in q["lines"] if l["name"].startswith("Rotary Airlock")), None)
+    check("airlock priced from the vendor basis",
+          airlock and airlock["unitPrice"] > 0 and not airlock.get("needsPrice"),
+          str(airlock))
+    check("no vendor quote number on the airlock line",
+          airlock and "024350" not in airlock["description"], str(airlock))
+    check("airlock basis is internal",
+          "buy-out divisor" in open_text(q), open_text(q))
+    # The baghouse budget is scaled from one Airlanco pair — it must say so.
+    bh = next((l for l in q["lines"] if "Baghouse" in l["name"]), None)
+    check("baghouse carries a budget price", bh and bh["unitPrice"] > 0, str(bh))
+    check("baghouse budget flagged internally",
+          "budget figure only" in open_text(q), open_text(q))
+    check("no vendor name on the baghouse line",
+          bh and "Airlanco" not in bh["description"], str(bh))
     screw = next((l for l in q["lines"] if "Screw Conveyor" in l["name"]), None)
     check("screw priced from the SCC basis",
           screw and not screw.get("needsPrice") and screw["unitPrice"] > 0, str(screw))
@@ -112,8 +128,8 @@ def test_jb_request():
           all(l.get("unitPrice") in (0, "", None) for l in q["lines"] if l.get("needsPrice")))
     check("motor is net-priced and flagged",
           q["netItems"] and q["netItems"][0].get("needsPrice"), str(q["netItems"]))
-    check("remaining air items openly unpriced", "no MCE calculator" in open_text(q),
-          str(unpriced))
+    check("the one remaining air item is openly unpriced",
+          "neither a calculator nor a price basis" in open_text(q), str(unpriced))
     check("screw budget flagged as modelled",
           "modelled budget" in open_text(q).lower(), open_text(q))
 
@@ -161,7 +177,8 @@ def test_no_air_system():
 
 def test_cyclone_when_the_rep_asks_for_one():
     """A rep who names a cyclone gets a sized cyclone and no baghouse. The
-    cyclone has no price basis, so the line must stay unpriced and say why."""
+    cyclone is priced from MCE's own sold prices, and the provenance stays off the
+    customer's page."""
     q = qfj.build(jb_request(dust_collection="cyclone"), today=TODAY)
     names = [l["name"] for l in q["lines"]]
     check("no baghouse quoted", not any("Baghouse" in n for n in names), str(names))
@@ -169,13 +186,15 @@ def test_cyclone_when_the_rep_asks_for_one():
     check("cyclone line present", cyc is not None, str(names))
     if cyc:
         check("cyclone is sized, not TBD", "TBD" not in cyc["name"], cyc["name"])
-        check("cyclone carries no price", cyc["unitPrice"] == 0 and cyc["needsPrice"])
-        check("no vendor or pricing commentary on the customer line",
-              "estimate" in cyc["description"], cyc["description"])
+        check("cyclone is priced", cyc["unitPrice"] > 0 and not cyc.get("needsPrice"),
+              str(cyc))
+        check("no pricing provenance on the customer line",
+              "NEMO" not in cyc["description"] and "$" not in cyc["description"],
+              cyc["description"])
     # the fan came with the baghouse; without one it is back to TBD
     check("fan back to TBD", any(n.startswith("Fan — size and price TBD") for n in names),
           str(names))
-    check("unpriced cyclone flagged internally",
+    check("cyclone price basis recorded internally",
           "cyclone" in open_text(q).lower(), open_text(q))
     # and the size itself is the calculator's, off the mill's own plenum airflow
     cy = next((s for s in q["sizing"] if s["calculator"] == "Cyclone"), None)
