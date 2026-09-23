@@ -97,55 +97,54 @@
       "type": "pricing",
       "title": "Scope of supply and pricing",
       "note": "USD · taxes and freight excluded",
-      "discount_percent": 10,
-      "discount_label": "project discount, 8-mill order",
+      "discount_percent": 0,
       "total_label": "eight (8) mill lines as quoted",
       "items": [
         {
           "name": "XM-4460 Hammer Mill — Extra Heavy Duty Mill Design",
           "qty": 8,
-          "unit_price": 123791.8,
+          "unit_price": 112538.0,
           "description": "Direct drive, dual grinding chamber, gravity discharge hammer mill:\n• Motor base extension; reversible top feed inlet; screen carriage\n• Screen size: #5 (5/64\") — two (4 total) sets of screens included\n• Construction: mild steel with AR liners\n• 7,200 sq in screen area\n• Hammers: hard faced, heat treated — one (1) set included\n• HP range 300–600 HP; operating horsepower 500 HP\n• Capacity: 48–50 TPH corn; air relief 9,360 CFM @ 6\" SP through the mill\n• Included: top feed inlet, mill/motor support base, three NEMA 4/12 limit switches, OSHA guard, vibration switch and rubber vibration pads\n• Motor: 500 HP, 1800 RPM, 460 V/3/60, TEFC premium efficiency, 1.15 SF — **not included in the mill price**; see item 7 (TECO) or Option A (Toshiba). Customer-supplied motors are shipped to MCE for mounting and alignment before the mill ships."
         },
         {
           "name": "XM-10\" AC 14-Row Nylon Cup Feeder with built-in Auto Self-Clean Magnet Adapter",
           "qty": 8,
-          "unit_price": 41631.7,
+          "unit_price": 37847.0,
           "description": "• 10\" dia. nylon cup rotor, 14 rows; shaft extension, motor base and roller chain drive with safety shield\n• 1.608 cu ft/rev; 20.72 RPM at 90% cup fill\n• Combo unit built with auto self-clean magnet adapter: stainless steel front, stainless steel hinged magnet plate, air operated with two air cylinders and trash pans; SF300-50\" plate magnet\n• Micro switch to indicate magnet door open\n• Gearhead motor for feeder quoted separately (item 3)"
         },
         {
           "name": "Feeder Gearhead Motor",
           "qty": 8,
-          "unit_price": 4059.0,
+          "unit_price": 3690.0,
           "description": "2 HP, 3 PH, 60 Hz, 460 V, TEFC gearhead motor, 40.7 RPM final output — sized for 20.72 RPM feeder speed through the roller chain drive."
         },
         {
           "name": "Maintenance Gate — Electric Drive",
           "qty": 8,
-          "unit_price": 10835.0,
+          "unit_price": 9850.0,
           "description": "• Mounted between the hammer mill discharge and the plenum chamber\n• Push rods with rack and pinion gear seal off the hammer mill for maintenance and prevent dropped parts from entering the plenum\n• Electric drive: 1 HP Sumitomo right-angle gearmotor, 3 PH, TEFC\n• Two micro switches indicate gate open and gate closed at the control panel"
         },
         {
           "name": "Custom Plenum Chamber — 350 FPM, for XM-4460 (MCE dwg. XM4460-350PL Rev A)",
           "qty": 8,
-          "unit_price": 44567.6,
+          "unit_price": 40516.0,
           "description": "• 78\" × 78\" cross-section, 218-1/8\" (18'-2\") long over end flanges, 72\" deep including 35° hopper bottom; discharge opening built to suit the 20\" transfer screw inlet (item 6)\n• Constructed of 3/16\" A36 plate, wrapped every 24\" with 2\" flat bar\n• 10\" top flange with bolted 78\" × 78\" mill mounting opening at the mill end; 55\" × 60-3/4\" flanged opening at the opposite end for the dust filter / air-relief connection (filter by others)\n• Plenum hangs below the mill floor (mill sets on concrete) — no support structure, hangers or floor steel included\n• Approximate weight 2,500 lb each; exterior one shop coat grey enamel\n• Final length confirmed on approval drawings to suit mill placement"
         },
         {
           "name": "Transfer Screw Conveyor — 20\" dia. × 21'-0\", for XM-4460 plenum",
           "qty": 8,
-          "unit_price": 23402.5,
+          "unit_price": 21275.0,
           "description": "Per SCC quote H51980CK (9/22/26): 20\" diameter screw conveyor, 21'-0\" long inside trough ends, single span with no intermediate hanger bearing, to convey 50 TPH of ground corn at 35 PCF, control fed at 45% trough loading, 33 RPM, horizontal.\n• 20\" RH sectional screw, 20'-8\" long, 1/4\" flighting, full pitch, on 6\" Sch 40 pipe, precision bushed for 3-7/16\" shafts; Tem-U-Lac coupling bolts\n• 20\" × 3/16\" angled flanged trough, 21'-0\" long; first 18'-0\" uncovered/non-punched to receive the plenum hopper discharge, with angle flange around the opening to bolt to the plenum\n• 20\" × 40\" shroud at the end of the 18'-0\" opening, then 3'-2-1/2\" of 12 GA flanged cover, gasketed, bolted on 12\" centers, to the discharge\n• Anti-friction tail trough end with WPS and lip seal; standard drive trough end with feet, acting as the fourth side of a flush end discharge; flush end discharge spout, support feet, gaskets and bolt kits\n• Drive: Baldor EM3774T, 10 HP, 1750 RPM, 3/60/230-460 V, TEFC, 215T frame, motor mounted at 12 o'clock; Dodge TA4207H40 taper-bushed reducer, class 2 gearing, 33 RPM output, drive shaft, motor mount, SCD adaptor, sheaves, adjustable packing kit, (2) v-belts, belt guard\n• Exterior: one shop coat grey enamel; general arrangement drawings for approval before fabrication"
         },
         {
           "name": "Main Drive Motor — TECO MAX-E1 500 HP",
           "qty": 8,
           "unit_price": 31336.0,
-          "description": "TECO MAX-E1 premium efficiency, 500 HP, 1800 RPM, 460 V/3/60, TEFC, 5009/10/11 frame, cast iron, 1.15 SF. Mounted, aligned and guarded on the mill at MCE. Priced net — the project discount does not apply to motors. [[TECO quoted from stock (Round Rock, TX) — confirm availability of eight and lead time.]] Mid-States may instead purchase the motors directly and ship them to MCE for mounting at no additional charge.",
+          "description": "TECO MAX-E1 premium efficiency, 500 HP, 1800 RPM, 460 V/3/60, TEFC, 5009/10/11 frame, cast iron, 1.15 SF. Mounted, aligned and guarded on the mill at MCE. Priced net, passed through at Dykman's quoted cost. [[TECO quoted from stock (Round Rock, TX) — confirm availability of eight and lead time.]] Mid-States may instead purchase the motors directly and ship them to MCE for mounting at no additional charge.",
           "discount_exempt": true
         }
       ],
-      "after": "Unit prices are quoted for a single order of eight (8) lines. The project discount applies to items 1–6; motors (item 7 and Option A) are priced net.",
+      "after": "Unit prices are quoted for a single order of eight (8) lines, at MCE list price. Motors (item 7 and Option A) are priced net.",
       "options": [
         {
           "name": "Toshiba Global SD 500 HP main drive motors, in lieu of item 7",
@@ -215,7 +214,7 @@
   "internal_notes": {
     "do_not_print": true,
     "source": "JB email 'Mid States' of Sep 15, 2026 to Jason Shipley and Mike Buckskin",
-    "pricing_rule": "Unit prices = list x 1.10; 10% discount shown to Chris (net = 0.99 x list). Competing with CSE Bliss and CPM Bliss, believed ~10% higher after steel adjustments.",
+    "pricing_rule": "ORIGINAL (JB email 9/15/26): unit prices = list x 1.10; 10% discount shown to Chris (net = 0.99 x list), competing against CSE Bliss and CPM Bliss believed ~10% higher after steel cost adjustments. CHANGED 9/23/26 per Jason: removed the 10% markup and the 10% discount -- quote now shows straight MCE list price with no discount line. Rationale: that 10% margin is going to WD Patterson as commission for securing the order (per JB's 9/15 email: 'We will pay WD commission if we secure this order'), so it's cleaner to carry it inside cost/margin rather than stage it as an artificial discount on the customer-facing quote. Net effect: prices to Chris are now ~1% higher than the old list x1.10 x0.90 = 0.99x-list figure (straight list vs. 99% of list), but the structure is simpler and the commission isn't visible to the customer.",
     "list_prices": {
       "mill": 112538.0,
       "feeder": 37847.0,
