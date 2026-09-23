@@ -101,8 +101,13 @@ All commands run on the server, from the repo folder (e.g. `/opt/mce-crm`).
 | View app logs | `docker compose logs --tail 100 server` |
 | Restart after a reboot | nothing — containers auto-start (`restart: always`) |
 | Update Twenty | edit `deploy/.env`, change `TAG=` to the new version, then `docker compose pull && docker compose up -d` |
+| Update to the latest code | `sudo /opt/mce-crm/deploy/update.sh` |
 | Back up now | `sudo deploy/backup.sh` |
 | Restore a backup | `gunzip -c /var/backups/mce-crm/twenty-db-<stamp>.sql.gz \| docker compose exec -T db psql -U postgres -d default` |
+
+`update.sh` pulls the repo, reinstalls the app code and rebuilds the quote
+builder. It never touches `.env`, `credentials.local`, the database or the
+stored quotes. Pass a branch name to deploy something other than `main`.
 
 Nightly backups: `deploy/backup.sh` is installed in root's crontab (2:15 AM, keeps 30
 days, database + uploaded files) during production setup.

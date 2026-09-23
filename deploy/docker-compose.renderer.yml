@@ -12,6 +12,10 @@ services:
       - "127.0.0.1:8090:8090"
     environment:
       TWENTY_URL: http://server:3000
+      # Twenty rejects a login whose origin doesn't match its own SERVER_URL,
+      # so this has to follow SERVER_URL in .env (https://crm.usemce.com once
+      # setup-https.sh has run), not the internal container URL.
+      TWENTY_ORIGIN: ${SERVER_URL:-http://server:3000}
       TWENTY_EMAIL: ${TWENTY_EMAIL}
       TWENTY_PASSWORD: ${TWENTY_PASSWORD}
       RENDERER_DATA_DIR: /data
