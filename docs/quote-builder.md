@@ -53,6 +53,53 @@ test will fail, and the matching Python function needs the same change.
 
 ---
 
+## The free-text intake
+
+A rep types the job as a sentence; a complete draft proposal comes out. Two
+stages, deliberately separated:
+
+**1. Extraction (`interpret.py`).** One Claude call reads the sentence and fills
+a Pydantic schema — customer, mill model, capacity, screen, feeder, what's
+included. It is told, and schema-constrained, to do **extraction only**: never
+invent a value, never resolve an ambiguity by picking the likelier option, and
+push anything unclear into `ambiguities`. `"8-4row"` comes back as `rows: null`
+plus a question, not as an `8`.
+
+**2. Engineering (`quote_from_job.py`).** No model involved. It takes those
+fields, runs MCE's calculators, and assembles the proposal. Every number that
+reaches the page comes from `calculators/`.
+
+That split is the point. The model is a parser for the rep's shorthand; it is
+never the source of a quoted figure. The rule the quote-builder skill states —
+prices from MCE's basis, sizes from MCE's calculators — holds even though the
+input is free text.
+
+### What it flags rather than guesses
+
+| Situation | What the proposal does |
+|---|---|
+| Ambiguous wording (`"8-4row"`) | Sizes the feeder from the mill screen width, asks for the row count |
+| Product could match two index rows | Uses the closer one, flags it — the pet food entries grind very differently |
+| Stated HP disagrees with the calculation | Quotes the calculated figure, prints the conflict orange on the design basis |
+| Named mill too small for the motor | Quotes the mill asked for, states the shortfall and names the auto match |
+| No calculator exists (fan, cyclone, duct) | Lists the item unpriced rather than omitting or guessing it |
+| Governing spec missing entirely | Quotes nothing, says what it needs |
+
+Unresolved values print **orange**, matching the convention on MCE's own draft
+proposals ("orange items require MCE input before release"). While a quote is
+Draft the proposal also carries an internal open-items block listing all of them,
+with the original sentence it was built from; that block disappears when the
+quote leaves Draft.
+
+`ANTHROPIC_API_KEY` powers this one box. Without it the box says so and the rest
+of the builder is unaffected.
+
+`tests/test_intake.py` covers the whole downstream half against the JobRequest
+shapes Claude is instructed to produce — including the cases above, which are
+the ones that matter.
+
+---
+
 ## Sizing chains
 
 The calculators feed each other, which is why they live on one page:
@@ -95,8 +142,10 @@ build assumptions**.
 ## What is saved
 
 One JSON file per quote under `RENDERER_DATA_DIR` (a docker volume in
-production), including a `sizing` record of every calculator run that fed the
-quote and the exact inputs it ran on. An engineer reviewing a proposal can see
+production): the customer and line items, the proposal sections (design basis,
+furnished by others, schedule, options, net-priced items, open items), the
+original sentence it was built from, and a `sizing` record of every calculator
+run that fed the quote with the exact inputs it ran on. An engineer reviewing a proposal can see
 where each number came from without re-deriving it.
 
 The record shape is deliberately tool-agnostic — customer, lines, sizing — so

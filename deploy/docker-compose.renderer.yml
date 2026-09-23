@@ -19,6 +19,9 @@ services:
       TWENTY_EMAIL: ${TWENTY_EMAIL}
       TWENTY_PASSWORD: ${TWENTY_PASSWORD}
       RENDERER_DATA_DIR: /data
+      # Powers the "describe the job" box. Without it the box says so and the
+      # rest of the builder still works.
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       # Optional second lock behind Caddy's basic auth. Set both, or neither.
       RENDERER_PASSWORD: ${RENDERER_PASSWORD:-}
       SECRET_KEY: ${RENDERER_SECRET_KEY:-}

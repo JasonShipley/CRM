@@ -35,8 +35,29 @@ Open `http://<server>:3000` and sign in with the email/password from
 
 ### Build a quote
 
-Open `https://quotes.usemce.com` and click **+ New quote**. The form runs top to
-bottom:
+Open `https://quotes.usemce.com` and click **+ New quote**.
+
+**The fast way — describe the job.** Type the request the way you'd say it out
+loud in the box at the top and press **Build the quote**:
+
+> *quote Dennis Heideman at Fairview Mills a 4430 with 200hp for grinding a grain
+> ration pet food 15tph on a 6/64" screen, including an SS round cup 10" auto
+> selfclean feeder, plenum chamber, screw, and air system*
+
+It fills in the customer, the design basis, and the priced line items, sizing
+everything with MCE's calculators. Then it lists **open items** — anything you
+left ambiguous, anything the calculators flagged, anything MCE has no calculator
+for. Those print **orange** on the proposal, the same convention MCE's own draft
+proposals use, so nothing unresolved goes out by accident.
+
+It never guesses. If the request says "8-4row" it asks whether that's an 8-row or
+a 4-row rather than picking one. If you name a mill that's too small for the
+horsepower, it quotes the mill you asked for and tells you by how much it's
+short.
+
+Everything it fills in is editable — it's a starting point, not a decision.
+
+**The long way — fill it in yourself.** The form runs top to bottom:
 
 1. **Customer** — company, contact, email, phone, address. These print on the
    proposal.
@@ -61,7 +82,12 @@ bottom:
    calculators don't cover. Leave **Line total** blank to compute
    qty × (price − discount).
 5. **Save** or **Save & open PDF** at the bottom. The PDF is the Equipment
-   Proposal you email.
+   Proposal you email — design basis, scope and pricing, options, furnished by
+   others, schedule, terms and acceptance.
+
+While a quote is **Draft**, the proposal carries an internal open-items block at
+the end listing everything still needing MCE input. Move it off Draft and that
+block disappears.
 
 Lines the calculators size but don't price — screw conveyors and baghouses —
 come in at **$0.00 and are highlighted**. Put a price on them before the quote
@@ -130,6 +156,9 @@ The sync is operated by MCE's Claude workspace (which holds the QuickBooks conne
 3b. Quote builder says the CRM is unreachable → only the **CRM** tab needs Twenty.
    Building quotes, sizing and PDFs keep working; check Twenty with
    `docker compose ps`.
+3c. "Describe the job" says it needs an API key → add `ANTHROPIC_API_KEY` to
+   `deploy/.env` and run `sudo /opt/mce-crm/deploy/update.sh`. Only that one box
+   needs it; the rest of the builder works without.
 4. Disk full → old backups: `du -sh /var/backups/mce-crm`, prune with `find ... -delete`
    (see `backup.sh`), or grow the server volume in the Hetzner console.
 
@@ -139,7 +168,7 @@ The sync is operated by MCE's Claude workspace (which holds the QuickBooks conne
 - `docs/phase2-field-mapping.md` — HubSpot → Twenty field mapping (signed off)
 - `docs/phase3-migration-report.md` — migration results: all counts match, idempotent
 - `docs/examples/` — MCE's example quotes (the renderer's source of truth) + a rendered sample
-- `docs/quote-builder.md` — how the builder and the calculator ports fit together
+- `docs/quote-builder.md` — how the builder, the intake and the calculator ports fit together
 - `docs/hetzner-checklist.md` — production server provisioning steps
 - `migration/` — all migration/import scripts (safe to re-run; never duplicate)
 - `renderer/` — the quote builder + renderer service

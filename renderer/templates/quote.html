@@ -117,6 +117,31 @@
 
   .prose { white-space: pre-wrap; margin: 4px 2px; }
 
+  /* Values MCE still has to supply print orange, matching the convention on
+     MCE's own draft proposals ("orange items require MCE input"). */
+  .tbd { color: var(--orange); font-weight: 600; }
+
+  /* design basis / schedule: parameter | value | notes */
+  .spec td { padding: 6px 8px; vertical-align: top; border-bottom: 1px solid var(--rule); }
+  .spec tbody tr:nth-child(even) td { background: var(--zebra); }
+  .spec td.p { font-weight: 700; width: 132px; }
+  .spec td.v { width: 190px; }
+  .spec td.n { color: #4a4a4a; }
+  .spec tr { page-break-inside: avoid; }
+
+  /* furnished by others */
+  ul.others { margin: 4px 2px 2px 16px; }
+  ul.others li { margin: 2.5px 0; }
+
+  /* draft-only internal block */
+  .internal { border: 1px solid var(--orange); background: #fff6f0; padding: 9px 12px;
+    margin-top: 10px; page-break-inside: avoid; }
+  .internal .h { font-family: "Oswald"; font-weight: 600; font-size: 9px;
+    letter-spacing: .1em; text-transform: uppercase; color: #b04900; margin-bottom: 4px; }
+  .internal ul { margin-left: 14px; }
+  .internal li { margin: 2px 0; color: #5a3000; }
+  .internal .src { font-style: italic; color: #6b6f71; margin-bottom: 6px; }
+
   /* ===== acceptance ===== */
   .accept { display: flex; gap: 50px; margin-top: 6px; page-break-inside: avoid; }
   .accept > div { flex: 1; }
@@ -135,7 +160,8 @@
       <div class="doc cond">EQUIPMENT PROPOSAL</div>
       <div class="sub">{{ q.name }}</div>
       <div class="meta">Proposal {{ ref or "—" }} &nbsp;&middot;&nbsp; {{ issue_date }}</div>
-      {% if is_draft %}<div class="draft">Draft — internal review</div>{% endif %}
+      {% if is_draft %}<div class="draft">Draft — internal review{% if open_items %} —
+        orange items require MCE input before release{% endif %}</div>{% endif %}
     </div>
   </div>
 
@@ -172,7 +198,27 @@
 
     {% if q.comments %}<p class="intro prose">{{ q.comments }}</p>{% endif %}
 
-    <div class="bar"><span class="t">1. Scope of Supply and Pricing</span>
+    {% set ns = namespace(n=0) %}
+
+    {% if design_basis %}
+    {% set ns.n = ns.n + 1 %}
+    <div class="bar"><span class="t">{{ ns.n }}. Design Basis</span></div>
+    <table class="spec">
+      <thead><tr><th>Parameter</th><th>Design value</th><th>Notes</th></tr></thead>
+      <tbody>
+      {% for r in design_basis %}
+        <tr>
+          <td class="p">{{ r.parameter }}</td>
+          <td class="v {{ 'tbd' if r.needsInput }}">{{ r.value }}</td>
+          <td class="n {{ 'tbd' if r.needsInput }}">{{ r.notes }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% endif %}
+
+    {% set ns.n = ns.n + 1 %}
+    <div class="bar"><span class="t">{{ ns.n }}. Scope of Supply and Pricing</span>
       <span class="note">USD &middot; taxes and freight excluded unless noted</span></div>
     <table class="items">
       <thead><tr>
@@ -190,27 +236,93 @@
             {% if it.sku %}<div class="sku">SKU: {{ it.sku }}</div>{% endif %}
           </td>
           <td class="num">{{ it._qty }}</td>
-          <td class="num money">{{ it._unit }}</td>
-          <td class="num money">{{ it._net }}</td>
+          <td class="num money {{ 'tbd' if it.needs_price }}">{{ it._unit }}</td>
+          <td class="num money {{ 'tbd' if it.needs_price }}">{{ it._net }}</td>
+        </tr>
+      {% endfor %}
+      {% for it in net_items %}
+        <tr>
+          <td class="itemno">{{ items|length + loop.index }}</td>
+          <td class="desc"><b>{{ it.name }}</b>
+            {% if it._desc_lines %}<ul>{% for ln in it._desc_lines %}<li>{{ ln }}</li>{% endfor %}</ul>{% endif %}
+            {% if it.sku %}<div class="sku">SKU: {{ it.sku }}</div>{% endif %}
+          </td>
+          <td class="num">{{ it._qty }}</td>
+          <td class="num money {{ 'tbd' if it.needs_price }}">{{ it._unit }}</td>
+          <td class="num money {{ 'tbd' if it.needs_price }}">{{ it._net }}</td>
         </tr>
       {% endfor %}
       </tbody>
     </table>
 
     <div class="totals">
-      <div class="row"><span>Subtotal</span><span>{{ subtotal }}</span></div>
+      <div class="row"><span>Subtotal{% if has_net %} — scope items{% endif %}</span><span>{{ subtotal }}</span></div>
+      {% if discount_percent %}
+      <div class="row"><span>Less {{ discount_percent }}% project discount</span><span>({{ project_discount }})</span></div>
+      {% endif %}
+      {% if has_net %}
+      <div class="row"><span>Items priced net <span class="muted">(no project discount)</span></span><span>{{ net_subtotal }}</span></div>
+      {% endif %}
       {% if has_discount %}
-      <div class="row"><span>Total discount <span class="muted">(included above)</span></span><span>({{ total_discount }})</span></div>
+      <div class="row"><span>Line discounts <span class="muted">(included above)</span></span><span>({{ total_discount }})</span></div>
       {% endif %}
       <div class="row grand"><span class="cond">TOTAL — AS QUOTED</span><span class="amt">{{ total }}</span></div>
     </div>
 
+    {% if options %}
+    {% set ns.n = ns.n + 1 %}
+    <div class="bar"><span class="t">{{ ns.n }}. Options and Adders</span></div>
+    <table class="items">
+      <thead><tr><th style="width:44px">Option</th><th>Description</th>
+        <th class="num" style="width:44px">Qty</th>
+        <th class="num" style="width:90px">Net adder</th></tr></thead>
+      <tbody>
+      {% for o in options %}
+        <tr>
+          <td class="itemno">{{ o.ref or loop.index }}</td>
+          <td class="desc"><b>{{ o.name }}</b>
+            {% if o.description %}<ul>{% for ln in o.description.splitlines() %}{% if ln.strip() %}<li>{{ ln }}</li>{% endif %}{% endfor %}</ul>{% endif %}
+          </td>
+          <td class="num">{{ o.quantity or 1 }}</td>
+          <td class="num money {{ 'tbd' if o.needsPrice }}">{{ o.netAdder or "TBD" }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% endif %}
+
+    {% if by_others %}
+    {% set ns.n = ns.n + 1 %}
+    <div class="bar"><span class="t">{{ ns.n }}. Furnished by Others</span></div>
+    <ul class="others">
+      {% for item in by_others %}<li>{{ item }}</li>{% endfor %}
+    </ul>
+    {% endif %}
+
+    {% if schedule %}
+    {% set ns.n = ns.n + 1 %}
+    <div class="bar"><span class="t">{{ ns.n }}. Freight, Delivery and Schedule</span></div>
+    <table class="spec">
+      <thead><tr><th>Item</th><th colspan="2">Basis</th></tr></thead>
+      <tbody>
+      {% for r in schedule %}
+        <tr>
+          <td class="p">{{ r.item }}</td>
+          <td class="n {{ 'tbd' if r.needsInput }}" colspan="2">{{ r.basis }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% endif %}
+
     {% if q.terms %}
-    <div class="bar"><span class="t">2. Commercial Terms</span></div>
+    {% set ns.n = ns.n + 1 %}
+    <div class="bar"><span class="t">{{ ns.n }}. Commercial Terms</span></div>
     <p class="prose">{{ q.terms }}</p>
     {% endif %}
 
-    <div class="bar"><span class="t">{{ "3" if q.terms else "2" }}. Acceptance</span></div>
+    {% set ns.n = ns.n + 1 %}
+    <div class="bar"><span class="t">{{ ns.n }}. Acceptance</span></div>
     <div class="accept">
       <div class="who">
         <div class="lbl">Prepared by</div>
@@ -225,6 +337,14 @@
         Date: <span class="blank" style="min-width:80px"></span> &nbsp; PO #: <span class="blank" style="min-width:80px"></span>
       </div>
     </div>
+
+    {% if is_draft and open_items %}
+    <div class="internal">
+      <div class="h">Open items for MCE — internal, removed when this leaves draft</div>
+      {% if source_request %}<div class="src">Built from: &ldquo;{{ source_request }}&rdquo;</div>{% endif %}
+      <ul>{% for item in open_items %}<li>{{ item }}</li>{% endfor %}</ul>
+    </div>
+    {% endif %}
 
   </div>
   </td></tr></tbody>

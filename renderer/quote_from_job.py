@@ -1,0 +1,339 @@
+#!/usr/bin/env python3
+"""Build a full draft proposal from a structured JobRequest.
+
+Nothing in here asks a language model anything. It takes the fields a rep stated
+(see interpret.py), runs MCE's calculators, and assembles the proposal in the
+shape MCE's own Equipment Proposals use — design basis, scope and pricing,
+options, furnished-by-others, schedule, commercial terms.
+
+Anything the rep left open, the calculators could not size, or MCE has no
+calculator for yet comes through as an open item and prints orange on the
+proposal, matching MCE's "orange items require MCE input before release"
+convention on a draft.
+"""
+import datetime
+import re
+
+import calculators
+from calculators._data import PRODUCTS
+
+FALLBACK_PLENUM_VELOCITY = "300"
+FALLBACK_TROUGH = "45"
+
+STANDARD_BY_OTHERS = [
+    "Motor starters, VFDs and motor control",
+    "Controls, PLC programming and instrumentation beyond the switches listed in Section 2",
+    "Concrete, foundations, floor openings, anchor bolts and support steel",
+    "Infeed to the feeder, and conveyance from the discharge",
+    "Installation, millwright, electrical and start-up labor",
+]
+
+TERMS = ("Payment: 50% down with order, balance before shipment. Prices are in US dollars "
+         "and exclude sales tax, freight and installation. Warranty per MCE standard terms "
+         "and conditions.")
+
+
+# Corporate suffixes MCE leaves out of a proposal reference: their own
+# Mid-States Companies quote is MCEQ2609MIDSTATESR1, not ...MIDSTATESCOMPANIESR1.
+_SUFFIXES = {"COMPANIES", "COMPANY", "INC", "INCORPORATED", "LLC", "LLP", "LTD",
+             "CORP", "CORPORATION", "CO", "GROUP", "HOLDINGS", "INTERNATIONAL"}
+
+
+def _slug(name, limit=16):
+    """Customer part of a proposal reference: whole words only, never cut mid-word."""
+    words = [w for w in re.split(r"[^A-Za-z0-9]+", (name or "").upper()) if w]
+    words = [w for w in words if w not in _SUFFIXES] or words
+    out = ""
+    for w in words:
+        if len(out) + len(w) > limit:
+            break
+        out += w
+    return out or (words[0][:limit] if words else "CUSTOMER")
+
+
+def quote_number(company, today=None):
+    """MCE's proposal reference: MCEQ + YYMM + CUSTOMER + R1."""
+    d = today or datetime.date.today()
+    return f"MCEQ{d:%y%m}{_slug(company)}R1"
+
+
+def _product(job):
+    """Resolve the rep's product wording to a row in MCE's index table."""
+    if job.product_match:
+        for p in PRODUCTS:
+            if p["name"] == job.product_match:
+                return p
+    return None
+
+
+def _validity(today=None):
+    d = today or datetime.date.today()
+    year_end = datetime.date(d.year, 12, 31)
+    if (year_end - d).days < 30:
+        year_end = datetime.date(d.year + 1, 12, 31)
+    return year_end
+
+
+def build(job, today=None):
+    """JobRequest -> (quote dict, open items). Never raises on a thin request."""
+    open_items = list(job.ambiguities or [])
+    design = []
+    lines = []
+    by_others = list(STANDARD_BY_OTHERS)
+    sizing = []
+
+    qty = max(int(job.quantity or 1), 1)
+    product = _product(job)
+    company = job.customer_company or ""
+
+    # --- what the rep gave us, and what is missing ---------------------------
+    pph = job.capacity_pph or (job.capacity_tph * 2000 if job.capacity_tph else None)
+    if not pph:
+        open_items.append("Throughput was not stated — the mill cannot be sized without it.")
+    if not job.screen_64ths:
+        open_items.append("Screen size was not stated — the mill cannot be sized without it.")
+    if not product:
+        open_items.append(
+            f"No MCE index-table product matches "
+            f"\"{job.product_as_written or 'the product'}\" — engineering to confirm the "
+            "grinding index, screen area per HP and bulk density before this is quoted.")
+    elif job.product_confidence != "stated":
+        open_items.append(
+            f"Product read as \"{product['name']}\" ({job.product_confidence}) from "
+            f"\"{job.product_as_written}\". The pet food entries grind very differently — "
+            "confirm before release.")
+
+    result = None
+    if pph and job.screen_64ths and product:
+        feeder = job.feeder
+        rows = feeder.rows
+        if rows is None and feeder.as_written:
+            open_items.append(
+                f"Feeder rows unclear in \"{feeder.as_written}\" — sized from the mill screen "
+                "width instead. Confirm the row count.")
+        form = {
+            "pph": pph,
+            "screen64": job.screen_64ths,
+            "index": product["index"],
+            "sqInHp": product["sqInHp"],
+            "bulkDensity": product["bulkDensity"],
+            "family": "grain",
+            "millModel": job.mill_model or "",
+            "plenumVelocity": FALLBACK_PLENUM_VELOCITY,
+            "feederDia": feeder.diameter_in or "10",
+            "cupType": feeder.cup_type or "nylon",
+            "rowCount": rows if rows is not None else "",
+            "magnetClean": feeder.magnet_clean or "sma",
+            "trough": FALLBACK_TROUGH,
+            "runLength": 0,
+        }
+        result = calculators.run("hammermill", form)
+        if result.get("error"):
+            open_items.append(f"Hammermill sizing failed: {result['error']}")
+            result = None
+        else:
+            open_items.extend(result.get("warnings", []))
+            sizing.append({"calculator": result["calculator"], "inputs": form,
+                           "formula": result.get("formula", ""),
+                           "outputs": result.get("outputs", []),
+                           "warnings": result.get("warnings", [])})
+
+    out = {o["label"]: o["value"] for o in (result or {}).get("outputs", [])}
+
+    # --- the rep's stated motor vs what the math says ------------------------
+    motor = out.get("Motor size")
+    motor_conflict = False
+    if job.motor_hp and motor:
+        stated = f"{job.motor_hp:g} HP"
+        if stated != motor:
+            motor_conflict = True
+            open_items.append(
+                f"The request says a {stated} motor; {pph:,.0f} PPH at index "
+                f"{product['index']} through a {job.screen_64ths:g}/64\" screen calculates "
+                f"to {motor}. Confirm which governs before release.")
+    elif job.motor_hp and not motor:
+        open_items.append(f"Motor stated as {job.motor_hp:g} HP but the mill could not be "
+                          "sized to check it.")
+
+    # --- design basis ---------------------------------------------------------
+    def row(parameter, value, notes="", needs_input=False):
+        design.append({"parameter": parameter, "value": value, "notes": notes,
+                       "needsInput": needs_input})
+
+    row("Product", product["name"] if product else (job.product_as_written or "TBD"),
+        f'As described: "{job.product_as_written}"' if job.product_as_written else "",
+        needs_input=not product)
+    row("Number of mills", f"{qty} × {out.get('Mill', 'TBD')}",
+        "Direct drive, dual grinding chamber" if result else "", needs_input=not result)
+    if pph:
+        row("Capacity", f"{pph / 2000:g} TPH ({pph:,.0f} PPH) per mill",
+            f"At grinding index {product['index']}" if product else "", needs_input=not product)
+    else:
+        row("Capacity", "TBD", "Not stated in the request", needs_input=True)
+    row("Screen size", f'{job.screen_64ths:g}/64"' if job.screen_64ths else "TBD",
+        "One set of screens per mill included" if job.screen_64ths else "",
+        needs_input=not job.screen_64ths)
+    if result:
+        row("Mill drive",
+            f"{motor}, {out.get('Rotor', '')}"
+            + (f" — request said {job.motor_hp:g} HP" if motor_conflict else ""),
+            "460 V/3/60 TEFC premium efficiency — motor priced separately"
+            + (". Calculated and requested horsepower disagree — confirm which governs"
+               if motor_conflict else ""),
+            needs_input=motor_conflict)
+        short = str(out.get("Screen-area headroom", "")).startswith("-")
+        row("Screen area", f"{out.get('Mill screen area', '')}",
+            f"{out.get('Screen-area headroom', '')} headroom over the "
+            f"{out.get('Screen area required', '')} required"
+            + (" — this mill is undersized for the calculated motor" if short else ""),
+            needs_input=short)
+        if job.include_air_system or job.include_plenum:
+            row("Air relief through mill", f"{out.get('Plenum airflow', 'TBD')}",
+                f"At {FALLBACK_PLENUM_VELOCITY} FPM plenum design velocity")
+        row("Feeder", out.get("Rotary feeder", "TBD"),
+            f"{out.get('Feeder shaft speed', '')} at 90% cup fill"
+            + (f'; {job.feeder.magnet_clean and "magnet adapter included"}'
+               if job.feeder.magnet_clean else ""))
+    row("Installation", "By others", "MCE start-up assistance available at standard rates")
+
+    # --- scope of supply -------------------------------------------------------
+    if result:
+        wanted = {"Hammermill": True,
+                  "Rotary Feeder": True,
+                  "Plenum Chamber": job.include_plenum or job.include_air_system,
+                  "Screw Conveyor": job.include_screw}
+        for line in result["lines"]:
+            keep = next((v for k, v in wanted.items() if k in line["name"]), True)
+            if not keep:
+                continue
+            lines.append({**line, "quantity": qty})
+
+    # --- air system -------------------------------------------------------------
+    if job.include_air_system:
+        screen_area = result.get("screen_area") if result else None
+        if screen_area:
+            bh = calculators.run("baghouse", {"mode": "mill", "screenArea": screen_area,
+                                              "ratio": 7, "lenFilter": "any"})
+            if not bh.get("error"):
+                for line in bh["lines"]:
+                    lines.append({**line, "quantity": qty})
+                sizing.append({"calculator": bh["calculator"], "inputs": {
+                    "mode": "mill", "screenArea": screen_area, "ratio": 7},
+                    "formula": bh.get("formula", ""), "outputs": bh.get("outputs", []),
+                    "warnings": bh.get("warnings", [])})
+                open_items.extend(bh.get("warnings", []))
+        # MCE has no fan, cyclone or ductwork calculator yet — say so rather than
+        # quoting an air system that was never sized.
+        for item in ("Fan", "Cyclone", "Ductwork", "Airlock"):
+            lines.append({
+                "name": f"{item} — size and price TBD", "quantity": qty,
+                "unitPrice": 0, "needsPrice": True,
+                "description": (
+                    f"{item} for the mill air-relief system. MCE has no calculator for this "
+                    "item yet — engineering to size and price, or quote the air system by "
+                    "others.")})
+        open_items.append(
+            "Air system requested. The baghouse is sized from the mill screen area; the fan, "
+            "cyclone, ductwork and airlock have no MCE calculator yet and are unpriced — "
+            "size them in engineering or quote the air system by others.")
+    else:
+        by_others.insert(0, "Air-relief system for the mill — fans, dust filters, ducting, "
+                            "airlocks and explosion protection")
+
+    if job.include_magnet or (job.feeder and job.feeder.magnet_clean):
+        by_others.append("Compressed air to the magnet adapter (air cylinders)")
+
+    for extra in job.other_items or []:
+        lines.append({"name": f"{extra} — price TBD", "quantity": qty, "unitPrice": 0,
+                      "needsPrice": True,
+                      "description": f'Requested as "{extra}". Not sized or priced by any MCE '
+                                     "calculator — engineering to confirm scope and price."})
+        open_items.append(f'"{extra}" was requested but has no calculator — priced at zero '
+                          "pending engineering.")
+
+    # --- main drive motor, priced net like MCE's own proposals -------------------
+    net_items = []
+    if motor or job.motor_hp:
+        hp = motor or f"{job.motor_hp:g} HP"
+        net_items.append({
+            "name": f"Main Drive Motor — {hp}", "quantity": qty, "unitPrice": 0,
+            "needsPrice": True,
+            "description": "\n".join([
+                f"{hp}, 1800 RPM, 460 V/3/60, TEFC premium efficiency, 1.15 SF",
+                "Mounted, aligned and guarded on the mill at MCE",
+                "Priced net — any project discount does not apply to motors",
+                "Price from the current motor quotation — confirm make and availability",
+            ])})
+        open_items.append(f"Main drive motor ({hp}) is unpriced — add the current motor "
+                          "quotation, or the customer may supply and ship motors to MCE.")
+
+    title_model = out.get("Mill") or job.mill_model or "Hammermill"
+    product_label = product["name"] if product else (job.product_as_written or "")
+    name = f"{title_model} Grinding System"
+    if qty > 1:
+        name = f"{title_model} Grinding System ({qty} Mills)"
+    if product_label:
+        name += f" — {product_label}"
+
+    validity = _validity(today)
+    quote = {
+        "name": name[:255],
+        "quoteNumber": quote_number(company, today),
+        "status": "DRAFT",
+        "project": f"{product_label} grinding line" if product_label else "",
+        "customer": {"company": company, "contact": job.customer_contact or "",
+                     "email": "", "phone": "", "street1": "", "street2": "",
+                     "city": "", "state": "", "postcode": "", "country": ""},
+        "expirationDate": validity.isoformat(),
+        "preparedBy": "JASON_SHIPLEY",
+        "comments": _cover(job, out, qty, product_label),
+        "terms": TERMS,
+        "amount": "",
+        "lines": lines,
+        "netItems": net_items,
+        "designBasis": design,
+        "byOthers": by_others,
+        "schedule": [
+            {"item": "Freight", "basis": "FOB MCE plant, Newkirk, OK; freight quoted at time "
+                                        "of shipment or shipped freight collect."},
+            {"item": "Delivery", "basis": "__ weeks after receipt of order and approval "
+                                          "drawings.", "needsInput": True},
+            {"item": "Approval drawings",
+             "basis": "General arrangement drawings issued for approval before fabrication."},
+            {"item": "Installation",
+             "basis": "By others. MCE start-up assistance and operator training available at "
+                      "MCE's standard daily rate plus expenses."},
+        ],
+        "options": [],
+        "openItems": open_items,
+        "sizing": sizing,
+        "sourceRequest": None,
+    }
+    return quote
+
+
+def _cover(job, out, qty, product_label):
+    mill = out.get("Mill") or job.mill_model or "hammermill"
+    who = job.customer_company or "you"
+    bits = [f"Midwest Custom Engineering is pleased to quote "
+            f"{'one' if qty == 1 else qty} {mill} extra-heavy-duty hammer mill"
+            f"{'' if qty == 1 else 's'}"]
+    extras = []
+    if job.feeder and (job.feeder.cup_type or job.feeder.rows or job.feeder.diameter_in):
+        extras.append("rotary feeder")
+    if job.include_plenum:
+        extras.append("plenum chamber")
+    if job.include_screw:
+        extras.append("discharge screw")
+    if job.include_air_system:
+        extras.append("air system")
+    if extras:
+        bits.append("with " + ", ".join(extras[:-1]) + (" and " if len(extras) > 1 else "")
+                    + extras[-1])
+    if product_label:
+        bits.append(f"for grinding {product_label.lower()}")
+    if out.get("Motor size"):
+        bits.append(f"at {out.get('Motor size')}")
+    return (" ".join(bits) + f" for {who}. "
+            "This proposal is a draft for internal review — items shown in orange need MCE "
+            "input before it is released to the customer.")

@@ -138,20 +138,45 @@ def line_total(line):
     return qty * (unit - per_unit_discount), per_unit_discount
 
 
-def totals(quote):
-    subtotal = 0.0
-    discount = 0.0
-    for line in quote.get("lines") or []:
+def _sum(rows):
+    subtotal = line_discount = 0.0
+    for line in rows or []:
         total, per_unit = line_total(line)
         try:
             qty = float(line.get("quantity") or 1)
         except (TypeError, ValueError):
             qty = 1
         subtotal += total
-        discount += per_unit * qty
+        line_discount += per_unit * qty
+    return subtotal, line_discount
+
+
+def totals(quote):
+    """Proposal totals, in the order MCE's own proposals present them.
+
+    Scope lines carry any project discount; `netItems` (main drive motors, in
+    MCE's Mid-States proposal) sit outside it and are quoted net.
+    """
+    subtotal, line_discount = _sum(quote.get("lines"))
+    net_subtotal, net_line_discount = _sum(quote.get("netItems"))
+    try:
+        pct = float(quote.get("discountPercent") or 0)
+    except (TypeError, ValueError):
+        pct = 0.0
+    project_discount = subtotal * pct / 100.0
+    grand = subtotal - project_discount + net_subtotal
     amount = quote.get("amount")
     try:
-        grand = float(amount) if str(amount or "").strip() != "" else subtotal
+        if str(amount or "").strip() != "":
+            grand = float(amount)
     except (TypeError, ValueError):
-        grand = subtotal
-    return subtotal, discount, grand
+        pass
+    return {
+        "subtotal": subtotal,
+        "line_discount": line_discount + net_line_discount,
+        "discount_percent": pct,
+        "project_discount": project_discount,
+        "net_subtotal": net_subtotal,
+        "has_net": bool(quote.get("netItems")),
+        "total": grand,
+    }

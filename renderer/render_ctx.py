@@ -65,28 +65,35 @@ def from_store(quote):
     import quotes_store as store
 
     cust = quote.get("customer") or {}
-    items = []
-    for n, line in enumerate(quote.get("lines") or [], start=1):
-        total, per_unit_discount = store.line_total(line)
-        try:
-            qty = float(line.get("quantity") or 1)
-        except (TypeError, ValueError):
-            qty = 1
-        try:
-            unit = float(line.get("unitPrice") or 0)
-        except (TypeError, ValueError):
-            unit = 0.0
-        items.append({
-            "name": line.get("name") or "",
-            "sku": line.get("sku") or "",
-            "_qty": int(qty) if float(qty).is_integer() else qty,
-            "_unit": fmt_money(unit),
-            "_unit_discount": fmt_money(per_unit_discount) if per_unit_discount else "—",
-            "_net": fmt_money(total),
-            "_desc_lines": [ln for ln in (line.get("description") or "").splitlines()
-                            if ln.strip()],
-        })
-    subtotal, discount, grand = store.totals(quote)
+
+    def render_lines(rows):
+        out = []
+        for line in rows or []:
+            total, per_unit_discount = store.line_total(line)
+            try:
+                qty = float(line.get("quantity") or 1)
+            except (TypeError, ValueError):
+                qty = 1
+            try:
+                unit = float(line.get("unitPrice") or 0)
+            except (TypeError, ValueError):
+                unit = 0.0
+            out.append({
+                "name": line.get("name") or "",
+                "sku": line.get("sku") or "",
+                "needs_price": bool(line.get("needsPrice")),
+                "_qty": int(qty) if float(qty).is_integer() else qty,
+                "_unit": "TBD" if line.get("needsPrice") else fmt_money(unit),
+                "_unit_discount": fmt_money(per_unit_discount) if per_unit_discount else "—",
+                "_net": "TBD" if line.get("needsPrice") else fmt_money(total),
+                "_desc_lines": [ln for ln in (line.get("description") or "").splitlines()
+                                if ln.strip()],
+            })
+        return out
+
+    items = render_lines(quote.get("lines"))
+    net_items = render_lines(quote.get("netItems"))
+    t = store.totals(quote)
 
     buyer_line = " · ".join(x for x in (cust.get("email"), cust.get("phone")) if x)
     q = {
@@ -118,10 +125,21 @@ def from_store(quote):
         "ref": q["quoteNumber"],
         "issue_date": fmt_date(quote.get("createdAt")),
         "expires": fmt_date(quote.get("expirationDate")),
-        "subtotal": fmt_money(subtotal),
-        "total_discount": fmt_money(discount),
-        "total": fmt_money(grand),
-        "has_discount": discount > 0,
+        "net_items": net_items,
+        "design_basis": quote.get("designBasis") or [],
+        "options": quote.get("options") or [],
+        "by_others": quote.get("byOthers") or [],
+        "schedule": quote.get("schedule") or [],
+        "open_items": quote.get("openItems") or [],
+        "source_request": quote.get("sourceRequest") or "",
+        "subtotal": fmt_money(t["subtotal"]),
+        "total_discount": fmt_money(t["line_discount"]),
+        "has_discount": t["line_discount"] > 0,
+        "discount_percent": t["discount_percent"],
+        "project_discount": fmt_money(t["project_discount"]),
+        "net_subtotal": fmt_money(t["net_subtotal"]),
+        "has_net": t["has_net"],
+        "total": fmt_money(t["total"]),
         "fmt_date": fmt_date,
         **assets(),
     }

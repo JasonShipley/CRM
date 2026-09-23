@@ -1,10 +1,11 @@
 FROM python:3.12-slim
 
-RUN pip install --no-cache-dir flask jinja2 playwright \
+RUN pip install --no-cache-dir flask jinja2 playwright anthropic pydantic \
     && playwright install --with-deps chromium
 
 WORKDIR /app
-COPY app.py builder.py crm.py quotes_store.py render_ctx.py twenty_api.py ./
+COPY app.py builder.py crm.py interpret.py quote_from_job.py quotes_store.py \
+     render_ctx.py twenty_api.py ./
 COPY calculators calculators
 COPY templates templates
 COPY assets assets

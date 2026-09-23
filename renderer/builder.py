@@ -13,6 +13,8 @@ from flask import (Blueprint, abort, current_app, jsonify, render_template,
                    request, url_for)
 
 import calculators
+import interpret
+import quote_from_job
 import quotes_store as store
 import render_ctx
 
@@ -62,6 +64,13 @@ def _from_payload(payload, existing=None):
     }
     quote["lines"] = _clean_lines(payload.get("lines"))
     quote["sizing"] = payload.get("sizing") or []
+    # Proposal sections. Absent keys mean "keep what's stored" on an update, so a
+    # quote built from a description doesn't lose its design basis when a rep
+    # edits a line item and saves.
+    for key in ("designBasis", "byOthers", "schedule", "options", "netItems",
+                "openItems", "discountPercent", "sourceRequest"):
+        if key in payload:
+            quote[key] = payload[key]
     return quote
 
 
@@ -72,8 +81,8 @@ def index():
     quotes = store.all_quotes()
     rows = []
     for q in quotes:
-        _, _, total = store.totals(q)
-        rows.append({**q, "_total": render_ctx.fmt_money(total),
+        t = store.totals(q)
+        rows.append({**q, "_total": render_ctx.fmt_money(t["total"]),
                      "_date": render_ctx.fmt_date(q.get("createdAt"))})
     return render_template("index.html", nav="quotes", rows=rows)
 
@@ -127,6 +136,25 @@ def quote_pdf(quote_id):
 
 
 # --------------------------------------------------------------------- API ---
+
+@bp.route("/api/interpret", methods=["POST"])
+def api_interpret():
+    """Free-text job description -> a complete draft proposal.
+
+    Claude reads the sentence; MCE's calculators produce every number. The reply
+    is a quote the rep can review and edit — it is not saved until they save it.
+    """
+    payload = request.get_json(silent=True) or {}
+    text = (payload.get("text") or "").strip()
+    try:
+        job = interpret.interpret(text)
+    except interpret.InterpretError as e:
+        return jsonify({"error": str(e)}), 400
+    quote = quote_from_job.build(job)
+    quote["sourceRequest"] = text
+    return jsonify({"quote": quote, "openItems": quote["openItems"],
+                    "job": job.model_dump()})
+
 
 @bp.route("/api/calc/<key>", methods=["POST"])
 def api_calc(key):

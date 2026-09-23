@@ -21,10 +21,19 @@ const usd = (n) =>
 /* Quote state. `lines` drives the table; `sizing` is the audit trail of every
    calculator run that fed it, saved with the quote so an engineer can see where
    a number came from. */
+let dirty = false;
 let lines = [];
 let sizing = [];
 let quoteId = BOOT.quote ? BOOT.quote.id : null;
 const lastResult = {};
+
+/* Proposal sections the description builder fills in: design basis, furnished
+   by others, schedule, net-priced items, open items. They round-trip through
+   save untouched unless the description is re-run. */
+let sections = {
+  designBasis: [], byOthers: [], schedule: [], options: [], netItems: [],
+  openItems: [], discountPercent: "", sourceRequest: "",
+};
 
 /* ------------------------------------------------------------ line items -- */
 
@@ -310,6 +319,116 @@ if (productSel) {
   refill();
 }
 
+/* ------------------------------------------------------- describe the job -- */
+
+function setIfEmpty(sel, value) {
+  const el = $(sel);
+  if (el && value && !el.value) el.value = value;
+}
+
+function applyQuote(q) {
+  // Overwrite what the description states; leave anything the rep already typed.
+  const c = q.customer || {};
+  setIfEmpty("#c-company", c.company);
+  setIfEmpty("#c-contact", c.contact);
+  setIfEmpty("#q-name", q.name);
+  setIfEmpty("#q-project", q.project);
+  setIfEmpty("#q-comments", q.comments);
+  setIfEmpty("#q-expires", q.expirationDate);
+  if (q.quoteNumber) $("#q-ref").value = q.quoteNumber;
+  if (q.terms) $("#q-terms").value = q.terms;
+  if (q.preparedBy) $("#q-prepared").value = q.preparedBy;
+
+  lines = (q.lines || []).map((l) => ({
+    name: l.name || "", description: l.description || "", sku: l.sku || "",
+    quantity: l.quantity ?? 1, unitPrice: l.unitPrice || "", unitDiscount: "",
+    discountPercent: "", amount: "", needsPrice: !!l.needsPrice,
+  }));
+  sizing = q.sizing || [];
+  ["designBasis", "byOthers", "schedule", "options", "netItems", "openItems",
+   "discountPercent", "sourceRequest"].forEach((k) => {
+    if (q[k] !== undefined && q[k] !== null) sections[k] = q[k];
+  });
+  renderLines();
+}
+
+function renderBuilt(q) {
+  const box = $("#describe-result");
+  box.hidden = false;
+  box.innerHTML = "";
+
+  const built = document.createElement("div");
+  built.className = "builtlist";
+  const head = document.createElement("b");
+  head.textContent = `${q.name} · ${q.quoteNumber}`;
+  built.appendChild(head);
+  const ul = document.createElement("ul");
+  ul.style.margin = "6px 0 0 16px";
+  (q.designBasis || []).forEach((r) => {
+    const li = document.createElement("li");
+    li.textContent = `${r.parameter}: ${r.value}`;
+    if (r.needsInput) li.style.color = "#b04900";
+    ul.appendChild(li);
+  });
+  built.appendChild(ul);
+  box.appendChild(built);
+
+  if ((q.openItems || []).length) {
+    const oi = document.createElement("div");
+    oi.className = "openitems";
+    const h = document.createElement("div");
+    h.className = "h";
+    h.textContent = `${q.openItems.length} open item${q.openItems.length === 1 ? "" : "s"} for MCE`;
+    const list = document.createElement("ul");
+    q.openItems.forEach((item) => {
+      const li = document.createElement("li");
+      li.textContent = item;
+      list.appendChild(li);
+    });
+    oi.append(h, list);
+    box.appendChild(oi);
+  }
+}
+
+$("#describe-go").addEventListener("click", async () => {
+  const text = $("#describe").value.trim();
+  const status = $("#describe-status");
+  if (!text) { status.textContent = "Type the job first."; return; }
+  status.textContent = "Reading the request and sizing it…";
+  $("#describe-go").disabled = true;
+  let data;
+  try {
+    const res = await fetch(BOOT.interpretUrl, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text }),
+    });
+    data = await res.json();
+  } catch (e) {
+    status.textContent = "Could not reach the server.";
+    $("#describe-go").disabled = false;
+    return;
+  }
+  $("#describe-go").disabled = false;
+  if (data.error) {
+    const box = $("#describe-result");
+    box.hidden = false;
+    box.innerHTML = "";
+    const n = document.createElement("div");
+    n.className = "note err";
+    n.style.marginTop = "12px";
+    n.textContent = data.error;
+    box.appendChild(n);
+    status.textContent = "";
+    return;
+  }
+  applyQuote(data.quote);
+  renderBuilt(data.quote);
+  const n = (data.quote.lines || []).length;
+  status.textContent = `Built — ${n} line${n === 1 ? "" : "s"}. Review everything below before saving.`;
+  dirty = true;
+});
+
 /* ------------------------------------------------------------------ save -- */
 
 function payload() {
@@ -332,6 +451,7 @@ function payload() {
     },
     lines,
     sizing,
+    ...sections,
   };
 }
 
@@ -369,7 +489,6 @@ $("#save-pdf").addEventListener("click", async () => {
 });
 
 /* Warn before losing unsaved work. */
-let dirty = false;
 document.addEventListener("input", () => { dirty = true; });
 $("#save").addEventListener("click", () => { dirty = false; });
 window.addEventListener("beforeunload", (e) => {
@@ -394,5 +513,8 @@ if (BOOT.quote) {
     .forEach((k) => { $("#c-" + k).value = c[k] || ""; });
   lines = (q.lines || []).map((l) => ({ ...l }));
   sizing = q.sizing || [];
+  Object.keys(sections).forEach((k) => {
+    if (q[k] !== undefined && q[k] !== null) sections[k] = q[k];
+  });
 }
 renderLines();

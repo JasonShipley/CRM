@@ -12,6 +12,20 @@
   {% if quote %}<a class="btn btn-ghost" href="{{ url_for('builder.quote_view', quote_id=quote.id) }}">View proposal</a>{% endif %}
 </div>
 
+<!-- 0 ---------------------------------------------------------- describe -->
+<div class="bar"><span class="t">Describe the job</span>
+  <span class="hint">type it the way you'd say it — everything below gets filled in</span></div>
+<div class="card">
+  <div class="field">
+    <textarea id="describe" rows="3" placeholder="quote Dennis Heideman at Fairview Mills a 4430 with 200hp for grinding a grain ration pet food 15tph on a 6/64&quot; screen, including an SS round cup 10&quot; auto selfclean feeder, plenum chamber, screw, and air system"></textarea>
+  </div>
+  <div class="row" style="margin-top:12px">
+    <button type="button" class="btn-primary" id="describe-go">Build the quote</button>
+    <span class="muted" id="describe-status"></span>
+  </div>
+  <div id="describe-result" hidden></div>
+</div>
+
 <!-- 1 ------------------------------------------------------------ customer -->
 <div class="bar"><span class="t">1. Customer</span></div>
 <div class="card">
@@ -237,7 +251,8 @@
   "calcKeys": calculators.keys()|list,
   "createUrl": url_for('builder.api_create'),
   "updateUrl": url_for('builder.api_update', quote_id='__ID__'),
-  "calcUrl": url_for('builder.api_calc', key='__KEY__')
+  "calcUrl": url_for('builder.api_calc', key='__KEY__'),
+  "interpretUrl": url_for('builder.api_interpret')
 }|tojson }}</script>
 {% endblock %}
 
@@ -250,6 +265,16 @@
   .tab:hover { background: var(--panel); color: var(--ink); }
   .tab.on { color: var(--ink); border-bottom-color: var(--orange); }
   .tab.link { margin-left: auto; color: var(--orange); }
+
+  #describe { min-height: 74px; font-size: 15px; line-height: 1.5; }
+  .openitems { margin-top: 14px; border-left: 4px solid var(--orange);
+    background: #fff4ec; padding: 11px 14px; border-radius: 2px; }
+  .openitems .h { font-family: "Oswald", sans-serif; font-weight: 600; font-size: 12px;
+    letter-spacing: .08em; text-transform: uppercase; color: #b04900; margin-bottom: 6px; }
+  .openitems ul { margin-left: 16px; }
+  .openitems li { margin: 3px 0; font-size: 13px; color: #6a3a00; }
+  .builtlist { margin-top: 12px; font-size: 13px; }
+  .builtlist b { font-family: "Oswald", sans-serif; letter-spacing: .04em; }
 
   .results { margin-top: 16px; border-top: 1px solid var(--rule); padding-top: 14px; }
   .formula { font-size: 13px; background: var(--panel); border-left: 4px solid var(--orange);
