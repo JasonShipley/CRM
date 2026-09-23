@@ -19,7 +19,14 @@ working.
 | **The ports** | `renderer/calculators/*.py` | The same math in Python, so the quote form can size and price server-side. |
 | *(hosted, not ported)* | `renderer/tools/rotary-cooler-sizing-calculator.html` | Direct air-swept drum cooler — a different machine from the counterflow cooler, with no quote path yet. Hosted at `/tools/rotary-cooler`; the quote builder cannot size one. |
 
-The originals are **never edited by this project**. They are the full
+The originals are **never edited by this project** — with one exception on
+record: on 2026-09-23 Jason moved MCE's 44" rotor mills to a 60" screen, and
+that is a change to the engineering data itself, not to the port. Editing only
+`_data.py` would have left the hosted calculator disagreeing with the quote
+builder, which is the exact drift `test_ports.py` exists to catch. So the
+calculator's own table was edited, `_data.py` regenerated from it, and the
+differential test re-run to prove the two still agree. Any future spec change
+follows the same route: change the calculator, regenerate, re-run the test. They are the full
 workbenches — index charts, model reference tables, pricing multipliers — and
 they are what MCE maintains. Hosting them here just means the team reaches them
 behind the login instead of passing files between desktops.
