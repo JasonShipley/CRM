@@ -153,7 +153,7 @@ c.setDash([12,3,2,3]); c.setLineWidth(0.4); c.line(PX(XD-4),PY(YC),PX(train_end+
 CYX,CYR=26.0,4.0; FNX=16.0; STX,STR=9.0,1.75
 c.setLineWidth(0.7); c.circle(PX(CYX),PY(YC),CYR*K); c.circle(PX(CYX),PY(YC),1.2*K)
 c.rect(PX(CYX-1.5),PY(YC-6.5),3*K,3*K)  # cyclone support / airlock footprint
-c.line(PX(XD+2),PY(YC+3.5),PX(CYX+1),PY(YC+3.5)); c.line(PX(XD+2),PY(YC+5.5),PX(CYX+1),PY(YC+5.5))   # inlet duct from drop-out box top
+c.rect(PX(XD+3),PY(YC+1),4*K,4*K); c.line(PX(XD+3),PY(YC+1),PX(CYX+1),PY(YC+1)); c.line(PX(XD+3),PY(YC+5),PX(CYX+1),PY(YC+5))   # exhaust riser on the drop-out box top, duct to the cyclone inlet
 c.circle(PX(FNX),PY(YC),3.0*K); c.rect(PX(FNX-3.5),PY(YC-4.5),7*K,9*K,)  # fan scroll and base
 c.line(PX(CYX-CYR),PY(YC-1),PX(FNX+3),PY(YC-1)); c.line(PX(CYX-CYR),PY(YC+1),PX(FNX+3),PY(YC+1))       # cyclone outlet to fan inlet
 c.circle(PX(STX),PY(YC),STR*K); c.line(PX(FNX-3),PY(YC-1.2),PX(STX+STR),PY(YC-1.2)); c.line(PX(FNX-3),PY(YC+1.2),PX(STX+STR),PY(YC+1.2))
@@ -208,9 +208,10 @@ c.setLineWidth(0.7); c.rect(PX(CYX-CYR),EY(14),2*CYR*K,8*K)
 p=c.beginPath(); p.moveTo(PX(CYX-CYR),EY(14)); p.lineTo(PX(CYX-1),EY(8)); p.lineTo(PX(CYX+1),EY(8)); p.lineTo(PX(CYX+CYR),EY(14)); c.drawPath(p,fill=0,stroke=1)
 for dx in (-CYR+0.5,CYR-0.5): c.line(PX(CYX+dx),EY(14),PX(CYX+dx),EY(0))
 c.line(PX(CYX-CYR+0.5),EY(7),PX(CYX+CYR-0.5),EY(7)); c.rect(PX(CYX-1),EY(6),2*K,2*K)   # airlock
-c.line(PX(CYX+1.5),EY(6.5),PX(XD+8),EY(6.5)); c.line(PX(CYX+1.5),EY(5.5),PX(XD+8),EY(5.5))  # product screw to bunker side
-c.rect(PX(XD+2),EY(DBT-0.5),4*K,1.5*K)   # drop-out box outlet
-c.line(PX(XD+2),EY(DBT+1),PX(XD+2),EY(20.5)); c.line(PX(XD+6),EY(DBT+1),PX(XD+6),EY(21.5)); c.line(PX(XD+2),EY(20.5),PX(CYX+CYR),EY(20.5)); c.line(PX(XD+6),EY(21.5),PX(CYX+CYR),EY(21.5))
+c.line(PX(CYX+1.5),EY(6.5),PX(XD-0.5),EY(6.5)); c.line(PX(CYX+1.5),EY(5.5),PX(XD-0.5),EY(5.5))  # product screw from the cyclone airlock toward the bunker (runs behind the drop-out box)
+# exhaust duct: 4 ft riser out of the TOP of the drop-out box, elbow, horizontal run into the cyclone inlet (20-22 ft)
+p=c.beginPath(); p.moveTo(PX(XD+7),EY(DBT)); p.lineTo(PX(XD+7),EY(22)); p.lineTo(PX(CYX+CYR),EY(22)); c.drawPath(p,fill=0,stroke=1)
+p=c.beginPath(); p.moveTo(PX(XD+3),EY(DBT)); p.lineTo(PX(XD+3),EY(20)); p.lineTo(PX(CYX+CYR),EY(20)); c.drawPath(p,fill=0,stroke=1)
 c.line(PX(CYX-1.2),EY(22),PX(CYX-1.2),EY(23)); c.line(PX(CYX+1.2),EY(22),PX(CYX+1.2),EY(25))
 c.line(PX(CYX-1.2),EY(23),PX(FNX+1),EY(23)); c.line(PX(CYX+1.2),EY(25),PX(FNX-1),EY(25))   # cyclone outlet duct to fan
 c.line(PX(FNX+1),EY(23),PX(FNX+1),EY(7.5)); c.line(PX(FNX-1),EY(25),PX(FNX-1),EY(7.5))
@@ -234,7 +235,7 @@ leader(PX(CYX+CYR),EY(18),PX(CYX+CYR+4),EY(28),['HIGH EFFICIENCY','CYCLONE COLLE
 leader(PX(STX),EY(30),PX(STX-2.5),EY(31),['EXHAUST STACK'],side='l')
 leader(PX(FNX),EY(6),PX(FNX-5),EY(11),['60 HP DRYER FAN'],side='l')
 leader(PX(CYX),EY(6.5),PX(CYX+1),EY(-2.8),['ROTARY AIRLOCK AND PRODUCT','SCREW TO BUYER\'S BUNKER'])
-leader(PX(XD+4),EY(DBT+1.5),PX(XD+10),EY(27),['DRYER EXHAUST DUCT'])
+leader(PX(XD+5),EY(21),PX(XD+10),EY(27),['DRYER EXHAUST DUCT'])
 leader(PX(XD+STA['DB'][1]/24),EY(DBT-3),PX(XD+STA['DB'][1]/12+3),EY(DBT+4),['DROP-OUT BOX'])
 leader(PX(XD+STA['XD'][1]/12-12),EY(DCL+4.3),PX(XD+STA['XD'][1]/12-8),EY(DCL+11),['MODEL XD-96 ROTARY DRYER'])
 leader(PX(XD+STA['XD'][0]/12+8),EY(2),PX(XD+STA['XD'][0]/12+10),EY(-4.2),['REAR TRUNNION BASE'])

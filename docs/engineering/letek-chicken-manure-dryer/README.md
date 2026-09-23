@@ -191,8 +191,8 @@ about 8% TS, pH 8, NH4-N 3,500 mg/L, chlorides 3,000 mg/L; biogas 55% CH4 / 40% 
 airlock and cyclone are needed, for a preliminary layout with areas, for electricity and maintenance
 costs, and agreed to a sample test after an initial analysis.
 
-Reply drafted in Gmail (draft `r3090259647765586623`, message `1a0cf735826573f1`, reply to the message above, cc Santiago, Roberto,
-JB, Mike) with the SD-26-01 e-mail copy attached (22.6 KB, real decimated line work; md5 3784db8a84710ec0f447eaf41142cd2e verified on the draft). Four earlier drafts were trashed as the layout was re-scaled, restyled and the e-mail copy redrawn from silhouettes to line work (23 Sep). **Not sent; Jason to review.**
+Reply drafted in Gmail (draft `r5336167500697462136`, message `1a0cf8b5ea78f012`, reply to the message above, cc Santiago, Roberto,
+JB, Mike) with the SD-26-01 e-mail copy attached (23.1 KB, real decimated line work; md5 26deacb53a2c5af659e90ac58695387e verified on the draft). Five earlier drafts were trashed as the layout was re-scaled, restyled, the e-mail copy redrawn from silhouettes to line work and the drop-out box restored in the elevation (23 Sep). **Not sent; Jason to review.**
 
 Answers given in the draft (all preliminary, derived from the 140 MT/day basis):
 
@@ -283,3 +283,16 @@ station (10 x 10, by others), air compressor (10 x 8). Same arrangement as SD-26
 east, drop-out box / cyclone / fan / stack west, dewatering and bunker north, skids and MCC south,
 pad 124 x 64 ft. Elevation and end views sit below and beside the plan; title block and notes
 bottom right.
+
+#### 23 Sep: elevation line work re-extracted (drop-out box restored)
+
+Jason reported that the elevation on SD-26-01 did not show the drop-out box and that the overall
+dimension looked off. Cause: the original extraction of the elevation from the 104400900 overview
+print clipped the view at page y = 290 pt, which cut off the last ~10 ft (the drop-out box and its
+chute) and set station 0 at the drum breeching instead of the box far end; the elevation train was
+77.7 ft long against 87.2 ft in plan. `xd96_linework.json.gz` now carries the elevation
+re-extracted to y = 340 pt (quad items included), 15,056 segments, 87.2 ft long, matching the plan
+exactly. The exhaust duct now leaves the TOP of the drop-out box (4 ft riser to 22 ft, elbow,
+horizontal run into the cyclone inlet at 20 to 22 ft; plan shows the riser on the box top), and the
+product screw from the cyclone airlock stops at the box far end. SD-26-01 (full and e-mail copy),
+SD-26-02 (DXF, zip and print PDF) regenerated from the corrected line work.
