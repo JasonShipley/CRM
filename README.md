@@ -137,7 +137,8 @@ All commands run on the server, from the repo folder (e.g. `/opt/mce-crm`).
 
 `update.sh` pulls the repo, reinstalls the app code and rebuilds the quote
 builder. It never touches `.env`, `credentials.local`, the database or the
-stored quotes. Pass a branch name to deploy something other than `main`.
+stored quotes. With no argument it deploys the repository's default branch; pass
+a branch name to deploy a different one.
 
 Nightly backups: `deploy/backup.sh` is installed in root's crontab (2:15 AM, keeps 30
 days, database + uploaded files) during production setup.
