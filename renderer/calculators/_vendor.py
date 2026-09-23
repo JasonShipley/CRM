@@ -16,6 +16,11 @@ import datetime
 # design. Cost is MCE's net cost for fan + damper.
 AIRPRO_QUOTE = "Q117935R1"
 AIRPRO_QUOTE_EXPIRES = datetime.date(2026, 8, 27)
+# The quote's own expiry has passed, but Jason confirmed on this date that the
+# pricing still stands. A confirmation is treated as good for six months; after
+# that the fan lines start flagging again. Clear this when a new quote lands.
+AIRPRO_CONFIRMED = datetime.date(2026, 9, 23)
+AIRPRO_CONFIRMED_GOOD_FOR = datetime.timedelta(days=183)
 # "use the fan price of the airpro unit and double our cost" — Jason, 2026-09-23.
 FAN_MARKUP = 2.0
 
@@ -155,4 +160,8 @@ def fan_for(baghouse_model):
 
 
 def fan_quote_stale(today=None):
-    return (today or datetime.date.today()) > AIRPRO_QUOTE_EXPIRES
+    """True when the fan pricing needs reconfirming before it goes on a quote."""
+    today = today or datetime.date.today()
+    if AIRPRO_CONFIRMED and today <= AIRPRO_CONFIRMED + AIRPRO_CONFIRMED_GOOD_FOR:
+        return False
+    return today > AIRPRO_QUOTE_EXPIRES

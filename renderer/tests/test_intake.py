@@ -114,7 +114,6 @@ def test_jb_request():
           q["netItems"] and q["netItems"][0].get("needsPrice"), str(q["netItems"]))
     check("remaining air items openly unpriced", "no MCE calculator" in open_text(q),
           str(unpriced))
-    check("stale fan quote flagged", "expired" in open_text(q), open_text(q))
     check("screw budget flagged as modelled",
           "modelled budget" in open_text(q).lower(), open_text(q))
 
@@ -166,6 +165,29 @@ def test_quantity():
     check("quantity in the title", "(8 Mills)" in q["name"], q["name"])
 
 
+def test_fan_quote_validity():
+    """A confirmed quote stops flagging, but only for as long as the confirmation
+    is good for — it must start flagging again on its own."""
+    from calculators import _vendor as v
+    check("confirmed quote does not flag",
+          not v.fan_quote_stale(v.AIRPRO_CONFIRMED))
+    check("still good inside the confirmation window",
+          not v.fan_quote_stale(v.AIRPRO_CONFIRMED + datetime.timedelta(days=120)))
+    check("flags again once the confirmation lapses",
+          v.fan_quote_stale(v.AIRPRO_CONFIRMED + v.AIRPRO_CONFIRMED_GOOD_FOR
+                            + datetime.timedelta(days=1)))
+    # and with no confirmation at all, the quote's own expiry governs
+    saved = v.AIRPRO_CONFIRMED
+    try:
+        v.AIRPRO_CONFIRMED = None
+        check("unconfirmed expired quote flags",
+              v.fan_quote_stale(v.AIRPRO_QUOTE_EXPIRES + datetime.timedelta(days=1)))
+        check("unconfirmed live quote does not flag",
+              not v.fan_quote_stale(v.AIRPRO_QUOTE_EXPIRES - datetime.timedelta(days=1)))
+    finally:
+        v.AIRPRO_CONFIRMED = saved
+
+
 def test_reference_slug():
     cases = {"Mid-States Companies": "MCEQ2609MIDSTATESR1",       # matches MCE's real ref
              "Fairview Mills": "MCEQ2609FAIRVIEWMILLSR1",
@@ -177,7 +199,8 @@ def test_reference_slug():
 
 def main():
     for fn in (test_jb_request, test_motor_conflict, test_thin_request,
-               test_no_air_system, test_quantity, test_reference_slug):
+               test_no_air_system, test_quantity, test_fan_quote_validity,
+               test_reference_slug):
         fn()
         print(f"  {fn.__name__}")
     if FAILS:
