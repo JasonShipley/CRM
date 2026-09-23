@@ -296,3 +296,22 @@ exactly. The exhaust duct now leaves the TOP of the drop-out box (4 ft riser to 
 horizontal run into the cyclone inlet at 20 to 22 ft; plan shows the riser on the box top), and the
 product screw from the cyclone airlock stops at the box far end. SD-26-01 (full and e-mail copy),
 SD-26-02 (DXF, zip and print PDF) regenerated from the corrected line work.
+
+#### 23 Sep: real HE-74 cyclone geometry (from the MCE dimension sheet)
+
+Jason asked to use MCE's actual cyclone drawings instead of a schematic circle, or failing that,
+send the layout as a planning-only drawing and commit to an actual layout drawing with an order.
+Found the MCE HE-74 dimension sheet (2016 MAC/Schenck Process proposal, 16,000 CFM, on the Drive)
+and the HE Series brochure dimension table; `he74_cyclone.py` encodes the HE-74 geometry in inches
+(barrel 74 in dia, overall 24'-4", expansion chamber, cone, outlet plenum 37 x 24 in, discharge
+10 in, weight ~2,400 lb) and returns elevation/plan/stand polylines that `make_ga_sheet.py` and
+`make_layout_dxf.py` both draw at the cyclone's actual size and shape (mount pads at 45 deg,
+four-leg stand, discharge airlock 7 ft above grade so the cyclone top lands at 31'-4"). Replaced
+the schematic circle and dimension callout in both the GA sheet and the DXF layout; the exhaust
+duct now runs from the drop-out box top into the real 19 x 45 in tangential inlet near the barrel
+top. Added general note 8 (GA sheet) / note in the DXF: this is a preliminary arrangement for site
+planning; MCE issues the certified general arrangement, foundation loading and anchor bolt
+drawings for approval with an order. SD-26-01 (DWG rev P2) and SD-26-02 regenerated. Gmail draft
+to Bernardo re-created with the new SD-26-01 e-mail copy (24.2 KB; md5 684145a3b6fd0a98dfb523018634876c
+verified on the draft); six earlier drafts trashed as the drawings were corrected. **Not sent;
+Jason to review.** SD-26-02's DXF (plan, elevation and end view) carries the same HE-74 geometry.

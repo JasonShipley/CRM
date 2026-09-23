@@ -8,7 +8,7 @@ from pathlib import Path
 import ezdxf
 from ezdxf.enums import TextEntityAlignment as TA
 HERE=Path(__file__).parent
-DWG='SD-26-02'; REV='P1'; DATE='9/18/2026'
+DWG='SD-26-02'; REV='P2'; DATE='9/23/2026'
 OUT=HERE/('%s_LETEK_Proposed_Layout.dxf'%DWG)
 LW=json.load(gzip.open(HERE/'xd96_linework.json.gz')); SIL=json.load(open(HERE/'xd96_silhouette.json'))
 HT=SIL['heights_in']; STA=SIL['stations_in']
@@ -43,7 +43,11 @@ def leader(tx,ty,lx,ly,lines,side='r'):
 # ---------------- geometry in inches: pad 124 x 64 ft, train centreline y = 37 ft, drop-out far end x = 34 ft, burner to +x
 F=12.0; PADW,PADH=124*F,64*F; XD=34*F; YC=37*F
 plan=LW['plan']; elev=LW['elevation']; train_len=max(max(s[0],s[2]) for s in plan)*F; train_end=XD+train_len
-CYX,CYR=26*F,4*F; FNX=16*F; STX,STR=9*F,1.75*F
+import he74_cyclone as he74
+CYX=26*F; CYR=he74.A/2; CZ0=84.0; FNX=16*F; STX,STR=9*F,1.75*F   # HE-74 cyclone centre, radius, discharge flange 7 ft above grade
+CY_TOP=CZ0+he74.B; CY_ROOF=CZ0+he74.ROOF; CY_INL=CY_ROOF-he74.INLET_H; CY_T=he74.OUT_T/2
+def polys(P,fx,fy,layer='EQUIPMENT'):
+    for pl in P: msp.add_lwpolyline([(fx(x),fy(y)) for x,y in pl],dxfattribs={'layer':layer})
 FBX=XD+(STA['FB'][0]+STA['FB'][1])/2
 # ---- PLAN VIEW
 rect(0,0,PADW,PADH,'PAD'); text(6,PADH+10,'CONCRETE EQUIPMENT PAD %s x %s (BY OTHERS)'%(fi(PADW),fi(PADH)),7,TA.BOTTOM_LEFT)
@@ -54,10 +58,14 @@ for s0,o0,s1,o1 in plan:
 msp.add_line((XD-4*F,YC),(train_end+3*F,YC),dxfattribs={'layer':'CENTERLINE'})
 # cyclone, fan, stack, ducting, airlocks (sized schematic on EQUIPMENT)
 E={'layer':'EQUIPMENT'}
-msp.add_circle((CYX,YC),CYR,dxfattribs=E); msp.add_circle((CYX,YC),1.2*F,dxfattribs=E); rect(CYX-1.5*F,YC-6.5*F,3*F,3*F,'EQUIPMENT')
-rect(XD+3*F,YC+1*F,4*F,4*F,'EQUIPMENT'); msp.add_line((XD+3*F,YC+1*F),(CYX+1*F,YC+1*F),dxfattribs=E); msp.add_line((XD+3*F,YC+5*F),(CYX+1*F,YC+5*F),dxfattribs=E)   # exhaust riser on the drop-out box top, duct to the cyclone inlet
+cyc_circ,cyc_poly=he74.plan(inlet_side=1)   # HE-74 in plan from the dimension sheet, inlet toward the drop-out box
+for x,y,r in cyc_circ: msp.add_circle((CYX+x,YC+y),r,dxfattribs=E)
+polys(cyc_poly,lambda x:CYX+x,lambda y:YC+y)
+rect(CYX-9,YC-9,18,18,'EQUIPMENT'); rect(CYX-6,YC+9,12,50*F-YC-9,'EQUIPMENT')   # airlock under the discharge, product screw north to the bunker
+rect(XD+3*F,YC+1*F,4*F,4*F,'EQUIPMENT')   # exhaust riser on the drop-out box top
+msp.add_lwpolyline([(XD+3*F,YC+1*F),(XD+1*F,YC+CYR-he74.INLET_W),(CYX,YC+CYR-he74.INLET_W)],dxfattribs=E); msp.add_lwpolyline([(XD+3*F,YC+5*F),(XD+1*F,YC+CYR),(CYX,YC+CYR)],dxfattribs=E)   # transition to the 19 in tangential inlet
 msp.add_circle((FNX,YC),3*F,dxfattribs=E); rect(FNX-3.5*F,YC-4.5*F,7*F,9*F,'EQUIPMENT')
-msp.add_line((CYX-CYR,YC-1*F),(FNX+3*F,YC-1*F),dxfattribs=E); msp.add_line((CYX-CYR,YC+1*F),(FNX+3*F,YC+1*F),dxfattribs=E)
+msp.add_line((CYX-CY_T,YC-1*F),(FNX+3*F,YC-1*F),dxfattribs=E); msp.add_line((CYX-CY_T,YC+1*F),(FNX+3*F,YC+1*F),dxfattribs=E)
 msp.add_circle((STX,YC),STR,dxfattribs=E); msp.add_line((FNX-3*F,YC-1.2*F),(STX+STR,YC-1.2*F),dxfattribs=E); msp.add_line((FNX-3*F,YC+1.2*F),(STX+STR,YC+1.2*F),dxfattribs=E)
 rect(XD+4*F,YC+6.5*F,3*F,2*F,'EQUIPMENT'); rect(XD+5.25*F,YC+8.5*F,1.5*F,(50*F-YC-8.5*F),'EQUIPMENT')   # discharge airlock + product conveyor
 rect(FBX-0.75*F,YC+3*F,1.5*F,10*F,'EQUIPMENT')   # feed screw
@@ -86,8 +94,8 @@ flow([(84*F,7*F),(82*F,7*F)]); flow([(79*F,11*F),(79*F,20*F),(train_end-14*F,20*
 flow([(117*F,12*F),(117*F,24*F),(train_end-8*F,24*F),(train_end-8*F,YC-3*F)],'LPG VAPOR 5 PSIG')
 # plan dims and labels
 hdim(XD,train_end,YC-20*F,fi(train_len)+' DRYER TRAIN OVERALL (REF)'); hdim(XD+STA['XD'][0],XD+STA['XD'][1],YC+11*F,"40'-0\" DRUM")
-hdim(STX-STR,train_end,YC-23*F,fi(train_end-STX+STR)+' STACK TO FUEL TRAIN (REF)'); hdim(CYX-CYR,CYX+CYR,YC+6.5*F,"8'-0\" DIA CYCLONE")
-leader(CYX,YC+2.5*F,CYX+2*F,YC+16*F,['HIGH EFFICIENCY CYCLONE COLLECTOR','WITH ROTARY AIRLOCK']); leader(FNX,YC-2*F,FNX-4*F,YC-11*F,['60 HP DRYER FAN'],'l')
+hdim(STX-STR,train_end,YC-23*F,fi(train_end-STX+STR)+' STACK TO FUEL TRAIN (REF)'); hdim(CYX-CYR,CYX+CYR,YC-5.5*F,"6'-2\" DIA HE-74 CYCLONE")
+leader(CYX+2*F,YC-2.3*F,CYX+2*F,YC+16*F,['MODEL HE-74 HIGH EFFICIENCY CYCLONE COLLECTOR','74" DIA, WITH ROTARY AIRLOCK']); leader(FNX,YC-2*F,FNX-4*F,YC-11*F,['60 HP DRYER FAN'],'l')
 leader(STX,YC+1*F,STX-3*F,YC+9*F,['EXHAUST STACK 35\'-0" HIGH'],'l'); leader(XD+5.5*F,YC+7.5*F,XD-8*F,YC+10.5*F,['ROTARY AIRLOCK AND','PRODUCT CONVEYOR'],'l')
 leader(XD+STA['DB'][1]/2,YC-5*F,XD+2*F,YC-11*F,['DROP-OUT BOX'],'l'); leader(XD+STA['XD'][1]-8*F,YC+4.4*F,XD+STA['XD'][1]-4*F,YC+16*F,['MODEL XD-96 ROTARY DRYER','8\'-0" DIA x 40\'-0" DRUM'])
 leader(XD+30*F,YC-4.5*F,XD+32*F,YC-13*F,['SADDLE MOUNT DRUM DRIVE, 30 HP']); leader(FBX,YC+8*F,FBX+6*F,YC+11*F,['12" S.S. FEED SCREW x 10\'-0"'])
@@ -104,26 +112,25 @@ msp.add_line((0,EY0),(PADW,EY0),dxfattribs={'layer':'PAD'}); text(6,EY0-9,'GRADE
 for s0,h0,s1,h1 in elev:
     if abs(s1-s0)+abs(h1-h0)>0.02: msp.add_line((XD+s0*F,EY(h0)),(XD+s1*F,EY(h1)),dxfattribs={'layer':'DRYER-TRAIN'})
 DBT=HT['dropout_box_top']/12; DCL=HT['drum_centreline']/12; BHT=HT['burner_housing_top']/12
-rect(CYX-CYR,EY(14),2*CYR,8*F,'EQUIPMENT'); msp.add_lwpolyline([(CYX-CYR,EY(14)),(CYX-1*F,EY(8)),(CYX+1*F,EY(8)),(CYX+CYR,EY(14))],dxfattribs=E)
-for dx in (-CYR+6,CYR-6): msp.add_line((CYX+dx,EY(14)),(CYX+dx,EY0),dxfattribs=E)
-msp.add_line((CYX-CYR+6,EY(7)),(CYX+CYR-6,EY(7)),dxfattribs=E); rect(CYX-1*F,EY(6),2*F,2*F,'EQUIPMENT')
-msp.add_line((CYX+1.5*F,EY(6.5)),(XD-0.5*F,EY(6.5)),dxfattribs=E); msp.add_line((CYX+1.5*F,EY(5.5)),(XD-0.5*F,EY(5.5)),dxfattribs=E)
-# exhaust duct: 4 ft riser out of the TOP of the drop-out box, elbow, horizontal run into the cyclone inlet (20-22 ft)
-msp.add_lwpolyline([(XD+7*F,EY(DBT)),(XD+7*F,EY(22)),(CYX+CYR,EY(22))],dxfattribs=E); msp.add_lwpolyline([(XD+3*F,EY(DBT)),(XD+3*F,EY(20)),(CYX+CYR,EY(20))],dxfattribs=E)
-msp.add_line((CYX-1.2*F,EY(22)),(CYX-1.2*F,EY(23)),dxfattribs=E); msp.add_line((CYX+1.2*F,EY(22)),(CYX+1.2*F,EY(25)),dxfattribs=E)
-msp.add_line((CYX-1.2*F,EY(23)),(FNX+1*F,EY(23)),dxfattribs=E); msp.add_line((CYX+1.2*F,EY(25)),(FNX-1*F,EY(25)),dxfattribs=E)
-msp.add_line((FNX+1*F,EY(23)),(FNX+1*F,EY(7.5)),dxfattribs=E); msp.add_line((FNX-1*F,EY(25)),(FNX-1*F,EY(7.5)),dxfattribs=E)
+# HE-74 cyclone from the dimension sheet, discharge flange at CZ0 (7 ft), four-leg stand, airlock and screw below
+polys(he74.elevation(),lambda x:CYX+x,lambda z:EY0+CZ0+z); polys(he74.stand(CZ0),lambda x:CYX+x,lambda z:EY0+z)
+rect(CYX-9,EY0+CZ0-18,18,18,'EQUIPMENT'); rect(CYX-6,EY0+CZ0-30,12,12,'EQUIPMENT')
+# exhaust duct: 4 ft riser out of the TOP of the drop-out box, elbow, horizontal run into the 19 x 45 in tangential inlet at the barrel top
+msp.add_lwpolyline([(XD+7*F,EY(DBT)),(XD+7*F,EY0+CY_ROOF),(CYX+CYR,EY0+CY_ROOF)],dxfattribs=E); msp.add_lwpolyline([(XD+3*F,EY(DBT)),(XD+3*F,EY0+CY_INL),(CYX+CYR,EY0+CY_INL)],dxfattribs=E)
+# outlet plenum (37 x 24) to the fan inlet
+msp.add_line((CYX-CY_T,EY0+CY_ROOF+4),(FNX+1*F,EY0+CY_ROOF+4),dxfattribs=E); msp.add_line((CYX-CY_T,EY0+CY_TOP-4),(FNX-1*F,EY0+CY_TOP-4),dxfattribs=E)
+msp.add_line((FNX+1*F,EY0+CY_ROOF+4),(FNX+1*F,EY(7.5)),dxfattribs=E); msp.add_line((FNX-1*F,EY0+CY_TOP-4),(FNX-1*F,EY(7.5)),dxfattribs=E)
 msp.add_circle((FNX,EY(4.5)),3*F,dxfattribs=E); rect(FNX-3.5*F,EY0,7*F,1.5*F,'EQUIPMENT'); rect(FNX+3.5*F,EY0,3*F,3.5*F,'EQUIPMENT'); rect(FNX-2.5*F,EY0,1*F,7.5*F,'EQUIPMENT')
 msp.add_line((FNX-3*F,EY(4.5)),(STX+STR,EY(4.5)),dxfattribs=E); msp.add_line((FNX-3*F,EY(6.5)),(STX+STR,EY(6.5)),dxfattribs=E)
 rect(STX-STR,EY0,2*STR,35*F,'EQUIPMENT'); rect(STX-STR-9,EY0,2*STR+18,1.5*F,'EQUIPMENT')
 rect(FBX-0.75*F,EY(DCL+2),1.5*F,10*F,'PLACEHOLDER')
 msp.add_line((XD-2*F,EY(DCL)),(train_end+2*F,EY(DCL)),dxfattribs={'layer':'CENTERLINE'})
-vdim(EY0,EY(35),STX-STR-30,"35'-0\" STACK"); vdim(EY0,EY(22),CYX-CYR-24,"22'-0\" (REF)"); vdim(EY0,EY(DBT),XD-28,fi(HT['dropout_box_top'])+' (REF)')
+vdim(EY0,EY(35),STX-STR-30,"35'-0\" STACK"); vdim(EY0,EY0+CY_TOP,CYX-CYR-24,fi(CY_TOP)+' (REF)'); vdim(EY0,EY(DBT),XD-28,fi(HT['dropout_box_top'])+' (REF)')
 vdim(EY0,EY(BHT),train_end+40,fi(HT['burner_housing_top'])+' (REF)'); vdim(EY0,EY(DCL),train_end+80,fi(HT['drum_centreline'])+' DRUM CL')
 hdim(XD,train_end,EY0-36,fi(train_len)+' (REF)'); hdim(XD+STA['XD'][0],XD+STA['XD'][1],EY(DCL+6.5),"40'-0\" DRUM")
-leader(CYX+CYR,EY(18),CYX+CYR+4*F,EY(28),['HIGH EFFICIENCY CYCLONE COLLECTOR']); leader(STX,EY(30),STX-2.5*F,EY(31),['EXHAUST STACK'],'l')
-leader(FNX,EY(6),FNX-5*F,EY(11),['60 HP DRYER FAN'],'l'); leader(CYX,EY(6.5),CYX+1*F,EY(-3.5),['ROTARY AIRLOCK AND PRODUCT SCREW TO BUNKER'])
-leader(XD+5*F,EY(21),XD+10*F,EY(27),['DRYER EXHAUST DUCT']); leader(XD+STA['DB'][1]/2,EY(DBT-3),XD+STA['DB'][1]+3*F,EY(DBT+4),['DROP-OUT BOX'])
+leader(CYX+CYR,EY0+CZ0+15*F,CYX+CYR+3.5*F,EY(35.5),['MODEL HE-74 HIGH EFFICIENCY CYCLONE COLLECTOR, 74" DIA']); leader(STX,EY(30),STX-2.5*F,EY(31),['EXHAUST STACK'],'l')
+leader(FNX,EY(6),FNX-5*F,EY(11),['60 HP DRYER FAN'],'l'); leader(CYX,EY0+CZ0-9,CYX+1*F,EY(-3.5),['ROTARY AIRLOCK AND PRODUCT SCREW TO BUNKER'])
+leader(XD+5*F,EY(22),XD+10*F,EY(33),['DRYER EXHAUST DUCT']); leader(XD+STA['DB'][1]/2,EY(DBT-3),XD+STA['DB'][1]+3*F,EY(DBT+4),['DROP-OUT BOX'])
 leader(XD+STA['XD'][1]-12*F,EY(DCL+4.3),XD+STA['XD'][1]-8*F,EY(DCL+11),['MODEL XD-96 ROTARY DRYER'])
 leader(XD+STA['XD'][0]+8*F,EY(2),XD+STA['XD'][0]+10*F,EY(-5.5),['REAR TRUNNION BASE']); leader(XD+STA['XD'][1]-9*F,EY(2),XD+STA['XD'][1]-7*F,EY(-5.5),['FRONT TRUNNION BASE AND DRUM DRIVE'])
 leader(FBX,EY(DCL+9),FBX+6*F,EY(DCL+13),['12" S.S. FEED SCREW FROM DEWATERING UNIT','(BEHIND, NOT SHOWN)']); leader(XD+(STA['BH'][0]+STA['BH'][1])/2,EY(BHT-2),XD+STA['BH'][1]+2*F,EY(BHT+6),['BURNER HOUSING'])
@@ -134,14 +141,14 @@ VX,VY=PADW+40*F,0
 def VXf(w): return VX+w*F
 def VYf(h): return VY+h*F
 msp.add_line((VXf(-21),VY),(VXf(14),VY),dxfattribs={'layer':'PAD'})
-rect(VXf(-1.75),VY,3.5*F,35*F,'EQUIPMENT'); rect(VXf(-4),VYf(14),8*F,8*F,'EQUIPMENT'); rect(VXf(-5.8),VY,11.6*F,DBT*F,'DRYER-TRAIN')
+rect(VXf(-1.75),VY,3.5*F,35*F,'EQUIPMENT'); polys(he74.elevation(),lambda x:VXf(0)+x,lambda z:VY+CZ0+z); polys(he74.stand(CZ0),lambda x:VXf(0)+x,lambda z:VY+z); rect(VXf(-5.8),VY,11.6*F,DBT*F,'DRYER-TRAIN')
 for r in (HT['tire_od']/2,HT['plan_outline_inner_od']/2,HT['drum_shell_od']/2): msp.add_circle((VXf(0),VYf(DCL)),r,dxfattribs={'layer':'DRYER-TRAIN'})
 rect(VXf(-6.5),VY,13*F,2*F,'DRYER-TRAIN')
 for dx in (-4.2,4.2): rect(VXf(dx-1.2),VYf(2),2.4*F,2.5*F,'DRYER-TRAIN')
 rect(VXf(-3.5),VYf(5.6),7*F,(BHT-5.6)*F,'DRYER-TRAIN'); msp.add_circle((VXf(0),VYf(DCL)),1.6*F,dxfattribs={'layer':'DRYER-TRAIN'}); rect(VXf(-1),VYf(DCL-0.9),2*F,1.8*F,'DRYER-TRAIN')
 rect(VXf(3.5),VY,4.5*F,4.5*F,'DRYER-TRAIN'); msp.add_circle((VXf(5.75),VYf(2.25)),1.8*F,dxfattribs={'layer':'DRYER-TRAIN'}); rect(VXf(-11.5),VY,5*F,4*F,'DRYER-TRAIN')
 vdim(VY,VYf(35),VXf(-19),"35'-0\""); vdim(VY,VYf(DBT),VXf(8),fi(HT['dropout_box_top'])); hdim(VXf(-HT['tire_od']/24),VXf(HT['tire_od']/24),VYf(DCL+7),fi(HT['tire_od'])+' TRACK O.D.'); hdim(VXf(-5.8),VXf(5.8),VYf(-1.5),"11'-7\"")
-leader(VXf(0),VYf(30),VXf(3),VYf(31),['EXHAUST STACK']); leader(VXf(4),VYf(21),VXf(6),VYf(24),['CYCLONE COLLECTOR (BEHIND)'])
+leader(VXf(0),VYf(30),VXf(3),VYf(31),['EXHAUST STACK']); leader(VXf(3),VYf(25),VXf(6),VYf(27),['HE-74 CYCLONE (BEHIND)'])
 leader(VXf(-5.8),VYf(16),VXf(-8),VYf(19.5),['DROP-OUT BOX (BEHIND)'],'l'); leader(VXf(-3.5),VYf(11),VXf(-9),VYf(12.5),['BURNER HOUSING'],'l')
 leader(VXf(5.75),VYf(4),VXf(9),VYf(7),['COMBUSTION AIR BLOWER']); leader(VXf(-4.2),VYf(3.2),VXf(-9),VYf(5.5),['TRUNNION BASE'],'l'); leader(VXf(-9),VYf(2),VXf(-9),VYf(-3.5),['FUEL TRAINS, LPG AND BIOGAS'],'l')
 text(VX,VY-9*F,'END VIEW',14,TA.MIDDLE_CENTER,'TITLE'); text(VX,VY-13*F,'MODEL XD-96 DRYER SYSTEM - FROM THE BURNER END',7)
@@ -157,7 +164,8 @@ text(TX+50*F,TY+3*F,'%s  REV %s'%(DWG,REV),12,TA.MIDDLE_CENTER,'TITLE')
 NOTES=['GENERAL NOTES',
  '1. PRELIMINARY ARRANGEMENT FOR SITE PLANNING. DRYER TRAIN LINE WORK (LAYER DRYER-TRAIN) IS FROM THE MCE 8x40 DRYER GENERAL ARRANGEMENT AND IS TO SCALE.',
  '2. ITEMS ON LAYER PLACEHOLDER ARE NOT YET DEFINED: THE DASHED, CROSSED RECTANGLES RESERVE SPACE AT THE SIZE SHOWN AND WILL BE REPLACED BY VENDOR BLOCKS WHEN SELECTED.',
- '3. CYCLONE, FAN, STACK, DUCTING, AIRLOCKS AND SCREWS (LAYER EQUIPMENT) ARE SIZED SCHEMATICALLY AND WILL BE DETAILED IN FINAL ENGINEERING.',
+ '3. CYCLONE OUTLINE IS FROM THE MCE HE-74 DIMENSION SHEET (74 IN BARREL, 24\'-4" OVERALL, ABOUT 2,400 LB). FAN, STACK, DUCTING, AIRLOCKS AND SCREWS',
+ '   (LAYER EQUIPMENT) ARE SIZED SCHEMATICALLY AND WILL BE DETAILED IN FINAL ENGINEERING. CERTIFIED DRAWINGS ARE ISSUED FOR APPROVAL WITH AN ORDER.',
  '4. BASIS: 140 MT/DAY DIGESTATE AT 8% TS, DEWATERED TO 22-30% TS, DRIED TO 15% MOISTURE; 10 MMBTU/HR DUAL-FUEL BURNER, BIOGAS PRIMARY, LPG STAND-BY.',
  '5. WEIGHTS FOR FOUNDATION DESIGN: DRUM AND SKID 79,900 LB EMPTY + 19,300 LB MATERIAL RUNNING; BURNER ASSEMBLY 16,000 LB; DROP-OUT BOX 9,300 LB.',
  '6. UTILITIES: 480V/3/60 (OR 440V/60), ~160 HP CONNECTED; BIOGAS <50 MBAR TO SKID, 2 PSIG TO BURNER; LPG VAPOR 5 PSIG (BY OTHERS); INSTRUMENT AIR 5 SCFM AT 90 PSIG.',
