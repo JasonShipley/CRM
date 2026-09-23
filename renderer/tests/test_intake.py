@@ -16,6 +16,7 @@ HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent))
 
 import quote_from_job as qfj  # noqa: E402
+from calculators import _vendor as _v  # noqa: E402
 from interpret import FeederSpec, JobRequest  # noqa: E402
 
 TODAY = datetime.date(2026, 9, 23)
@@ -87,7 +88,10 @@ def test_jb_request():
     check("no cyclone alongside a baghouse",
           not any(n.startswith("Cyclone") for n in names), str(names))
     fan = next((l for l in q["lines"] if l["name"].startswith("Fan")), None)
-    check("fan selected from the AirPro lineup", fan and "AirPro" in fan["name"], str(fan))
+    # the line carries the model number, not the vendor — see
+    # test_no_vendor_brands_on_customer_lines
+    check("fan selected from the AirPro lineup",
+          fan and fan.get("sku") in _v.AIRPRO_FANS_BY_MODEL, str(fan))
     check("fan is priced, not TBD", fan and not fan.get("needsPrice") and fan["unitPrice"] > 0,
           str(fan))
     check("ductwork listed unpriced — still no calculator or basis for it",
@@ -211,6 +215,33 @@ def test_baghouse_is_still_the_default():
           not any(n.startswith("Cyclone") for n in names), str(names))
 
 
+def test_no_vendor_brands_on_customer_lines():
+    """Buy-out lines carry the model number and the specification — airflow,
+    speeds, HP — but never the vendor's name. Which vendor supplies it, and which
+    quote priced it, are MCE's business and stay in the internal open items."""
+    brands = ["AirPro", "Airlanco", "Prater", "Kice", "SCC", "Coperion"]
+    for over in ({}, {"dust_collection": "cyclone"}):
+        q = qfj.build(jb_request(**over), today=TODAY)
+        for line in q["lines"] + q["netItems"]:
+            blob = " ".join([line["name"], line.get("description") or "",
+                             str(line.get("sku") or "")]).lower()
+            for b in brands:
+                check(f"no {b} on a customer line",
+                      b.lower() not in blob, f'{line["name"]}: {blob[:140]}')
+    # and the specs the rep needs are still there
+    q = qfj.build(jb_request(), today=TODAY)
+    fan = next(l for l in q["lines"] if l["name"].startswith("Fan"))
+    for token in ("ACFM", "RPM", "HP"):
+        check(f"fan line still shows {token}", token in fan["description"], fan["description"])
+    air = next(l for l in q["lines"] if l["name"].startswith("Rotary Airlock"))
+    for token in ("HP", "RPM"):
+        check(f"airlock line still shows {token}", token in air["description"],
+              air["description"])
+    # the provenance is not lost — it moved
+    check("fan basis recorded internally", "AirPro" in open_text(q), open_text(q))
+    check("airlock basis recorded internally", "Airlanco" in open_text(q), open_text(q))
+
+
 def test_quantity():
     q = qfj.build(jb_request(quantity=8), today=TODAY)
     check("quantity on every line", all(l["quantity"] == 8 for l in q["lines"]))
@@ -252,7 +283,8 @@ def test_reference_slug():
 def main():
     for fn in (test_jb_request, test_motor_conflict, test_thin_request,
                test_no_air_system, test_cyclone_when_the_rep_asks_for_one,
-               test_baghouse_is_still_the_default, test_quantity,
+               test_baghouse_is_still_the_default,
+               test_no_vendor_brands_on_customer_lines, test_quantity,
                test_fan_quote_validity, test_reference_slug):
         fn()
         print(f"  {fn.__name__}")

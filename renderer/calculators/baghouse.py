@@ -130,30 +130,30 @@ def size(f):
             price = cost * _vendor.FAN_MARKUP
             outputs.append({"label": "Fan (AirPro)",
                             "value": f"{model} — {motor} HP, {duty:,} ACFM @ 12\" wg"})
+            # Customer-facing: model number and duty, no vendor name. Which vendor
+            # the model comes from and which quote priced it are internal.
             notes = [
-                f'AirPro {model}, arrangement 4V — vertical, direct-mounted on the '
-                "filter housing, with CS outlet damper",
-                f'Rated {duty:,} ACFM at 12" wg, {rpm:,} RPM, {motor} motor, '
-                f"{weight:,} lb shipping",
+                f'Model {model}, arrangement 4V — vertical, direct-mounted on the '
+                "filter housing, with carbon steel outlet damper",
+                f'Rated {duty:,} ACFM at 12" wg, {rpm:,} RPM',
+                f"{motor.split('/')[0]} HP, {motor.split('/')[-1]} frame, TEFC "
+                f"460 V/3/60 — {weight:,} lb shipping",
                 "Discharges to atmosphere after the filter — no cyclone required",
                 "Lead time 4 weeks from drawing approval",
             ]
             if assumed:
-                notes.append("This model was not in AirPro's own selection sheet — the "
-                             "smallest duty fan was assumed. Confirm with AirPro.")
                 warnings.append(
                     f"The {mce['model']} fan selection was assumed, not quoted by AirPro. "
                     "Confirm the selection before this goes out.")
             if _vendor.fan_quote_stale():
-                notes.append(f"Price basis AirPro {_vendor.AIRPRO_QUOTE}, expired "
-                             f"{_vendor.AIRPRO_QUOTE_EXPIRES:%b %-d, %Y} — reconfirm")
                 warnings.append(
                     f"The AirPro fan quote ({_vendor.AIRPRO_QUOTE}) expired "
                     f"{_vendor.AIRPRO_QUOTE_EXPIRES:%b %-d, %Y}. The fan price is last "
                     "known cost — get a current quote before release.")
             else:
-                notes.append(f"Price basis AirPro {_vendor.AIRPRO_QUOTE}")
-            lines.append({"name": f"Fan — AirPro {model} with outlet damper",
+                warnings.append(f"Fan {model} priced from AirPro {_vendor.AIRPRO_QUOTE} "
+                                f"cost × {_vendor.FAN_MARKUP:g}.")
+            lines.append({"name": f"Fan — {model} with outlet damper",
                           "quantity": 1, "unitPrice": round(price, 2),
                           "sku": model, "description": "\n".join(notes)})
             total += price

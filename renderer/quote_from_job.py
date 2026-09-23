@@ -227,17 +227,19 @@ def build(job, today=None):
         # buy-out divisor rather than listing it TBD.
         al = _vendor.airlock()
         if al:
-            al_model, al_price, al_date, al_source, al_desc = al
+            # Model number and specification only — the vendor's name is internal.
+            al_number, al_price, al_date, al_brand, al_source, al_desc = al
             lines.append({
-                "name": f"Rotary Airlock — {al_model}", "quantity": qty,
-                "unitPrice": round(al_price, 2), "sku": al_model,
+                "name": f"Rotary Airlock — {al_number}", "quantity": qty,
+                "unitPrice": round(al_price, 2), "sku": al_number,
                 "description": "\n".join([
                     al_desc,
-                    "Drop-through, under the dust filter hopper",
+                    "Mounts under the dust filter hopper",
                     "Budgetary price — firm on receipt of a current vendor quote",
                 ])})
             open_items.append(
-                f"Airlock priced as {al_model} from {al_source} ({al_date}), marked up at "
+                f"Airlock priced as {al_brand} {al_number} from {al_source} "
+                f"({al_date}), marked up at "
                 f"MCE's buy-out divisor {_vendor.BUYOUT_DIVISOR:g}. It is the standard "
                 "mill-scale drop-through; an ATEX/NFPA 69 certified valve costs "
                 "substantially more and should be priced separately if the dust hazard "

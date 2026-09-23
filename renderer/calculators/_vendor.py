@@ -65,6 +65,7 @@ AIRPRO_FANS = {
 }
 # The 9-4 row was not in AirPro's own sheet — it was assumed to take the
 # smallest duty fan. Flag it rather than let it pass as quoted.
+AIRPRO_FANS_BY_MODEL = {f[0] for f in AIRPRO_FANS.values()}
 AIRPRO_ASSUMED = {"9-4"}
 
 
@@ -254,24 +255,28 @@ CYCLONE_ADDERS = {
 }
 
 # -------------------------------------------------------------------- airlocks --
-# (cost, sell, date, source, description). Sell is MCE's own quoted price where
-# one exists; where only a cost exists, sell is left None and buyout_price()
-# applies. The Airlanco FT-12 is the mill-scale drop-through airlock that goes
-# under a hammermill filter hopper, and is the default this quote builder uses.
+# (brand, model number, cost, sell, date, source, description). The brand and the
+# quote reference are internal; only the model number and the specification go on
+# a customer line. Sell is MCE's own quoted price where one exists; where only a
+# cost exists, sell is None and buyout_price() applies. The FT-12 is the
+# mill-scale drop-through that goes under a hammermill filter hopper, and is the
+# default this quote builder uses.
 AIRLOCK_QUOTES = [
-    ("Airlanco FT-12", 9026.0, None, "2026-04-23", "Airlanco quote 024350",
-     "drop-through rotary, cast iron housing and end plates, 8-vane open-end mild "
-     "steel bevelled rotor, outboard bearings, 1.5 HP TEFC gearmotor at 18 RPM"),
-    ("Prater BAV 10", 23124.0, None, "2025-04-03", "MCE PO 520214 / Prater KT012025111600",
+    ("Airlanco", "FT-12", 9026.0, None, "2026-04-23", "Airlanco quote 024350",
+     "Drop-through rotary valve, cast iron housing and end plates, 8-vane open-end "
+     "mild steel bevelled rotor, outboard bearings with three moly-urethane U-cup "
+     "packing rings per side, 1.5 HP TEFC gearmotor at 18 RPM"),
+    ("Prater", "BAV 10", 23124.0, None, "2025-04-03",
+     "MCE PO 520214 / Prater KT012025111600",
      "BAV 10 configured, engineering master, ambient service"),
-    ("EMVDL-RVEX-HT37", None, 10272.50, "2026-04-28", "NEMO Feed 20260428",
+    ("", "EMVDL-RVEX-HT37", None, 10272.50, "2026-04-28", "NEMO Feed 20260428",
      "ATEX EN 15089 and NFPA 69 certified rotary valve to 40 in WG, cast iron, "
-     "8-vane polyurethane flex-tip rotor, 1 HP at 30 RPM, 0.70 ft3 per rotation"),
-    ("EMVDL-RVEX-HT45", None, 22998.0, "2026-04-28", "NEMO Feed 20260428",
+     "8-vane polyurethane flex-tip rotor, 1 HP at 30 RPM, 0.70 ft³ per rotation"),
+    ("", "EMVDL-RVEX-HT45", None, 22998.0, "2026-04-28", "NEMO Feed 20260428",
      "ATEX EN 15089 and NFPA 69 certified rotary valve to 40 in WG, cast iron, "
-     "8-vane polyurethane flex-tip rotor, 2 HP at 30 RPM, 1.23 ft3 per rotation"),
+     "8-vane polyurethane flex-tip rotor, 2 HP at 30 RPM, 1.23 ft³ per rotation"),
 ]
-AIRLOCK_DEFAULT = "Airlanco FT-12"
+AIRLOCK_DEFAULT = "FT-12"
 
 # -------------------------------------------------------- baghouse, bought out --
 # One real pair: Airlanco quote 024350 (April 23 2026) costed the 60 Series
@@ -290,13 +295,16 @@ BAGHOUSE_COST_PER_SQFT = 32321.0 / 804.0          # $40.20/ft2 of cloth, vendor 
 BAGHOUSE_QUOTE_DATE = datetime.date(2026, 4, 23)
 
 
-def airlock(name=None):
-    """(name, sell price, date, source, description) for one airlock."""
-    want = name or AIRLOCK_DEFAULT
-    for entry in AIRLOCK_QUOTES:
-        if entry[0] == want:
-            model, cost, sell, date, source, desc = entry
-            return model, (sell if sell is not None else buyout_price(cost)), date, source, desc
+def airlock(number=None):
+    """(model number, sell price, date, brand, source, description) for one airlock.
+
+    `number` is what goes on the customer line; `brand` and `source` are internal.
+    """
+    want = number or AIRLOCK_DEFAULT
+    for brand, model, cost, sell, date, source, desc in AIRLOCK_QUOTES:
+        if model == want:
+            price = sell if sell is not None else buyout_price(cost)
+            return model, price, date, brand, source, desc
     return None
 
 
