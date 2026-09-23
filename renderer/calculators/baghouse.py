@@ -10,6 +10,7 @@ extracted verbatim into _data.py.
 """
 import math
 
+from . import _vendor
 from ._data import BH_BAG_COUNTS, BH_BAG_LENGTHS, BH_KICE_MODELS
 
 CLOTH_PER_BAG_FT = math.pi * 0.5   # ft² of cloth per bag-foot (6.0" dia bags)
@@ -87,6 +88,7 @@ def size(f):
     outputs.append({"label": "Air-to-cloth ratio", "value": f"{ratio:g}:1"})
 
     lines = []
+    total = 0.0
     if mce:
         actual = cfm / mce["area"]
         if actual > 7.5:
@@ -114,6 +116,42 @@ def size(f):
                 f'{mce["pulse"]:.2f} SCFM pulse air required',
                 "Price from the fabrication estimate — this calculator sizes only",
             ])})
+
+        # The fan is selected against the baghouse, not sized independently:
+        # MCE's OEM lineup pairs one AirPro fan with each filter model.
+        fan = _vendor.fan_for(mce["model"])
+        if fan:
+            model, duty, rpm, motor, weight, cost, assumed = fan
+            price = cost * _vendor.FAN_MARKUP
+            outputs.append({"label": "Fan (AirPro)",
+                            "value": f"{model} — {motor} HP, {duty:,} ACFM @ 12\" wg"})
+            notes = [
+                f'AirPro {model}, arrangement 4V — vertical, direct-mounted on the '
+                "filter housing, with CS outlet damper",
+                f'Rated {duty:,} ACFM at 12" wg, {rpm:,} RPM, {motor} motor, '
+                f"{weight:,} lb shipping",
+                "Discharges to atmosphere after the filter — no cyclone required",
+                "Lead time 4 weeks from drawing approval",
+            ]
+            if assumed:
+                notes.append("This model was not in AirPro's own selection sheet — the "
+                             "smallest duty fan was assumed. Confirm with AirPro.")
+                warnings.append(
+                    f"The {mce['model']} fan selection was assumed, not quoted by AirPro. "
+                    "Confirm the selection before this goes out.")
+            if _vendor.fan_quote_stale():
+                notes.append(f"Price basis AirPro {_vendor.AIRPRO_QUOTE}, expired "
+                             f"{_vendor.AIRPRO_QUOTE_EXPIRES:%b %-d, %Y} — reconfirm")
+                warnings.append(
+                    f"The AirPro fan quote ({_vendor.AIRPRO_QUOTE}) expired "
+                    f"{_vendor.AIRPRO_QUOTE_EXPIRES:%b %-d, %Y}. The fan price is last "
+                    "known cost — get a current quote before release.")
+            else:
+                notes.append(f"Price basis AirPro {_vendor.AIRPRO_QUOTE}")
+            lines.append({"name": f"Fan — AirPro {model} with outlet damper",
+                          "quantity": 1, "unitPrice": round(price, 2),
+                          "sku": model, "description": "\n".join(notes)})
+            total += price
     else:
         limit = f" at {len_filter} ft bags" if len_filter != "any" else ""
         warnings.append(
@@ -131,5 +169,5 @@ def size(f):
                         "value": "Beyond S 121-10 (1,425 ft²) — multiple units"})
 
     return {"calculator": "Baghouse Filter", "outputs": outputs, "warnings": warnings,
-            "lines": lines, "total": 0.0, "formula": formula,
+            "lines": lines, "total": round(total, 2), "formula": formula,
             "required_area": round(req_area), "cfm": round(cfm)}

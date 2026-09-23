@@ -76,7 +76,10 @@ def test_hammermill():
         check("hm motor", f"{r['motorHp']:g} HP", out(got, "Motor size"), c)
         check("hm area required", f"{r['fAreaReq']} in²", out(got, "Screen area required"), c)
         check("hm headroom", f"{r['headroom']}%", out(got, "Screen-area headroom"), c)
-        check("hm package total", r["total"], got["total"], c)
+        # compare the mill/feeder/plenum package the original prices; the port's
+        # `total` also carries the vendor-quoted screw, which the original has no
+        # concept of
+        check("hm package total", r["total"], got["package_total"], c)
     return len(cases)
 
 

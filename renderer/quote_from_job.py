@@ -142,11 +142,9 @@ def build(job, today=None):
 
     # --- the rep's stated motor vs what the math says ------------------------
     motor = out.get("Motor size")
-    motor_conflict = False
     if job.motor_hp and motor:
         stated = f"{job.motor_hp:g} HP"
         if stated != motor:
-            motor_conflict = True
             open_items.append(
                 f"The request says a {stated} motor; {pph:,.0f} PPH at index "
                 f"{product['index']} through a {job.screen_64ths:g}/64\" screen calculates "
@@ -174,19 +172,12 @@ def build(job, today=None):
         "One set of screens per mill included" if job.screen_64ths else "",
         needs_input=not job.screen_64ths)
     if result:
-        row("Mill drive",
-            f"{motor}, {out.get('Rotor', '')}"
-            + (f" — request said {job.motor_hp:g} HP" if motor_conflict else ""),
-            "460 V/3/60 TEFC premium efficiency — motor priced separately"
-            + (". Calculated and requested horsepower disagree — confirm which governs"
-               if motor_conflict else ""),
-            needs_input=motor_conflict)
-        short = str(out.get("Screen-area headroom", "")).startswith("-")
+        row("Mill drive", f"{motor}, {out.get('Rotor', '')}",
+            "460 V/3/60 TEFC premium efficiency — motor priced separately")
+        # Fit commentary (headroom, undersize) is internal only — it belongs in
+        # the open-items list the customer never sees, not on the proposal.
         row("Screen area", f"{out.get('Mill screen area', '')}",
-            f"{out.get('Screen-area headroom', '')} headroom over the "
-            f"{out.get('Screen area required', '')} required"
-            + (" — this mill is undersized for the calculated motor" if short else ""),
-            needs_input=short)
+            "Mild steel with AR liners; hammers hard faced and heat treated")
         if job.include_air_system or job.include_plenum:
             row("Air relief through mill", f"{out.get('Plenum airflow', 'TBD')}",
                 f"At {FALLBACK_PLENUM_VELOCITY} FPM plenum design velocity")
@@ -222,20 +213,30 @@ def build(job, today=None):
                     "formula": bh.get("formula", ""), "outputs": bh.get("outputs", []),
                     "warnings": bh.get("warnings", [])})
                 open_items.extend(bh.get("warnings", []))
-        # MCE has no fan, cyclone or ductwork calculator yet — say so rather than
-        # quoting an air system that was never sized.
-        for item in ("Fan", "Cyclone", "Ductwork", "Airlock"):
+        # With a baghouse the air is cleaned by the filter and the fan discharges
+        # to atmosphere after it — no cyclone, and no fan line of its own: the
+        # baghouse calculator already selected and priced the matched AirPro fan.
+        have_baghouse = any("Baghouse" in ln["name"] for ln in lines)
+        outstanding = ["Ductwork", "Airlock"] if have_baghouse else [
+            "Fan", "Cyclone", "Ductwork", "Airlock"]
+        for item in outstanding:
             lines.append({
                 "name": f"{item} — size and price TBD", "quantity": qty,
                 "unitPrice": 0, "needsPrice": True,
                 "description": (
                     f"{item} for the mill air-relief system. MCE has no calculator for this "
-                    "item yet — engineering to size and price, or quote the air system by "
-                    "others.")})
-        open_items.append(
-            "Air system requested. The baghouse is sized from the mill screen area; the fan, "
-            "cyclone, ductwork and airlock have no MCE calculator yet and are unpriced — "
-            "size them in engineering or quote the air system by others.")
+                    "item yet — engineering to size and price, or quote it by others.")})
+        if have_baghouse:
+            by_others.insert(0, "Stack and weather cap at the fan discharge")
+            open_items.append(
+                "Air system requested: baghouse sized from the mill screen area with its "
+                "matched AirPro fan, discharging to atmosphere after the filter — no cyclone. "
+                "Ductwork and the airlock have no MCE calculator yet and are unpriced.")
+        else:
+            open_items.append(
+                "Air system requested but no baghouse was sized, so the fan, cyclone, "
+                "ductwork and airlock are all unpriced — size them in engineering or quote "
+                "the air system by others.")
     else:
         by_others.insert(0, "Air-relief system for the mill — fans, dust filters, ducting, "
                             "airlocks and explosion protection")

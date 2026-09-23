@@ -16,6 +16,7 @@ Sizing chain:
 """
 import math
 
+from . import _vendor
 from ._fmt import jsround, money, num
 from ._data import (FAMILY_SETS, FEEDER_10, FEEDER_14, FEEDER_PRICING,
                     MCE_XM_MILLS, MILL_PRICING, MOTOR_SIZES, PLENUM_V_IDX,
@@ -276,27 +277,60 @@ def size(f):
             ])})
 
         if screw:
-            lines.append({
-                "name": f'{screw["dia"]}" Screw Conveyor — {std_len_ft} ft',
-                "quantity": 1, "unitPrice": 0,
-                "needsPrice": True,
-                "description": "\n".join([
-                    f'{screw["dia"]}" dia at {TROUGH_LABELS[trough].lower()}',
-                    f"{num(cuft_hr)} ft³/hr at {num(pph)} PPH and {density:g} lb/ft³",
-                    f'{std_len_ft} ft standard length ({num(min_len_ft, 1)} ft to the plenum '
-                    f"flange + {num(run_length, 1)} ft to the discharge point)",
-                    f"Mating flange must give at least {num(flange_area, 2)} ft² open area",
-                    "Price from the screw conveyor catalog — not priced by this calculator",
-                ])})
+            basis = _vendor.screw_basis_for(screw["dia"])
+            desc = [
+                f'{screw["dia"]}" dia at {TROUGH_LABELS[trough].lower()}',
+                f"{num(cuft_hr)} ft³/hr at {num(pph)} PPH and {density:g} lb/ft³",
+                f'{std_len_ft} ft standard length ({num(min_len_ft, 1)} ft to the plenum '
+                f"flange + {num(run_length, 1)} ft to the discharge point)",
+                f"Mating flange must give at least {num(flange_area, 2)} ft² open area",
+                "Complete with drive motor, reducer, guard and approval drawings",
+            ]
+            if basis:
+                basis_len, basis_cost = basis
+                screw_price = basis_cost * _vendor.SCREW_MARKUP
+                desc.append(
+                    f'Budget price from {_vendor.SCREW_QUOTE} '
+                    f'({_vendor.SCREW_QUOTE_DATE:%b %-d, %Y}) for a {screw["dia"]}" × '
+                    f'{basis_len:g} ft unit')
+                price_notes.append(
+                    f'Screw: {_vendor.SCREW_QUOTE} {screw["dia"]}" × {basis_len:g} ft '
+                    f'{money(basis_cost)} net × {_vendor.SCREW_MARKUP:.2f} = '
+                    f"{money(screw_price)}")
+                if abs(std_len_ft - basis_len) > 0.5:
+                    desc.append(f"Budget only — the vendor basis is {basis_len:g} ft, this "
+                                f"run is {std_len_ft} ft. Confirm with SCC.")
+                    warnings.append(
+                        f'The {screw["dia"]}" screw is priced from an {basis_len:g} ft '
+                        f"vendor quote but this run is {std_len_ft} ft — budget figure only, "
+                        "confirm with SCC before release.")
+                lines.append({
+                    "name": f'{screw["dia"]}" Screw Conveyor — {std_len_ft} ft',
+                    "quantity": 1, "unitPrice": round(screw_price, 2),
+                    "description": "\n".join(desc)})
+            else:
+                desc.append("No MCE vendor quote on file for this diameter — price from SCC")
+                warnings.append(
+                    f'No screw conveyor price basis on file for {screw["dia"]}" — '
+                    "get a quote from SCC.")
+                lines.append({
+                    "name": f'{screw["dia"]}" Screw Conveyor — {std_len_ft} ft',
+                    "quantity": 1, "unitPrice": 0, "needsPrice": True,
+                    "description": "\n".join(desc)})
     else:
         warnings.append(f"No price basis on file for {mill['model']}.")
 
+    lines_total = sum(l.get("unitPrice") or 0 for l in lines)
     return {
         "calculator": "Hammermill + Plenum",
         "outputs": outputs,
         "warnings": warnings,
         "lines": lines,
-        "total": round(total, 2),
+        # `package_total` is what MCE's own calculator totals — mill, feeder and
+        # plenum. `total` is every priced line, including the screw conveyor,
+        # which comes from a vendor quote the original never carried.
+        "package_total": round(total, 2),
+        "total": round(lines_total, 2),
         "formula": formula,
         "plenum_formula": plenum_formula,
         "price_notes": price_notes,

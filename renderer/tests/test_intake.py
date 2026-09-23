@@ -62,11 +62,15 @@ def test_jb_request():
           and q["customer"]["contact"] == "Dennis Heideman")
 
     # The rep named the mill, so it must be quoted — not silently swapped for the
-    # auto match — but the shortfall has to be stated.
+    # auto match. The shortfall is reported to MCE internally and must NOT reach
+    # the customer-facing design basis (Jason, 2026-09-23).
     check("named mill is honoured", "XM-4430" in q["name"], q["name"])
     area = design(q, "Screen area")
-    check("undersize flagged orange", area and area["needsInput"], str(area))
-    check("auto match named", "XM-4440" in open_text(q))
+    check("undersize kept off the proposal", area and not area["needsInput"], str(area))
+    check("no undersize wording on the design basis",
+          area and "undersized" not in (area["notes"] + area["value"]).lower(), str(area))
+    check("undersize still reported internally", "860 in²" in open_text(q), open_text(q))
+    check("auto match named internally", "XM-4440" in open_text(q))
 
     # The ambiguity Claude reported must survive into the proposal, not be resolved.
     check("feeder ambiguity survives", "8-4row" in open_text(q))
@@ -78,15 +82,32 @@ def test_jb_request():
     check("plenum quoted", any("Plenum Chamber" in n for n in names))
     check("screw quoted", any("Screw Conveyor" in n for n in names))
     check("baghouse sized from the mill", any("Baghouse" in n for n in names))
-    for item in ("Fan", "Cyclone", "Ductwork", "Airlock"):
+    # A baghouse cleans the air and the fan discharges to atmosphere after it,
+    # so no cyclone is quoted and the fan comes from the AirPro lineup, priced.
+    check("no cyclone alongside a baghouse",
+          not any(n.startswith("Cyclone") for n in names), str(names))
+    fan = next((l for l in q["lines"] if l["name"].startswith("Fan")), None)
+    check("fan selected from the AirPro lineup", fan and "AirPro" in fan["name"], str(fan))
+    check("fan is priced, not TBD", fan and not fan.get("needsPrice") and fan["unitPrice"] > 0,
+          str(fan))
+    for item in ("Ductwork", "Airlock"):
         check(f"{item} listed unpriced", any(n.startswith(item) for n in names), str(names))
+    screw = next((l for l in q["lines"] if "Screw Conveyor" in l["name"]), None)
+    check("screw priced from the SCC basis",
+          screw and not screw.get("needsPrice") and screw["unitPrice"] > 0, str(screw))
+    check("screw states its vendor basis", screw and "H51445AW" in screw["description"],
+          str(screw))
 
     unpriced = [l["name"] for l in q["lines"] + q["netItems"] if l.get("needsPrice")]
     check("uncalculated items are unpriced, not zero-priced",
           all(l.get("unitPrice") in (0, "", None) for l in q["lines"] if l.get("needsPrice")))
     check("motor is net-priced and flagged",
           q["netItems"] and q["netItems"][0].get("needsPrice"), str(q["netItems"]))
-    check("air system openly unpriced", "no MCE calculator" in open_text(q), str(unpriced))
+    check("remaining air items openly unpriced", "no MCE calculator" in open_text(q),
+          str(unpriced))
+    check("stale fan quote flagged", "expired" in open_text(q), open_text(q))
+    check("screw length mismatch flagged", "confirm with scc" in open_text(q).lower(),
+          open_text(q))
 
     check("proposal sections present",
           all(q[k] for k in ("designBasis", "byOthers", "schedule")))
@@ -96,10 +117,10 @@ def test_jb_request():
 def test_motor_conflict():
     """JB said 200 HP. At index 50 the math says 100 HP — that must not pass silently."""
     q = qfj.build(jb_request(product_match="Pet Food (regular / whole kibble)"), today=TODAY)
-    check("motor conflict reported", "200 HP" in open_text(q) and "100 HP" in open_text(q),
-          open_text(q))
+    check("motor conflict reported internally",
+          "200 HP" in open_text(q) and "100 HP" in open_text(q), open_text(q))
     drive = design(q, "Mill drive")
-    check("motor conflict is orange", drive and drive["needsInput"], str(drive))
+    check("motor conflict kept off the proposal", drive and not drive["needsInput"], str(drive))
 
     # And when they agree, no conflict is raised.
     q2 = qfj.build(jb_request(motor_hp=200), today=TODAY)
@@ -125,6 +146,7 @@ def test_no_air_system():
     q = qfj.build(jb_request(include_air_system=False), today=TODAY)
     names = [l["name"] for l in q["lines"]]
     check("no air lines quoted", not any(n.startswith("Fan") for n in names), str(names))
+    check("no baghouse quoted", not any("Baghouse" in n for n in names), str(names))
     check("air moved to by-others",
           any("Air-relief system" in x for x in q["byOthers"]), str(q["byOthers"]))
 

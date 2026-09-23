@@ -80,8 +80,8 @@ input is free text.
 |---|---|
 | Ambiguous wording (`"8-4row"`) | Sizes the feeder from the mill screen width, asks for the row count |
 | Product could match two index rows | Uses the closer one, flags it — the pet food entries grind very differently |
-| Stated HP disagrees with the calculation | Quotes the calculated figure, prints the conflict orange on the design basis |
-| Named mill too small for the motor | Quotes the mill asked for, states the shortfall and names the auto match |
+| Stated HP disagrees with the calculation | Quotes the calculated figure; the conflict goes to MCE internally |
+| Named mill too small for the motor | Quotes the mill asked for; the shortfall goes to MCE internally, **not** onto the proposal |
 | No calculator exists (fan, cyclone, duct) | Lists the item unpriced rather than omitting or guessing it |
 | Governing spec missing entirely | Quotes nothing, says what it needs |
 
@@ -130,7 +130,8 @@ the hammermill just reported, and the two agree by construction.
 | Rotary feeder | Feeder sheet + magnet/cleanout, x multiplier | |
 | Plenum | Plenum weight x duty factor x $/lb | Weight varies with design velocity |
 | Cooler | MCE list (2016/17 basis escalated), plus options | Price rev shown on the result |
-| Screw conveyor | **not priced** | Sized only — price from the screw catalog |
+| Screw conveyor | SCC vendor quote x MCE markup | Budget figure; flags when the run length differs from the vendor basis |
+| Fan | AirPro OEM lineup cost x 2 | Selected against the baghouse model, not sized separately |
 | Baghouse | **not priced** | Sized only — price from the fabrication estimate |
 
 Unpriced lines land on the quote at $0.00 and are highlighted in the line-item
@@ -152,6 +153,24 @@ The record shape is deliberately tool-agnostic — customer, lines, sizing — s
 writing these into Twenty later is a mapping job, not a rewrite.
 
 ---
+
+## Vendor cost bases
+
+`renderer/calculators/_vendor.py` holds the figures MCE buys at, each with its
+source quote and expiry:
+
+- **AirPro fans** — MCE's OEM lineup pairs one fan with each baghouse model
+  (arrangement 4V, direct-mounted, CS outlet damper, 12 in.wg). The fan is
+  therefore *selected against the filter*, never sized independently. Sell price
+  is cost x 2. When a baghouse is in the scope the air is cleaned by the filter
+  and the fan discharges to atmosphere after it, so **no cyclone is quoted**.
+- **SCC screw conveyors** — the net cost of the quoted unit x MCE's screw markup
+  (1 / 0.8). The basis is a specific length; when the calculated run differs, the
+  line is labelled a budget figure and an open item says to confirm with SCC.
+
+A quote past its expiry still prices, but says so on the line and raises an open
+item — a stale basis is visible rather than silent. Update the numbers here when
+a new vendor quote lands.
 
 ## Adding a calculator
 

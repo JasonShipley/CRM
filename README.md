@@ -89,9 +89,11 @@ While a quote is **Draft**, the proposal carries an internal open-items block at
 the end listing everything still needing MCE input. Move it off Draft and that
 block disappears.
 
-Lines the calculators size but don't price — screw conveyors and baghouses —
-come in at **$0.00 and are highlighted**. Put a price on them before the quote
-goes out.
+Lines nothing prices yet — the baghouse shell, ductwork, airlocks, the main
+drive motor — come in at **$0.00 and are highlighted**. Put a price on them
+before the quote goes out. Screws and fans *are* priced, from MCE's SCC and
+AirPro quotes; if the vendor quote behind one has expired, the open items say
+so.
 
 ### The calculators on their own
 
