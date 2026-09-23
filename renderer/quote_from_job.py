@@ -85,8 +85,14 @@ def _hp_number(label):
     return float(m.group(1)) if m else None
 
 
-def build(job, today=None):
-    """JobRequest -> (quote dict, open items). Never raises on a thin request."""
+def build(job, today=None, delivery_weeks=None):
+    """JobRequest -> (quote dict, open items). Never raises on a thin request.
+
+    `delivery_weeks` fills the delivery line on the schedule — "10-12", "14", or
+    None. MCE's lead time moves with the backlog, so there is no default: left
+    unset the line stays a blank for someone to fill, rather than carrying a
+    number nobody stood behind.
+    """
     open_items = list(job.ambiguities or [])
     design = []
     lines = []
@@ -353,7 +359,7 @@ def build(job, today=None):
         mq = _vendor.motor(hp_num)
         notes = [f"{hp}, 1800 RPM, 460 V/3/60, TEFC premium efficiency, 1.15 SF",
                  "Mounted, aligned and guarded on the mill at MCE",
-                 "Priced net — any project discount does not apply to motors"]
+                 "Priced net"]
         if mq:
             # Model number on the line; the make and the cost basis stay internal.
             m_model, m_price, m_date, m_make, m_source = mq
@@ -408,8 +414,12 @@ def build(job, today=None):
         "schedule": [
             {"item": "Freight", "basis": "FOB MCE plant, Newkirk, OK; freight quoted at time "
                                         "of shipment or shipped freight collect."},
-            {"item": "Delivery", "basis": "__ weeks after receipt of order and approval "
-                                          "drawings.", "needsInput": True},
+            ({"item": "Delivery",
+              "basis": f"{delivery_weeks} weeks after receipt of order and approval "
+                       "drawings."}
+             if delivery_weeks else
+             {"item": "Delivery", "basis": "__ weeks after receipt of order and approval "
+                                           "drawings.", "needsInput": True}),
             {"item": "Approval drawings",
              "basis": "General arrangement drawings issued for approval before fabrication."},
             {"item": "Installation",
@@ -418,6 +428,7 @@ def build(job, today=None):
         ],
         "options": [],
         "openItems": open_items,
+        "deliveryWeeks": delivery_weeks or "",
         "sizing": sizing,
         "sourceRequest": None,
     }

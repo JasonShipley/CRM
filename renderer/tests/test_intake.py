@@ -255,6 +255,19 @@ def test_no_vendor_brands_on_customer_lines():
     check("airlock basis recorded internally", "Airlanco" in open_text(q), open_text(q))
 
 
+def test_delivery_weeks():
+    """Lead time moves with the backlog, so there is no default: unset it stays a
+    blank flagged for input, and set it prints and stops being flagged."""
+    q = qfj.build(jb_request(), today=TODAY)
+    d = next(r for r in q["schedule"] if r["item"] == "Delivery")
+    check("unset delivery stays a blank", d.get("needsInput") and "__" in d["basis"], str(d))
+    q = qfj.build(jb_request(), today=TODAY, delivery_weeks="10–12")
+    d = next(r for r in q["schedule"] if r["item"] == "Delivery")
+    check("set delivery prints", "10–12 weeks after receipt of order" in d["basis"], str(d))
+    check("set delivery is no longer flagged", not d.get("needsInput"), str(d))
+    check("delivery carried on the quote", q["deliveryWeeks"] == "10–12", str(q.get("deliveryWeeks")))
+
+
 def test_quantity():
     q = qfj.build(jb_request(quantity=8), today=TODAY)
     check("quantity on every line", all(l["quantity"] == 8 for l in q["lines"]))
@@ -297,7 +310,8 @@ def main():
     for fn in (test_jb_request, test_motor_conflict, test_thin_request,
                test_no_air_system, test_cyclone_when_the_rep_asks_for_one,
                test_baghouse_is_still_the_default,
-               test_no_vendor_brands_on_customer_lines, test_quantity,
+               test_no_vendor_brands_on_customer_lines, test_delivery_weeks,
+               test_quantity,
                test_fan_quote_validity, test_reference_slug):
         fn()
         print(f"  {fn.__name__}")

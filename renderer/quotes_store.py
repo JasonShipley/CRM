@@ -154,7 +154,8 @@ def _sum(rows):
 def totals(quote):
     """Proposal totals, in the order MCE's own proposals present them.
 
-    Scope lines carry any project discount; `netItems` (main drive motors, in
+    Any project discount applies to the scope lines only; `netItems` (main drive
+    motors, in
     MCE's Mid-States proposal) sit outside it and are quoted net.
     """
     subtotal, line_discount = _sum(quote.get("lines"))
