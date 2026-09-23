@@ -191,8 +191,8 @@ about 8% TS, pH 8, NH4-N 3,500 mg/L, chlorides 3,000 mg/L; biogas 55% CH4 / 40% 
 airlock and cyclone are needed, for a preliminary layout with areas, for electricity and maintenance
 costs, and agreed to a sample test after an initial analysis.
 
-Reply drafted in Gmail (draft `r-6154889280855275670`, message `1a0b223ba485287e`, reply to the message above, attachment SD-26-01 e-mail copy; three earlier drafts were trashed as the layout was re-scaled and restyled, cc Santiago, Roberto,
-JB, Mike) with `MCE-LETEK-LAY-001_Preliminary_Layout.pdf` attached. **Not sent; Jason to review.**
+Reply drafted in Gmail (draft `r3090259647765586623`, message `1a0cf735826573f1`, reply to the message above, cc Santiago, Roberto,
+JB, Mike) with the SD-26-01 e-mail copy attached (22.6 KB, real decimated line work; md5 3784db8a84710ec0f447eaf41142cd2e verified on the draft). Four earlier drafts were trashed as the layout was re-scaled, restyled and the e-mail copy redrawn from silhouettes to line work (23 Sep). **Not sent; Jason to review.**
 
 Answers given in the draft (all preliminary, derived from the 140 MT/day basis):
 
@@ -253,9 +253,12 @@ labels in caps, general notes box, title block bottom right with logo, proprieta
 scale and drawing number.
 
 `make_ga_sheet.py` renders that sheet with reportlab: `SD-26-01_LETEK_XD-96_General_Arrangement.pdf`
-(315 KB) draws the dryer train from the real 8x40 line work (`xd96_linework.json.gz`, 50k segments
+(253 KB) draws the dryer train from the real 8x40 line work (`xd96_linework.json.gz`, 50k segments
 from the 104400900 overview print in feet, calibrated on 104400906); `LIGHT=1` gives the e-mail copy
-(25.6 KB, silhouettes instead of line work) `..._email.pdf`. Cyclone, fan, stack, ducting, airlocks,
+`..._email.pdf` (22.6 KB) from the same line work, decimated: segments shorter than `MINLEN` (0.25 ft)
+are dropped, end points snap to a 1 pt grid (`RND=0`), duplicates are merged and the rest chained into
+polylines, so the plan and elevation still read as equipment (drum, tires, trunnions, frame, burner
+housing, fuel train) instead of the earlier silhouettes. Cyclone, fan, stack, ducting, airlocks,
 product screw, feed screw, dewatering unit, biogas skid, chiller, MCC and LPG station are drawn
 schematically; the pad 124 x 64 ft is shown dashed with dimensions. Drawing number SD-26-01 rev P1
 (preliminary) follows the SD-yy-nn pattern of the references; the older MCE-LETEK-LAY-001 plot plan

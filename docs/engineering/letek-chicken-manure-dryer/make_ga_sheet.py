@@ -2,7 +2,7 @@
 ANSI D 36 x 24 in, plan / elevation / end views at 3/16 in = 1 ft, feet-inch dimensions, leader labels,
 general notes, title block bottom right.  Dryer train from the MCE 8x40 line work (xd96_linework.json.gz,
 calibrated on the dimensioned field-assembly sheet); cyclone, fan, stack, feed, dewatering, skid drawn schematically.
-LIGHT=1 draws the train as silhouettes (small file for e-mail).  No vendor, price or lead time appears here."""
+LIGHT=1 draws the train from the same line work, decimated (segments >= MINLEN ft, integer-point grid, chained paths) so the e-mail copy stays ~22 KB.  No vendor, price or lead time appears here."""
 import json, gzip, io, math, os
 from pathlib import Path
 from PIL import Image
@@ -11,7 +11,32 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.units import inch
 from reportlab.lib import colors
 HERE=Path(__file__).parent; REPO=HERE.parents[2]
-LIGHT=os.environ.get('LIGHT')=='1'
+LIGHT=os.environ.get("LIGHT")=="1"; MINLEN=float(os.environ.get("MINLEN","0.25")); RND=int(os.environ.get("RND","0"))   # LIGHT: keep only line-work segments >= MINLEN ft
+
+def light_lines(c,segs,fx,fy):
+    """LIGHT mode: dedupe segments on an integer-pt grid, chain them into polylines, emit one stroked path."""
+    S=set()
+    for a,b,cc,dd in segs:
+        if math.hypot(cc-a,dd-b)<MINLEN: continue
+        p=(round(fx(a),RND),round(fy(b),RND)); q=(round(fx(cc),RND),round(fy(dd),RND))
+        if p==q: continue
+        S.add((p,q) if p<=q else (q,p))
+    adj={}
+    for p,q in S: adj.setdefault(p,[]).append(q); adj.setdefault(q,[]).append(p)
+    used=set(); pth=c.beginPath()
+    for p,q in sorted(S):
+        if (p,q) in used: continue
+        used.add((p,q)); chain=[p,q]
+        while True:
+            last=chain[-1]; nxt=None
+            for r in adj.get(last,[]):
+                e=(last,r) if last<=r else (r,last)
+                if e not in used: nxt=r; used.add(e); break
+            if nxt is None: break
+            chain.append(nxt)
+        pth.moveTo(*chain[0])
+        for pt in chain[1:]: pth.lineTo(*pt)
+    c.drawPath(pth,stroke=1,fill=0)
 DWG='SD-26-01'; REV='P1'; DATE='9/18/2026'
 OUT=HERE/('%s_LETEK_XD-96_General_Arrangement%s.pdf'%(DWG,'_email' if LIGHT else ''))
 LW=json.load(gzip.open(HERE/'xd96_linework.json.gz')); SIL=json.load(open(HERE/'xd96_silhouette.json'))
@@ -119,9 +144,7 @@ hdim(PX(0),PX(PADW),PY(PADH)+0.55*inch,ext=PY(PADH)+0.1*inch); vdim(PY(0),PY(PAD
 # dryer train line work
 c.setLineWidth(0.3); c.setStrokeColor(BLACK)
 if LIGHT:
-    pe=SIL['plan_envelope_in']; pts=[(PX(XD+s/12),PY(YC-a/12)) for s,a,b in pe]+[(PX(XD+s/12),PY(YC-b/12)) for s,a,b in reversed(pe)]
-    p=c.beginPath(); p.moveTo(*pts[0]); [p.lineTo(*q) for q in pts[1:]]; p.close(); c.drawPath(p,fill=0,stroke=1)
-    s0,s1=STA['XD']; c.rect(PX(XD+s0/12),PY(YC-HT['plan_outline_inner_od']/24),(s1-s0)/12*K,HT['plan_outline_inner_od']/12*K)
+    light_lines(c,plan,lambda s:PX(XD+s),lambda o:PY(YC-o))
 else:
     c.lines([(PX(XD+s0),PY(YC-o0),PX(XD+s1),PY(YC-o1)) for s0,o0,s1,o1 in plan])
 # centreline
@@ -176,8 +199,7 @@ title(PX(PADW/2),PY(0)-0.45*inch,'PLAN VIEW','MODEL XD-96 DRYER SYSTEM')
 c.setLineWidth(1.0); c.setStrokeColor(BLACK); c.line(PX(0),EY(0),PX(PADW),EY(0)); txt(PX(0.5),EY(0)-9,'GRADE',6.5)
 c.setLineWidth(0.3)
 if LIGHT:
-    ee=SIL['elevation_envelope_in']; pts=[(PX(XD+s/12),EY(b/12)) for s,a,b in ee]+[(PX(XD+s/12),EY(a/12)) for s,a,b in reversed(ee)]
-    p=c.beginPath(); p.moveTo(*pts[0]); [p.lineTo(*q) for q in pts[1:]]; p.close(); c.drawPath(p,fill=0,stroke=1)
+    light_lines(c,elev,lambda s:PX(XD+s),lambda h:EY(h))
 else:
     c.lines([(PX(XD+s0),EY(h0),PX(XD+s1),EY(h1)) for s0,h0,s1,h1 in elev])
 DBT=HT['dropout_box_top']/12; DCL=HT['drum_centreline']/12; BHT=HT['burner_housing_top']/12
