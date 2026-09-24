@@ -14,6 +14,7 @@ Sizing chain:
     screw     = PPH / density                     -> first table row that carries it
     price     = Bliss basis x multiplier, plenum by weight x $/lb
 """
+import datetime
 import math
 
 from . import _vendor
@@ -41,6 +42,18 @@ def next_motor_hp(hp):
 
 def family_of(model):
     return model.replace("XM-", "")[:2]
+
+
+def _as_date(raw):
+    """ISO date string -> date, or None to let the vendor basis use today."""
+    if not raw:
+        return None
+    if isinstance(raw, datetime.date):
+        return raw
+    try:
+        return datetime.date.fromisoformat(str(raw))
+    except ValueError:
+        return None
 
 
 def size_code_of(model):
@@ -277,7 +290,11 @@ def size(f):
             ])})
 
         if screw:
-            screw_cost, screw_notes = _vendor.screw_cost(screw["dia"], std_len_ft)
+            # `today` comes from the caller so a quote reprices identically when it
+            # is rebuilt — without it the screw escalates to the wall clock and the
+            # same job quotes a few dollars higher tomorrow.
+            screw_cost, screw_notes = _vendor.screw_cost(
+                screw["dia"], std_len_ft, today=_as_date(f.get("today")))
             screw_price = screw_cost * _vendor.SCREW_MARKUP
             price_notes.append(
                 f'Screw: modelled SCC cost {money(screw_cost)} × '

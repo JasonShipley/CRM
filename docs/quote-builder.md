@@ -50,6 +50,12 @@ python3 tests/extract_data.py     # re-read the tables out of tools/*.html
 python3 tests/test_ports.py       # prove the ports still match the originals
 ```
 
+`tests/test_bliss_areas.py` is a second, separate check: MCE's XM line is built
+on the Bliss design and each XM model is priced at its Bliss counterpart's base
+price, so their screen areas must agree. The base price is the link, and it is
+already in the calculator, so the test needs no judgement — it matches every mill
+by price and compares the areas. All 32 agree.
+
 `test_ports.py` runs each original's **own JavaScript** headless (Node, plus a
 small DOM shim in `tests/domshim.js`), feeds both sides several hundred
 randomized jobs, and asserts they agree — model selection, every displayed

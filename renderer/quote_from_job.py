@@ -143,6 +143,8 @@ def build(job, today=None, delivery_weeks=None):
             "magnetClean": feeder.magnet_clean or "sma",
             "trough": FALLBACK_TROUGH,
             "runLength": 0,
+            # so the screw prices to the quote's own date, not the wall clock
+            "today": today.isoformat(),
         }
         result = calculators.run("hammermill", form)
         if result.get("error"):
