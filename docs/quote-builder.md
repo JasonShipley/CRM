@@ -114,6 +114,19 @@ Draft the proposal also carries an internal open-items block listing all of them
 with the original sentence it was built from; that block disappears when the
 quote leaves Draft.
 
+**Why this asks for JSON rather than using structured outputs.** The obvious tool
+is `messages.parse(output_format=JobRequest)` — the API constrains the model to
+the schema so the reply cannot be malformed. It is not usable for this schema:
+the API answers *"Schema is too complex"* to `JobRequest`, sometimes rejecting in
+under a second and sometimes hanging past a 180s timeout, while plain calls
+generating the same tokens return in about fifteen. Flattening the schema did not
+clear it. So the contract goes in the prompt instead — `JSON_INSTRUCTION`, which
+is **generated from `JobRequest`** so it cannot drift from what will actually
+validate — and the reply is validated here against the same model. That trades an
+API-side guarantee for a client-side one, which is why `_parse_json_reply`
+refuses anything it is unsure of rather than half-reading it, and why
+`tests/test_json_fallback.py` covers that parser without needing a key.
+
 `ANTHROPIC_API_KEY` powers this one box. Without it the box says so and the rest
 of the builder is unaffected.
 

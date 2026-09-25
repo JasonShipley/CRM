@@ -19,10 +19,11 @@ That keeps the rule the quote-builder skill states plainly — prices come from
 MCE's basis, sizes come from MCE's calculators — true even though the intake is
 free text.
 """
+import json
 import os
-from typing import List, Literal, Optional
+from typing import List, Literal, Optional, get_args, get_origin
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ValidationError
 
 from calculators._data import PRODUCTS
 
@@ -135,6 +136,66 @@ say so in `ambiguities` — do not pick the more common one.
 statements, not as a list of field names."""
 
 
+TIMEOUT_S = 180.0
+MAX_TOKENS = 4000
+
+def _field_spec(name, field):
+    """One line of the JSON contract for a field, derived from the model itself.
+
+    Hand-writing these is how the first attempt went wrong: the instruction named
+    the keys but not the allowed values, so the model sent `"round"` for a cup
+    type and `true` for a magnet cleanout. Generating them means the contract
+    cannot drift from what JobRequest will actually accept.
+    """
+    ann = field.annotation
+    optional = type(None) in get_args(ann)
+    if get_origin(ann) in (list, List):
+        inner = ann                                # a list is not an Optional to unwrap
+    else:
+        args = [a for a in get_args(ann) if a is not type(None)]
+        inner = args[0] if len(args) == 1 else ann
+
+    if get_origin(inner) is Literal:
+        allowed = ", ".join(json.dumps(v) for v in get_args(inner))
+        kind = f"one of {allowed}"
+    elif inner is bool:
+        kind = "true or false (never null)"
+    elif inner is int:
+        kind = "a whole number"
+    elif inner is float:
+        kind = "a number"
+    elif get_origin(inner) in (list, List):
+        kind = "an array of strings, [] if none"
+    elif inner is str:
+        kind = "a string"
+    else:
+        kind = "an object"
+    if optional:
+        kind += ", or null if the rep did not state it"
+    # The description carries what each code MEANS — without it the model cannot
+    # know that a "SS round cup" is "ss" — so it goes into the contract too.
+    note = (field.description or "").strip()
+    return f"  {name}: {kind}" + (f"\n      {note}" if note else "")
+
+
+def _json_instruction():
+    lines = [_field_spec(n, f) for n, f in JobRequest.model_fields.items()
+             if n != "feeder"]
+    feeder = [_field_spec(n, f) for n, f in FeederSpec.model_fields.items()]
+    return ("Reply with a single JSON object and nothing else — no prose before or "
+            "after it, no code fence. Every key below must be present:\n\n"
+            + "\n".join(lines)
+            + "\n  feeder: an object with these keys:\n"
+            + "\n".join("  " + line for line in feeder)
+            + "\n\nUse null for anything the rep did not state. Never invent a value to "
+              "fill a key, and never substitute your own wording for one of the listed "
+              "values — if the rep's wording does not match one of them exactly, use null "
+              "and say why in ambiguities.")
+
+
+JSON_INSTRUCTION = _json_instruction()
+
+
 class InterpretError(RuntimeError):
     """The request could not be interpreted (no key, API failure, unusable text)."""
 
@@ -158,22 +219,69 @@ def interpret(text):
     except ImportError as e:                       # pragma: no cover - deployment issue
         raise InterpretError("The anthropic package is not installed in this container.") from e
 
-    client = anthropic.Anthropic(timeout=90.0, max_retries=2)
+    client = anthropic.Anthropic(timeout=TIMEOUT_S, max_retries=1)
+
+    # Why this asks for JSON in an ordinary message rather than using
+    # `messages.parse(output_format=JobRequest)`:
+    #
+    # Structured outputs would be the better tool — the API constrains the model to
+    # the schema, so the reply cannot come back malformed. It is not usable for THIS
+    # schema. JobRequest has 20 fields, a nested FeederSpec and six enums, and the
+    # API answers "Schema is too complex" to it — sometimes rejecting in under a
+    # second, sometimes hanging past a 180s timeout, while plain calls generating
+    # the same number of tokens return in about fifteen. Trimming the schema flat
+    # did not clear it either.
+    #
+    # So the contract goes in the prompt instead (JSON_INSTRUCTION, generated from
+    # JobRequest so it cannot drift from what will actually validate) and the reply
+    # is validated here against the same model. That gives up the API-side guarantee,
+    # which is why _parse_json_reply refuses anything it is not sure of rather than
+    # half-reading it.
+    #
+    # To go back to structured outputs if the limit lifts: call client.messages.parse
+    # with output_format=JobRequest and drop JSON_INSTRUCTION from the system prompt.
+    # tests/test_json_fallback.py covers this path and needs no API key.
     try:
-        response = client.messages.parse(
-            model=MODEL,
-            max_tokens=8000,
-            system=SYSTEM,
+        reply = client.messages.create(
+            model=MODEL, max_tokens=MAX_TOKENS,
+            system=SYSTEM + "\n\n" + JSON_INSTRUCTION,
             messages=[{"role": "user", "content": text}],
-            output_format=JobRequest,
         )
     except Exception as e:                         # noqa: BLE001 - surface, don't 500
         raise InterpretError(f"Could not read that request: {e}") from e
-
-    if response.stop_reason == "refusal":
+    if reply.stop_reason == "refusal":
         raise InterpretError("That request was declined by the model. Fill the quote in by hand.")
-    job = response.parsed_output
-    if job is None:
+    return _parse_json_reply(reply)
+
+
+def _text_of(reply):
+    """Concatenate the text blocks, skipping thinking and any other block type."""
+    return "".join(getattr(b, "text", "") for b in reply.content if b.type == "text")
+
+
+def _parse_json_reply(reply):
+    """The model's reply -> JobRequest, or InterpretError with something actionable.
+
+    Strict on purpose: this path has no API-side schema, so it is the only thing
+    standing between a malformed reply and a wrong quote.
+    """
+    raw = _text_of(reply).strip()
+    if raw.startswith("```"):                       # ```json ... ``` fence
+        raw = raw.split("```", 2)[1]
+        raw = raw.split("\n", 1)[1] if raw.lower().startswith("json") else raw
+        raw = raw.rsplit("```", 1)[0]
+    start, end = raw.find("{"), raw.rfind("}")
+    if start < 0 or end <= start:
         raise InterpretError("Could not read that request. Try rephrasing it, or fill the "
                              "quote in by hand.")
-    return job
+    try:
+        data = json.loads(raw[start:end + 1])
+    except json.JSONDecodeError as e:
+        raise InterpretError("Could not read that request. Try rephrasing it, or fill the "
+                             "quote in by hand.") from e
+    try:
+        return JobRequest.model_validate(data)
+    except ValidationError as e:
+        raise InterpretError(
+            "That request came back in a shape the quote builder could not use. Try "
+            "rephrasing it, or fill the quote in by hand.") from e
