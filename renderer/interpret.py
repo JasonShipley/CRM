@@ -92,6 +92,9 @@ class JobRequest(BaseModel):
                           "cyclone. Null if they only said \"air system\" or named neither "
                           "— do not infer one from the rest of the request.")
     include_magnet: bool = Field(False, description="Rep asked for a magnet or magnet adapter.")
+    air_swept: bool = Field(
+        False, description="Rep asked for an air-swept mill, a drop-down air pan, or a drop "
+                           "down airpan. These go together and change how the air is sized.")
     other_items: List[str] = Field(
         default_factory=list,
         description="Anything else the rep asked for, verbatim, that has no field above.")

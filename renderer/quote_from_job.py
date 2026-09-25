@@ -16,9 +16,17 @@ import re
 
 import calculators
 from calculators import _vendor
+from calculators.baghouse import MILL_CFM_PER_IN2
 from calculators._data import PRODUCTS
 
 FALLBACK_PLENUM_VELOCITY = "300"
+
+# An air-swept mill on a drop-down air pan pulls more air than a plain plenum: the
+# pan is sized on 1.25 x the mill screen area before the 1.3 CFM-per-in² basis the
+# calculator already applies, so the requirement is 1.25 x 1.3 = 1.625 x screen
+# area. Jason, 2026-09-25. The hammermill calculator has no air-swept option, so
+# the factor is applied here and the design basis shows the whole chain.
+AIR_SWEPT_FACTOR = 1.25
 FALLBACK_TROUGH = "45"
 
 STANDARD_BY_OTHERS = [
@@ -147,6 +155,10 @@ def build(job, today=None, delivery_weeks=None):
             "today": today.isoformat(),
         }
         result = calculators.run("hammermill", form)
+        # Every air item downstream sizes off one number. Without an air-swept pan
+        # that is the calculator's own plenum CFM; with one it is 1.25x higher.
+        air_swept = bool(getattr(job, "air_swept", False))
+        system_cfm = (result.get("plenum_cfm") or 0) * (AIR_SWEPT_FACTOR if air_swept else 1)
         if result.get("error"):
             open_items.append(f"Hammermill sizing failed: {result['error']}")
             result = None
@@ -198,8 +210,13 @@ def build(job, today=None, delivery_weeks=None):
         row("Screen area", f"{out.get('Mill screen area', '')}",
             "Mild steel with AR liners; hammers hard faced and heat treated")
         if job.include_air_system or job.include_plenum:
-            row("Air relief through mill", f"{out.get('Plenum airflow', 'TBD')}",
-                f"At {FALLBACK_PLENUM_VELOCITY} FPM plenum design velocity")
+            if air_swept and result:
+                row("Air relief through mill", f"{system_cfm:,.0f} CFM",
+                    f'{result["screen_area"]:,} in² screen × {AIR_SWEPT_FACTOR:g} '
+                    f"(air-swept drop-down pan) × {MILL_CFM_PER_IN2} CFM/in²")
+            else:
+                row("Air relief through mill", f"{out.get('Plenum airflow', 'TBD')}",
+                    f"At {FALLBACK_PLENUM_VELOCITY} FPM plenum design velocity")
         row("Feeder", out.get("Rotary feeder", "TBD"),
             f"{out.get('Feeder shaft speed', '')} at 90% cup fill"
             + (f'; {job.feeder.magnet_clean and "magnet adapter included"}'
@@ -225,13 +242,13 @@ def build(job, today=None, delivery_weeks=None):
         # filter, and with one the fan ducts to atmosphere after it — no cyclone.
         want_cyclone = getattr(job, "dust_collection", None) == "cyclone"
         if screen_area and not want_cyclone:
-            bh = calculators.run("baghouse", {"mode": "mill", "screenArea": screen_area,
+            bh = calculators.run("baghouse", {"mode": "cfm", "cfm": system_cfm,
                                               "ratio": 7, "lenFilter": "any"})
             if not bh.get("error"):
                 for line in bh["lines"]:
                     lines.append({**line, "quantity": qty})
                 sizing.append({"calculator": bh["calculator"], "inputs": {
-                    "mode": "mill", "screenArea": screen_area, "ratio": 7},
+                    "mode": "cfm", "cfm": round(system_cfm), "ratio": 7},
                     "formula": bh.get("formula", ""), "outputs": bh.get("outputs", []),
                     "warnings": bh.get("warnings", [])})
                 open_items.extend(bh.get("warnings", []))
@@ -243,6 +260,21 @@ def build(job, today=None, delivery_weeks=None):
         # The airlock under the filter (or cyclone) hopper is a buy-out. MCE's
         # standard mill-scale unit is the Airlanco FT-12; price it at MCE's own
         # buy-out divisor rather than listing it TBD.
+        if air_swept:
+            lines.append({
+                "name": "Drop-Down Air Pan", "quantity": qty, "unitPrice": 0,
+                "needsPrice": True, "description": "\n".join([
+                    "Drop-down air pan under the mill with structure and air pickup fitting",
+                    f'Sized on {result["screen_area"]:,} in² screen × {AIR_SWEPT_FACTOR:g} '
+                    f"= {result['screen_area'] * AIR_SWEPT_FACTOR:,.0f} in² pan area",
+                    "Hinged for screen and hammer access without breaking the duct",
+                    "Price from the fabrication estimate",
+                ])})
+            open_items.append(
+                "Drop-down air pan and air-swept conversion are unpriced — MCE has no "
+                "calculator or cost basis for either yet. The NEMO Feed proposal carried a "
+                "drop-down air pan with structure at $9,204; confirm against a current "
+                "shop estimate before release.")
         al = _vendor.airlock()
         if al:
             # Model number and specification only — the vendor's name is internal.
@@ -268,7 +300,7 @@ def build(job, today=None, delivery_weeks=None):
             # No filter, so the air goes through a cyclone. MCE's cyclone
             # calculator sizes it off the same plenum airflow the mill produces;
             # it carries no price basis, so the line stays needsPrice.
-            plenum_cfm = result.get("plenum_cfm") if result else None
+            plenum_cfm = round(system_cfm) or None
             cyc = (calculators.run("cyclone", {"mode": "cfm", "cfm": plenum_cfm,
                                                "series": "mce", "wg": "3"})
                    if plenum_cfm else {"error": "no plenum airflow"})
@@ -292,7 +324,7 @@ def build(job, today=None, delivery_weeks=None):
         # of the site layout, so it is quoted on request rather than guessed at.
         if "Ductwork" in outstanding:
             outstanding.remove("Ductwork")
-            plenum_cfm = result.get("plenum_cfm") if result else None
+            plenum_cfm = round(system_cfm) or None
             dk = (calculators.run("duct", {"mode": "dia", "cfm": plenum_cfm,
                                            "velocity": DUCT_VELOCITY_FPM})
                   if plenum_cfm else {"error": "no plenum airflow"})

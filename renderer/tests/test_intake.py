@@ -273,6 +273,37 @@ def test_delivery_weeks():
     check("delivery carried on the quote", q["deliveryWeeks"] == "10–12", str(q.get("deliveryWeeks")))
 
 
+def test_air_swept():
+    """An air-swept mill on a drop-down pan sizes its air on 1.25 x 1.3 x screen
+    area, and every air item downstream has to move with it."""
+    plain = qfj.build(jb_request(), today=TODAY)
+    swept = qfj.build(jb_request(air_swept=True), today=TODAY)
+
+    def cfm(q):
+        row = next(r for r in q["designBasis"] if "Air relief" in r["parameter"])
+        return row
+
+    base = next(s for s in plain["sizing"] if s["calculator"] == "Hammermill + Plenum")
+    area = next(o for o in base["outputs"] if o["label"] == "Mill screen area")
+    check("plain quote keeps the calculator's own airflow",
+          "4,680" in cfm(plain)["value"], cfm(plain)["value"])
+    check("air-swept applies 1.25 on top",
+          "5,850" in cfm(swept)["value"], cfm(swept)["value"])
+    check("the chain is shown, not just the answer",
+          "1.25" in cfm(swept)["notes"] and "1.3" in cfm(swept)["notes"],
+          cfm(swept)["notes"])
+
+    names = [l["name"] for l in swept["lines"]]
+    check("air pan is a line", any(n.startswith("Drop-Down Air Pan") for n in names), str(names))
+    check("air pan unpriced and flagged",
+          next(l for l in swept["lines"] if l["name"].startswith("Drop-Down")).get("needsPrice"))
+    # the filter must be sized off the higher airflow, not the calculator's
+    bh_plain = next(l["name"] for l in plain["lines"] if "Baghouse" in l["name"])
+    bh_swept = next(l["name"] for l in swept["lines"] if "Baghouse" in l["name"])
+    check("baghouse steps up with the airflow", bh_plain != bh_swept,
+          f"{bh_plain} vs {bh_swept}")
+
+
 def test_quantity():
     q = qfj.build(jb_request(quantity=8), today=TODAY)
     check("quantity on every line", all(l["quantity"] == 8 for l in q["lines"]))
@@ -316,6 +347,7 @@ def main():
                test_no_air_system, test_cyclone_when_the_rep_asks_for_one,
                test_baghouse_is_still_the_default,
                test_no_vendor_brands_on_customer_lines, test_delivery_weeks,
+               test_air_swept,
                test_quantity,
                test_fan_quote_validity, test_reference_slug):
         fn()
