@@ -207,6 +207,14 @@ def load_quote(quote_id):
     }
 
 
+@app.route("/fan-sizing")
+def fan_sizing():
+    logo = base64.b64encode((ROOT / "assets" / "mce-logo.png").read_bytes()).decode()
+    fonts = {n: base64.b64encode((ROOT / "assets" / "fonts" / f"{n}.woff2").read_bytes()).decode()
+             for n in ("oswald", "inter")}
+    return render_template("fan_sizing.html", logo_b64=logo, fonts=fonts)
+
+
 @app.route("/")
 def index():
     d = gql("""query { quotes(first: 200, orderBy: {createdAt: DescNullsLast}) {

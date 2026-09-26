@@ -1,0 +1,394 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fan Sizing — MCE</title>
+<style>
+  @font-face { font-family: "Oswald"; font-weight: 400 700; font-style: normal;
+    src: url(data:font/woff2;base64,{{ fonts.oswald }}) format("woff2"); }
+  @font-face { font-family: "InterV"; font-weight: 100 900; font-style: normal;
+    src: url(data:font/woff2;base64,{{ fonts.inter }}) format("woff2"); }
+
+  :root {
+    --black: #111111;
+    --orange: #ff6602;
+    --gray: #575d5e;
+    --ink: #1f1f1f;
+    --ink-soft: #6b6f71;
+    --thead: #e4e4e4;
+    --zebra: #fafafa;
+    --rule: #d9d9d9;
+    --bg: #f4f4f3;
+    --card: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); }
+  body { font-family: "InterV", Helvetica, Arial, sans-serif; color: var(--ink); font-size: 13.5px; line-height: 1.5; }
+  .cond { font-family: "Oswald", "Arial Narrow", sans-serif; }
+
+  header.bhead { background: var(--black); color: #fff; border-bottom: 4px solid var(--orange);
+    padding: 16px 28px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+  header.bhead img { height: 40px; width: auto; }
+  header.bhead .doc { font-family: "Oswald"; font-weight: 700; font-size: 20px; letter-spacing: .02em; }
+  header.bhead .sub { font-family: "Oswald"; font-weight: 600; font-size: 10px; letter-spacing: .08em;
+    color: var(--orange); text-transform: uppercase; margin-top: 2px; }
+  header.bhead a { color: #d8d8d8; font-size: 12px; text-decoration: none; }
+  header.bhead a:hover { color: #fff; }
+
+  main { max-width: 1180px; margin: 0 auto; padding: 24px 20px 60px; }
+  .note { background: #fff7ee; border: 1px solid #f2c99a; color: #6b4a1e; font-size: 12px;
+    border-radius: 6px; padding: 10px 14px; margin-bottom: 20px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
+  @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+
+  .card { background: var(--card); border: 1px solid var(--rule); border-radius: 8px; padding: 18px 20px; margin-bottom: 20px; }
+  .card h2 { font-family: "Oswald"; font-size: 15px; text-transform: uppercase; letter-spacing: .04em;
+    color: var(--black); border-bottom: 2px solid var(--orange); padding-bottom: 8px; margin: 0 0 14px; }
+  .card h3 { font-family: "Oswald"; font-size: 12px; text-transform: uppercase; letter-spacing: .04em;
+    color: var(--ink-soft); margin: 16px 0 8px; }
+
+  .row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
+  .field { flex: 1 1 140px; min-width: 120px; }
+  .field label { display: block; font-size: 11px; color: var(--ink-soft); margin-bottom: 3px; }
+  .field input, .field select { width: 100%; padding: 6px 8px; border: 1px solid var(--rule); border-radius: 4px;
+    font-size: 13px; font-family: inherit; background: #fff; color: var(--ink); }
+  .field input:focus, .field select:focus { outline: none; border-color: var(--orange); }
+  .hint { font-size: 10.5px; color: var(--ink-soft); margin-top: 2px; }
+
+  .checkline { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink-soft); margin: 4px 0 10px; }
+
+  .results { position: sticky; top: 16px; }
+  .kv { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--rule); font-size: 13px; }
+  .kv:last-child { border-bottom: none; }
+  .kv .k { color: var(--ink-soft); }
+  .kv .v { font-variant-numeric: tabular-nums; font-weight: 600; }
+  .kv.big .v { color: var(--orange); font-size: 16px; }
+  .flag { display: inline-block; font-size: 10.5px; padding: 1px 7px; border-radius: 999px; margin-left: 6px; }
+  .flag.ok { background: #e6f4ea; color: #1e7a34; }
+  .flag.warn { background: #fdecea; color: #b02a1e; }
+
+  canvas { width: 100%; height: 220px; display: block; margin-top: 8px; }
+  .legend { display: flex; gap: 16px; font-size: 11px; color: var(--ink-soft); margin-top: 6px; }
+  .legend span { display: inline-flex; align-items: center; gap: 5px; }
+  .swatch { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+
+  .btnbar { margin-top: 6px; }
+  button.linkbtn { background: none; border: none; color: var(--orange); font-size: 12px; font-family: inherit;
+    cursor: pointer; padding: 0; text-decoration: underline; }
+
+  footer { text-align: center; font-size: 11px; color: var(--ink-soft); padding: 20px; }
+</style>
+</head>
+<body>
+<header class="bhead">
+  <div style="display:flex; align-items:center; gap:16px;">
+    <img src="data:image/png;base64,{{ logo_b64 }}" alt="MCE">
+    <div>
+      <div class="doc">Fan Sizing Tool</div>
+      <div class="sub">Estimating &amp; selection worksheet</div>
+    </div>
+  </div>
+  <a href="/">&larr; Quotes</a>
+</header>
+
+<main>
+  <div class="note">
+    This tool estimates airflow, static pressure and brake horsepower from standard duct-design and
+    fan-similarity (affinity-law) equations for planning purposes. Air density correction is exact;
+    the duct-friction, fitting-loss and no-reference efficiency figures are engineering estimates.
+    Always confirm the final fan selection against the manufacturer's certified performance curve
+    before purchase or installation.
+  </div>
+
+  <div class="card">
+    <h2>Site Conditions</h2>
+    <div class="row">
+      <div class="field">
+        <label>Elevation (ft above sea level)</label>
+        <input type="number" id="elev" value="0" step="50">
+      </div>
+      <div class="field">
+        <label>Air Temperature (&deg;F)</label>
+        <input type="number" id="temp" value="70" step="1">
+      </div>
+      <div class="field">
+        <label>Density Ratio (vs. standard air)</label>
+        <input type="text" id="densityOut" readonly style="background:#f4f4f3;">
+      </div>
+    </div>
+    <div class="hint">Standard air = 0.075 lb/ft&sup3; at 70&deg;F, sea level. Hot or high-altitude air is less dense —
+      a fan must work harder (spin faster / draw more power) to hit the same actual static pressure.</div>
+  </div>
+
+  <div class="grid">
+    <div>
+      <div class="card">
+        <h2>1 &middot; System Airflow &amp; Static Pressure</h2>
+        <div class="row">
+          <div class="field"><label>Design Airflow (CFM)</label>
+            <input type="number" id="cfm1" value="5000" step="100"></div>
+          <div class="field"><label>Duct Diameter (in, round)</label>
+            <input type="number" id="dia1" value="18" step="1"></div>
+          <div class="field"><label>Duct Length (ft)</label>
+            <input type="number" id="len1" value="60" step="5"></div>
+        </div>
+        <h3>Fittings</h3>
+        <div class="row">
+          <div class="field"><label>90&deg; Elbows, std. radius (K=0.75)</label>
+            <input type="number" id="elbows" value="2" min="0" step="1"></div>
+          <div class="field"><label>Entry Loss (K=0.5)</label>
+            <select id="entry"><option value="0.5" selected>Sharp entry</option><option value="0.05">Bellmouth / rounded</option><option value="0">None</option></select></div>
+          <div class="field"><label>Exit Loss (K=1.0)</label>
+            <select id="exit"><option value="1.0" selected>Free discharge</option><option value="0">Ducted / recovered</option></select></div>
+        </div>
+        <div class="row">
+          <div class="field" style="flex:1 1 100%">
+            <label>Equipment Static Pressure Drop — cyclone, filter, cooler bed, dryer, etc. (in. w.g., at actual conditions)</label>
+            <input type="number" id="equip1" value="2.0" step="0.1">
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>2 &middot; Fan Duty Point &amp; Motor</h2>
+        <div class="row">
+          <div class="field"><label>Target Airflow (CFM)</label>
+            <input type="number" id="cfm2" value="5000" step="100"></div>
+          <div class="field"><label>Target Static Pressure, actual (in. w.g.)</label>
+            <input type="number" id="sp2" value="4.0" step="0.1"></div>
+          <div class="field"><label>Fan Class</label>
+            <select id="fanClass">
+              <option value="AF" data-eta="0.68" data-k="0.15">Backward-Inclined / Airfoil</option>
+              <option value="RAD" data-eta="0.60" data-k="0.25" selected>Radial / Paddle-wheel (material handling)</option>
+              <option value="FC" data-eta="0.55" data-k="0.40">Forward-Curved</option>
+              <option value="AX" data-eta="0.65" data-k="0.30">Vane-Axial</option>
+            </select></div>
+        </div>
+        <div class="btnbar"><button class="linkbtn" onclick="useSystemAsTarget()">↑ Use System result (above) as target</button></div>
+        <div class="hint">Radial/paddle-wheel wheels are the common choice on hammer mill dust or product pneumatic lines carrying abrasive
+          or heavy particulate loads. Forward-curved fans have an overloading power curve — size the motor with extra margin
+          if the system could run flow higher than design.</div>
+
+        <div class="checkline">
+          <input type="checkbox" id="useRef" onclick="toggleRef()"> Scale from a known reference fan (affinity laws) instead of an assumed efficiency
+        </div>
+        <div id="refBlock" style="display:none;">
+          <div class="row">
+            <div class="field"><label>Reference CFM</label><input type="number" id="refQ" value="8000" step="100"></div>
+            <div class="field"><label>Reference SP, standard air (in. w.g.)</label><input type="number" id="refSP" value="5.0" step="0.1"></div>
+            <div class="field"><label>Reference RPM</label><input type="number" id="refRPM" value="1200" step="10"></div>
+          </div>
+          <div class="row">
+            <div class="field"><label>Reference BHP, standard air</label><input type="number" id="refBHP" value="10" step="0.5"></div>
+            <div class="field"><label>Reference Wheel Diameter (in, optional)</label><input type="number" id="refDia" placeholder="leave blank to hold diameter fixed"></div>
+          </div>
+          <div class="hint">Leave wheel diameter blank to solve for the RPM of the <em>same</em> fan size. Enter it to solve for both
+            a new diameter and RPM that exactly hit the target CFM &amp; SP (two-degree-of-freedom fan similarity solution).</div>
+        </div>
+
+        <div class="row" style="margin-top:10px;">
+          <div class="field"><label>Motor Sizing Margin (%)</label>
+            <input type="number" id="margin" value="15" step="5"></div>
+          <div class="field" id="assumedDiaField"><label>Assumed Wheel Diameter, for tip-speed check (in, optional)</label>
+            <input type="number" id="assumedDia" placeholder="optional"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="results">
+      <div class="card">
+        <h2>System Result</h2>
+        <div class="kv"><span class="k">Duct Velocity</span><span class="v" id="r_vel">—</span></div>
+        <div class="kv"><span class="k">Duct Friction Loss</span><span class="v" id="r_fric">—</span></div>
+        <div class="kv"><span class="k">Fitting / Entry-Exit Loss</span><span class="v" id="r_fit">—</span></div>
+        <div class="kv"><span class="k">Equipment Loss</span><span class="v" id="r_equip">—</span></div>
+        <div class="kv big"><span class="k">Total System SP (actual)</span><span class="v" id="r_total">—</span></div>
+        <div class="kv"><span class="k">Standard-Air Equivalent SP</span><span class="v" id="r_totalstd">—</span></div>
+      </div>
+
+      <div class="card">
+        <h2>Fan &amp; Motor Result</h2>
+        <div class="kv"><span class="k">Target, standard-air equivalent SP</span><span class="v" id="f_spstd">—</span></div>
+        <div id="f_solveRows"></div>
+        <div class="kv big"><span class="k">Brake HP (actual air)</span><span class="v" id="f_bhp">—</span></div>
+        <div class="kv"><span class="k">Motor Size (with margin)</span><span class="v" id="f_motor">—</span></div>
+        <div class="kv"><span class="k">Tip Speed <span id="f_tipflag"></span></span><span class="v" id="f_tip">—</span></div>
+        <h3>Estimated Operating Chart</h3>
+        <canvas id="chart" width="600" height="220"></canvas>
+        <div class="legend">
+          <span><span class="swatch" style="background:#1f1f1f;"></span>System curve</span>
+          <span><span class="swatch" style="background:#ff6602;"></span>Fan curve (illustrative shape)</span>
+        </div>
+        <div class="hint">The fan curve shown is a generic shape for the selected fan class, forced through the computed duty
+          point — it is not a manufacturer's certified curve.</div>
+      </div>
+    </div>
+  </div>
+</main>
+<footer>Midwest Custom Engineering &middot; internal engineering estimating tool</footer>
+
+<script>
+const NEMA_HP = [0.5,0.75,1,1.5,2,3,5,7.5,10,15,20,25,30,40,50,60,75,100,125,150,200,250,300,350,400,450,500];
+
+function barometricInHg(elevFt){ return 29.92*Math.pow(1-6.8753e-6*elevFt,5.2559); }
+function densityRatio(elevFt, tempF){
+  const p = barometricInHg(elevFt);
+  const tR = tempF + 460;
+  return (p/29.92)*(530/tR);
+}
+function ductAreaFt2(diaIn){ const dFt = diaIn/12; return Math.PI*dFt*dFt/4; }
+function velocityFpm(cfm, diaIn){ return cfm/ductAreaFt2(diaIn); }
+function velocityPressureStd(vFpm){ return Math.pow(vFpm/4005, 2); }
+// Huebscher equation (ASHRAE) — galvanized round duct, standard air. CFM, inches -> in.wg per 100 ft.
+function frictionPer100Std(cfm, diaIn){ return 0.109136*Math.pow(cfm,1.9)/Math.pow(diaIn,5.02); }
+
+function nextMotorSize(bhp){
+  for (const hp of NEMA_HP) if (hp >= bhp) return hp;
+  return NEMA_HP[NEMA_HP.length-1];
+}
+function num(id){ return parseFloat(document.getElementById(id).value) || 0; }
+function fmt(v, unit, dp){ return v.toFixed(dp===undefined?2:dp) + (unit? " "+unit:""); }
+
+function toggleRef(){
+  document.getElementById('refBlock').style.display = document.getElementById('useRef').checked ? 'block' : 'none';
+  recalc();
+}
+function useSystemAsTarget(){
+  document.getElementById('cfm2').value = document.getElementById('cfm1').value;
+  document.getElementById('sp2').value = document.getElementById('r_total_raw').value;
+  recalc();
+}
+
+function drawChart(qTarget, spTarget, k){
+  const cv = document.getElementById('chart');
+  const ctx = cv.getContext('2d');
+  const W = cv.width, H = cv.height, pad = 34;
+  ctx.clearRect(0,0,W,H);
+  if (!qTarget || !spTarget) return;
+  const qMax = qTarget*1.4, spMax = spTarget*(1+k)*1.15;
+  const X = q => pad + (q/qMax)*(W-pad-10);
+  const Y = sp => H-pad - (sp/spMax)*(H-pad-14);
+  ctx.strokeStyle = '#d9d9d9'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(pad, 10); ctx.lineTo(pad, H-pad); ctx.lineTo(W-10, H-pad); ctx.stroke();
+  ctx.fillStyle = '#6b6f71'; ctx.font = '10px sans-serif';
+  ctx.fillText('CFM →', W-46, H-14);
+  ctx.save(); ctx.translate(10,20); ctx.fillText('SP (in.wg)', 0, 0); ctx.restore();
+
+  // system curve: SP = R * Q^2, calibrated through (qTarget, spTarget)
+  const R = spTarget/(qTarget*qTarget);
+  ctx.strokeStyle = '#1f1f1f'; ctx.lineWidth = 2; ctx.beginPath();
+  for (let i=0;i<=60;i++){ const q=qMax*i/60; const sp=R*q*q; const x=X(q), y=Y(sp);
+    i===0? ctx.moveTo(x,y): ctx.lineTo(x,y); }
+  ctx.stroke();
+
+  // illustrative fan curve, shape factor k, forced through duty point
+  ctx.strokeStyle = '#ff6602'; ctx.lineWidth = 2; ctx.beginPath();
+  for (let i=0;i<=60;i++){ const q=qMax*i/60; const sp=Math.max(0, spTarget*((1+k) - k*Math.pow(q/qTarget,2))); const x=X(q), y=Y(sp);
+    i===0? ctx.moveTo(x,y): ctx.lineTo(x,y); }
+  ctx.stroke();
+
+  // duty point
+  ctx.fillStyle = '#1f1f1f';
+  ctx.beginPath(); ctx.arc(X(qTarget), Y(spTarget), 4, 0, 7); ctx.fill();
+}
+
+function recalc(){
+  const elev = num('elev'), temp = num('temp');
+  const df = densityRatio(elev, temp);
+  document.getElementById('densityOut').value = df.toFixed(3);
+
+  // Section 1
+  const cfm1 = num('cfm1'), dia1 = num('dia1'), len1 = num('len1');
+  const v = velocityFpm(cfm1, dia1);
+  const vpStd = velocityPressureStd(v);
+  const totalK = num('elbows')*0.75 + parseFloat(document.getElementById('entry').value) + parseFloat(document.getElementById('exit').value);
+  const fricStd = frictionPer100Std(cfm1, dia1) * (len1/100);
+  const fitStd = totalK * vpStd;
+  const ductLossActual = (fricStd + fitStd) * df;
+  const equip = num('equip1');
+  const totalActual = ductLossActual + equip;
+  const totalStdEquiv = totalActual / df;
+
+  document.getElementById('r_vel').textContent = fmt(v,'fpm',0);
+  document.getElementById('r_fric').textContent = fmt(fricStd*df,'in.wg');
+  document.getElementById('r_fit').textContent = fmt(fitStd*df,'in.wg');
+  document.getElementById('r_equip').textContent = fmt(equip,'in.wg');
+  document.getElementById('r_total').textContent = fmt(totalActual,'in.wg');
+  document.getElementById('r_totalstd').textContent = fmt(totalStdEquiv,'in.wg');
+  if (!document.getElementById('r_total_raw')) {
+    const h = document.createElement('input'); h.type='hidden'; h.id='r_total_raw'; document.body.appendChild(h);
+  }
+  document.getElementById('r_total_raw').value = totalActual.toFixed(3);
+
+  // Section 2
+  const cfm2 = num('cfm2'), sp2Actual = num('sp2');
+  const sp2Std = sp2Actual / df;
+  document.getElementById('f_spstd').textContent = fmt(sp2Std,'in.wg');
+
+  const cls = document.getElementById('fanClass');
+  const opt = cls.options[cls.selectedIndex];
+  const eta = parseFloat(opt.dataset.eta);
+  const k = parseFloat(opt.dataset.k);
+
+  let bhpStd, tipDiaIn = num('assumedDia'), tipRpm = null, solveHtml = '';
+
+  if (document.getElementById('useRef').checked) {
+    const q1 = num('refQ'), sp1 = num('refSP'), rpm1 = num('refRPM'), bhp1 = num('refBHP'), d1 = num('refDia');
+    if (q1 && sp1 && rpm1) {
+      if (d1) {
+        // two-degree-of-freedom similarity solve: x = D2/D1, y = N2/N1 (std-air basis, rho ratio = 1)
+        const x4 = Math.pow(cfm2/q1, 2) * (sp1/sp2Std);
+        const x = Math.pow(Math.max(x4,1e-9), 0.25);
+        const y = (cfm2/q1) / Math.pow(x,3);
+        const d2 = d1*x, n2 = rpm1*y;
+        bhpStd = bhp1 * Math.pow(x,5) * Math.pow(y,3);
+        tipDiaIn = d2; tipRpm = n2;
+        solveHtml = `<div class="kv"><span class="k">Solved Wheel Diameter</span><span class="v">${fmt(d2,'in',1)}</span></div>
+                     <div class="kv"><span class="k">Solved Fan Speed</span><span class="v">${fmt(n2,'RPM',0)}</span></div>`;
+      } else {
+        // same wheel diameter: solve RPM from flow ratio, then check resulting SP
+        const n2 = rpm1 * (cfm2/q1);
+        const spCheck = sp1 * Math.pow(n2/rpm1, 2);
+        const diffPct = (spCheck - sp2Std)/sp2Std*100;
+        bhpStd = bhp1 * Math.pow(n2/rpm1, 3);
+        tipRpm = n2;
+        const flagCls = Math.abs(diffPct) <= 10 ? 'ok' : 'warn';
+        solveHtml = `<div class="kv"><span class="k">Required Fan Speed (same wheel)</span><span class="v">${fmt(n2,'RPM',0)}</span></div>
+                     <div class="kv"><span class="k">SP this speed actually gives<span class="flag ${flagCls}">${diffPct>=0?'+':''}${diffPct.toFixed(0)}% vs target</span></span><span class="v">${fmt(spCheck,'in.wg')}</span></div>`;
+      }
+    } else {
+      solveHtml = '<div class="hint">Enter reference CFM, SP and RPM to solve.</div>';
+      bhpStd = cfm2*sp2Std/(6356*eta);
+    }
+  } else {
+    bhpStd = cfm2*sp2Std/(6356*eta);
+    solveHtml = `<div class="kv"><span class="k">Estimated Static Efficiency</span><span class="v">${(eta*100).toFixed(0)}%</span></div>`;
+  }
+  document.getElementById('f_solveRows').innerHTML = solveHtml;
+
+  const bhpActual = bhpStd * df;
+  document.getElementById('f_bhp').textContent = fmt(bhpActual,'BHP');
+  const margin = num('margin');
+  const motor = nextMotorSize(bhpActual*(1+margin/100));
+  document.getElementById('f_motor').textContent = motor + ' HP';
+
+  if (tipDiaIn && tipRpm) {
+    const tip = Math.PI*(tipDiaIn/12)*tipRpm;
+    document.getElementById('f_tip').textContent = fmt(tip,'fpm',0);
+    const warn = tip > 16000;
+    document.getElementById('f_tipflag').innerHTML = `<span class="flag ${warn?'warn':'ok'}">${warn?'check wheel rating':'typical range'}</span>`;
+  } else {
+    document.getElementById('f_tip').textContent = '— (enter a wheel diameter)';
+    document.getElementById('f_tipflag').innerHTML = '';
+  }
+
+  drawChart(cfm2, sp2Actual, k);
+}
+
+document.addEventListener('input', recalc);
+document.addEventListener('change', recalc);
+recalc();
+</script>
+</body>
+</html>
