@@ -262,8 +262,10 @@ def main():
     hot_job.combustible_dust = True
     hot_job.dust_collection = "filter_receiver"
     hq = qfj.build(hot_job, today=TODAY)
+    protection_opts = [o["name"] for o in hq["options"]
+                       if "NFPA" in o["name"] or "Explosion vent" in o["name"]]
     check("the builder carries the same five protection options",
-          [o["name"] for o in hq["options"]][:5]
+          protection_opts
           == [o["name"] for o in airsystem.size(
               {"mode": "millModel", "millModel": "XM-4430", "cleaner": "filter_receiver",
                "combustible": "1"})["options"]],

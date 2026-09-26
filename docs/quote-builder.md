@@ -101,6 +101,8 @@ input is free text.
 | Rep names a cyclone instead of a filter | Sizes the cyclone from the mill's own plenum airflow, quotes no baghouse |
 | Rep names a filter receiver | Same cloth, same fan, same price — the line says hopper-bottom and the budget basis becomes like-for-like |
 | Rep says indoors | The explosion vent becomes flameless, which MCE has never bought — the option states the requirement instead of carrying the domed price |
+| Rep asks for air-swept | The filter becomes a **receiver**, because the product is carried over with the air and has to drop out of it — a bin vent cannot do that |
+| Air system, but not air-swept | Offers the air-swept conversion as one option with a real net adder: the pan, plus every step-up the extra airflow forces |
 | Rep says the dust is combustible | Adds NFPA isolation, an explosion vent and its burst switch as **options**, sizes none of them, and asks for the dust hazard analysis |
 | No calculator exists (fan, duct, airlock) | Lists the item unpriced rather than omitting or guessing it |
 | A price is a budget or a model, not a quote | Prices it anyway, marks it budget, and names the source document internally |
@@ -202,6 +204,7 @@ the hammermill just reported, and the two agree by construction.
 | Screw conveyor | SCC vendor quote x MCE markup | Budget figure; flags when the run length differs from the vendor basis |
 | Fan | AirPro OEM lineup cost x 2 | Selected against the baghouse model, not sized separately |
 | Bin vent / filter receiver | $40.20/ft² of cloth ÷ 0.70 | Budget figure; the basis says whether it is an upper bound (bin vent) or like-for-like (hopper-bottom receiver) |
+| Drop-down air pan with pickup fitting | **$9,204** | A price MCE has sold, not a shop estimate — NEMO Feed proposal 20260428 |
 | Certified rotary valve | $6,053 cost ÷ 0.70 = **$8,647** | Est 7659; a 10" valve, so NOT a size-for-size swap for the standard airlock |
 | Explosion vent panel | **$1,960** (23"×36") or **$3,964** (36"×44") | Priced per panel from its own quote — price does not scale with area |
 | Burst indicator sensor | $378 cost ÷ 0.70 = **$540 per panel** | Optioned out, because it belongs to the plant's controls scope |
@@ -313,6 +316,26 @@ The budget rate is the same $40.20/ft² either way, because one data point suppo
 one rate. What changes is the honesty of the comparison: the Airlanco reference unit
 *is* a hopper-bottom receiver, so for a receiver the scale is like-for-like, and for
 a bin vent it is an upper bound. `baghouse_budget(hopper=...)` says which.
+
+### Air-swept, and why it changes the filter
+
+A plain-plenum mill relieves air through the plenum and discharges its product down a
+screw. An **air-swept** mill takes the product out through the air instead, on a
+drop-down pan with an air pickup fitting. Three things follow, and the builder does
+all three rather than just raising the CFM:
+
+1. **Airflow** rises by the pan factor — screen area × 1.25 × 1.3 CFM/in².
+2. **The filter gains a hopper.** The ground product is carried over with the air and
+   has to drop out of the filter, which a plenum-mount bin vent cannot do. So
+   air-swept quotes a **filter receiver**, whatever the rep named, and says so on the
+   open items.
+3. **The pan is a line**, priced at $9,204 from the one MCE has sold.
+
+On a quote that is *not* air-swept, the same arithmetic runs in reverse as an option:
+"Air-swept conversion — air pickup fitting and filter receiver" carries a real net
+adder of the pan plus every step-up the higher airflow forces (a bigger filter, and
+the fan too if the selection changes). For Fairview Mills that is $9,204 + $10,464 =
+**$19,668**, with the fan unchanged.
 
 ### Combustible dust
 

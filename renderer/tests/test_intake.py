@@ -295,13 +295,48 @@ def test_air_swept():
 
     names = [l["name"] for l in swept["lines"]]
     check("air pan is a line", any(n.startswith("Drop-Down Air Pan") for n in names), str(names))
-    check("air pan unpriced and flagged",
-          next(l for l in swept["lines"] if l["name"].startswith("Drop-Down")).get("needsPrice"))
+    pan = next(l for l in swept["lines"] if l["name"].startswith("Drop-Down"))
+    check("the pan names its pickup fitting", "Pickup Fitting" in pan["name"], pan["name"])
+    check("the pan is priced from the precedent, and says so",
+          pan["unitPrice"] == _v.AIR_PAN_PRECEDENT["price"] and pan.get("budgetPrice"),
+          str(pan.get("unitPrice")))
+    check("and the precedent is named internally",
+          "NEMO Feed proposal" in open_text(swept), open_text(swept))
+    # an air-swept mill discharges through the air, so the filter needs a hopper
+    check("air-swept quotes a receiver, not a bin vent",
+          any(n.startswith("Filter Receiver") for n in names)
+          and not any(n.startswith("Bin Vent") for n in names), str(names))
+    check("and the reason is recorded", "has to drop out of the filter" in open_text(swept),
+          open_text(swept))
     # the filter must be sized off the higher airflow, not the calculator's
     bh_plain = next(l["name"] for l in plain["lines"] if "Bin Vent" in l["name"])
-    bh_swept = next(l["name"] for l in swept["lines"] if "Bin Vent" in l["name"])
-    check("baghouse steps up with the airflow", bh_plain != bh_swept,
+    bh_swept = next(l["name"] for l in swept["lines"] if "Filter Receiver" in l["name"])
+    check("the filter steps up with the airflow",
+          bh_plain.split(" — ")[-1] != bh_swept.split(" — ")[-1],
           f"{bh_plain} vs {bh_swept}")
+
+    # 2. the conversion is offered on the plain quote, with a real net adder
+    conv = next((o for o in plain["options"] if o["name"].startswith("Air-swept")), None)
+    check("plain quote offers the air-swept conversion", conv is not None,
+          str([o["name"] for o in plain["options"]]))
+    if conv:
+        pan_price = _v.AIR_PAN_PRECEDENT["price"]
+        filt_plain = next(l for l in plain["lines"] if "Bin Vent" in l["name"])
+        filt_swept = next(l for l in swept["lines"] if "Filter Receiver" in l["name"])
+        fan_plain = next(l for l in plain["lines"] if l["name"].startswith("Fan —"))
+        fan_swept = next(l for l in swept["lines"] if l["name"].startswith("Fan —"))
+        want = (pan_price + filt_swept["unitPrice"] - filt_plain["unitPrice"]
+                + fan_swept["unitPrice"] - fan_plain["unitPrice"])
+        check("the adder is the pan plus every step-up it forces",
+              conv["unitPrice"] == round(want, 2), f'{conv["unitPrice"]} vs {want:.2f}')
+        check("the conversion is priced, not on request",
+              not conv.get("needsPrice") and conv.get("budgetPrice"), str(conv))
+        check("it names the receiver it steps up to",
+              filt_swept["name"].split(" — ")[-1] in conv["description"],
+              conv["description"])
+    check("an already-swept quote does not offer it again",
+          not any(o["name"].startswith("Air-swept") for o in swept["options"]),
+          str([o["name"] for o in swept["options"]]))
 
 
 def test_options_and_reference_block():
@@ -315,7 +350,7 @@ def test_options_and_reference_block():
     check("FOB on the reference block", "Newkirk" in q["fob"], q["fob"])
 
     refs = [o["ref"] for o in q["options"]]
-    check("options are lettered", refs == list("AB"[:len(refs)]), str(refs))
+    check("options are lettered", refs == list("ABCDEFG"[:len(refs)]), str(refs))
     check("an option exists", q["options"], "none generated")
     for o in q["options"]:
         # every option is either genuinely priced or openly unpriced — never a

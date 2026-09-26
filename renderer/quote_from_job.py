@@ -351,6 +351,21 @@ def build(job, today=None, delivery_weeks=None):
         # A filter receiver is the same filter with a hopper under it — same cloth,
         # same fan, so it goes through the same sizing with the build flagged.
         want_receiver = getattr(job, "dust_collection", None) == "filter_receiver"
+        # An air-swept mill has no plenum discharge: the ground product leaves through
+        # the air pickup, so the filter has to collect it and drop it out. That means a
+        # filter receiver, not a bin vent, whether or not the rep said so.
+        if air_swept and not want_cyclone and not want_receiver:
+            want_receiver = True
+            if getattr(job, "dust_collection", None):
+                open_items.append(
+                    f'The request named a {job.dust_collection}, but the mill is '
+                    "air-swept: the product is carried to the filter, so it needs a "
+                    "hopper to discharge it. Quoted as a filter receiver — confirm.")
+            else:
+                open_items.append(
+                    "Air-swept, so the filter is quoted as a hopper-bottom receiver "
+                    "rather than a bin vent: the product comes over with the air and has "
+                    "to drop out of the filter, which a plenum-mount bin vent cannot do.")
         bh_style = "receiver" if want_receiver else "plenum"
         if screen_area and not want_cyclone:
             bh = calculators.run("baghouse", {"mode": "cfm", "cfm": system_cfm,
@@ -387,16 +402,17 @@ def build(job, today=None, delivery_weeks=None):
             else:
                 pan.append(f"Sized on {AIR_SWEPT_FACTOR:g} × the mill screen area, once the "
                            "mill is fixed")
-            pan += ["Hinged for screen and hammer access without breaking the duct",
-                    "Price from the fabrication estimate"]
+            pan_price, pan_basis = _vendor.air_pan_price()
+            pan += ["Air pickup fitting on the pan takes the ground product out to the "
+                    "filter",
+                    "Hinged for screen and hammer access without breaking the duct",
+                    "Budgetary price — firm on receipt of the fabrication estimate"]
             lines.append({
-                "name": "Drop-Down Air Pan", "quantity": qty, "unitPrice": 0,
-                "needsPrice": True, "description": "\n".join(pan)})
+                "name": "Drop-Down Air Pan with Air Pickup Fitting", "quantity": qty,
+                "unitPrice": round(pan_price, 2), "budgetPrice": True,
+                "description": "\n".join(pan)})
             open_items.append(
-                "Drop-down air pan and air-swept conversion are unpriced — MCE has no "
-                "calculator or cost basis for either yet. The NEMO Feed proposal carried a "
-                "drop-down air pan with structure at $9,204; confirm against a current "
-                "shop estimate before release.")
+                f"Drop-down air pan priced at a {pan_basis}.")
         al = _vendor.airlock()
         if al:
             # Model number and specification only — the vendor's name is internal.
@@ -513,6 +529,67 @@ def build(job, today=None, delivery_weeks=None):
     # Only alternatives MCE has a real price for, or a real quote pending. An option
     # nobody can price is not an option, it is a conversation.
     options = []
+    # --- convert to air-swept: the pickup fitting and a filter receiver -----------
+    # A plain-plenum mill relieves air through the plenum and discharges its product
+    # down a screw. Air-swept takes the product out through the air instead, which
+    # means a drop-down pan with an air pickup fitting, 1.25x the airflow, and a
+    # filter with a HOPPER to drop the product out. Every one of those is already
+    # priced somewhere in this file, so the option carries a real net adder rather
+    # than "price on request".
+    filter_line = next((l for l in lines
+                        if l["name"].startswith(("Bin Vent", "Filter Receiver"))), None)
+    fan_line = next((l for l in lines if l["name"].startswith("Fan —")), None)
+    screen_area = (result or {}).get("screen_area")
+    if job.include_air_system and not air_swept and filter_line and screen_area:
+        swept_cfm = screen_area * AIR_SWEPT_FACTOR * MILL_CFM_PER_IN2
+        swept = calculators.run("baghouse", {"mode": "cfm", "cfm": swept_cfm,
+                                             "ratio": 7, "lenFilter": "any",
+                                             "style": "receiver"})
+        new_filter = next((l for l in swept.get("lines", [])
+                           if l["name"].startswith("Filter Receiver")), None)
+        new_fan = next((l for l in swept.get("lines", []) if l["name"].startswith("Fan")),
+                       None)
+        if new_filter:
+            pan_price, pan_basis = _vendor.air_pan_price()
+            filter_delta = new_filter["unitPrice"] - filter_line["unitPrice"]
+            fan_delta = ((new_fan["unitPrice"] - fan_line["unitPrice"])
+                         if new_fan and fan_line else 0.0)
+            adder = pan_price + filter_delta + fan_delta
+            notes = [
+                f'Drop-down air pan with air pickup fitting under the mill, sized on '
+                f'{screen_area:,} in² × {AIR_SWEPT_FACTOR:g} = '
+                f'{screen_area * AIR_SWEPT_FACTOR:,.0f} in² pan area — {money(pan_price)}',
+                f'{new_filter["name"]} in place of the {filter_line["name"]} in the scope '
+                f'above — {money(filter_delta)}',
+            ]
+            if fan_delta:
+                notes.append(f'{new_fan["name"]} in place of the {fan_line["name"]} — '
+                             f"{money(fan_delta)}")
+            elif new_fan:
+                notes.append("Fan selection is unchanged — the same unit covers the "
+                             "higher airflow")
+            notes += [
+                f'System airflow rises from {system_cfm:,.0f} to {swept_cfm:,.0f} CFM '
+                f'({screen_area:,} in² × {AIR_SWEPT_FACTOR:g} air-swept pan × '
+                f"{MILL_CFM_PER_IN2} CFM/in²)",
+                "The filter gains a hopper because the ground product is carried over "
+                "with the air and has to drop out of it — the airlock in the scope above "
+                "mounts under that hopper",
+                "Ductwork, supports and the discharge arrangement follow the layout, as "
+                "in the scope above",
+            ]
+            options.append({
+                "ref": chr(ord("A") + len(options)), "quantity": qty,
+                "unitPrice": round(adder, 2), "budgetPrice": True,
+                "name": "Air-swept conversion — air pickup fitting and filter receiver",
+                "description": "\n".join(notes)})
+            open_items.append(
+                f"Air-swept conversion offered as a net adder of {money(adder)}: "
+                f'{money(pan_price)} pan ({pan_basis}) plus {money(filter_delta)} to step '
+                f'the {filter_line["name"].split(" — ")[-1]} up to the '
+                f'{new_filter["name"].split(" — ")[-1]} receiver at {swept_cfm:,.0f} CFM'
+                + (f", plus {money(fan_delta)} on the fan" if fan_delta else "") + ".")
+
     airlock_line = next((l for l in lines if l["name"].startswith("Rotary Airlock")), None)
     replacing = airlock_line["sku"] if airlock_line else None
     if getattr(job, "combustible_dust", False):

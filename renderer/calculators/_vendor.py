@@ -370,6 +370,30 @@ def baghouse_budget(cloth_sqft, hopper=False):
             f"marked up at MCE's buy-out divisor {BUYOUT_DIVISOR:g}. {scale}")
 
 
+# ------------------------------------------------ air-swept pan, from a proposal --
+# An air-swept mill runs on a drop-down pan under the rotor instead of a plain
+# plenum: the pan is sized on 1.25 x the screen area, and the air pickup fitting on
+# it takes the ground product out to the filter. MCE has no calculator and no shop
+# estimate for one, but it has SOLD one — the NEMO Feed proposal carried a
+# drop-down air pan with structure at $9,204. That is a sold price, so it is used
+# as it stands, the way a sold cyclone price is, and every line built from it says
+# which job it came from.
+AIR_PAN_PRECEDENT = {
+    "price": 9204.00, "date": "2026-04-28", "source": "NEMO Feed proposal 20260428",
+    "desc": "drop-down air pan with structure and air pickup fitting",
+}
+
+
+def air_pan_price():
+    """(price, basis) for a drop-down air pan with its pickup fitting."""
+    a = AIR_PAN_PRECEDENT
+    return (a["price"],
+            f'precedent price — MCE sold a {a["desc"]} at ${a["price"]:,.0f} on '
+            f'{a["source"]} ({a["date"]}). The pan is sized to the mill, and that one '
+            "was not sized to this mill, so it is a budget figure until the shop "
+            "estimates the actual pan")
+
+
 # --------------------------------------------------------------- drive motors --
 # Main drive motors are a buy-out. Cost is MCE's net cost; the sell price uses
 # the documented buy-out divisor like any other bought-in item.
