@@ -91,6 +91,7 @@ query Q($id: UUID!) {
   quote(filter: {id: {eq: $id}}) {
     id name quoteNumber status amount { amountMicros currencyCode }
     expirationDate terms comments preparedBy createdAt sourceCreatedAt qboEstimateId
+    designBasis furnishedByOthers freightDelivery optionsAdders totalsBreakdown draftNote
     company { name address { addressStreet1 addressStreet2 addressCity addressState addressPostcode addressCountry } }
     contact { name { firstName lastName } emails { primaryEmail } phones { primaryPhoneNumber primaryPhoneCallingCode } }
     opportunity { name }
@@ -111,6 +112,20 @@ def m2d(m):
 
 def fmt_money(v):
     return "${:,.2f}".format(v)
+
+
+def parse_rows(text, ncols):
+    """Pipe-delimited optional-section text -> list of ncols-length row tuples.
+    Blank/missing text -> [] (renderer skips the section)."""
+    rows = []
+    for line in (text or "").splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        parts = [p.strip() for p in line.split("|")]
+        parts = (parts + [""] * ncols)[:ncols]
+        rows.append(parts)
+    return rows
 
 
 def fmt_date(iso):
@@ -182,6 +197,13 @@ def load_quote(quote_id):
         "total": fmt_money(total),
         "has_discount": total_discount > 0,
         "fmt_date": fmt_date,
+        "design_basis_rows": parse_rows(q.get("designBasis"), 3),
+        "furnished_others": [ln.strip() for ln in (q.get("furnishedByOthers") or "").splitlines()
+                              if ln.strip()],
+        "freight_rows": parse_rows(q.get("freightDelivery"), 2),
+        "options_rows": parse_rows(q.get("optionsAdders"), 5),
+        "totals_rows": parse_rows(q.get("totalsBreakdown"), 2),
+        "draft_note": q.get("draftNote") or "Draft — Internal Review",
     }
 
 

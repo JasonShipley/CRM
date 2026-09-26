@@ -37,8 +37,8 @@
   .bhead .sub { font-family: "Oswald"; font-weight: 600; font-size: 8.5px; letter-spacing: .08em;
     color: var(--orange); text-transform: uppercase; margin-top: 2px; }
   .bhead .meta { font-size: 7.5px; color: #b9b9b9; margin-top: 3px; }
-  .bhead .draft { font-family: "Oswald"; font-weight: 600; font-size: 7.5px; letter-spacing: .1em;
-    color: var(--orange); text-transform: uppercase; margin-top: 2px; }
+  .bhead .draft { font-family: "Oswald"; font-weight: 700; font-size: 8px; letter-spacing: .08em;
+    color: var(--orange); text-transform: uppercase; margin-top: 3px; }
 
   .bfoot { border-top: 1.5px solid var(--rule); padding: 6px 44px 0;
     display: flex; justify-content: space-between; font-size: 7px; color: var(--ink-soft);
@@ -80,6 +80,14 @@
   .bar .accent { width: 8px; align-self: stretch; background: var(--orange); margin-right: 10px; }
   .bar .note { font-size: 8px; font-style: italic; color: #d9d9d9; padding-right: 10px; }
 
+  /* ===== unnumbered orange sub-heading (Options and Adders) ===== */
+  .subhead { font-family: "Oswald"; font-weight: 600; font-size: 10.5px; letter-spacing: .09em;
+    text-transform: uppercase; color: var(--orange); margin: 18px 0 8px; page-break-after: avoid; }
+
+  /* ===== plain bullet list (Furnished by Others) ===== */
+  .plainlist { margin: 4px 2px 2px 14px; }
+  .plainlist li { margin: 3px 0; }
+
   /* ===== summary 3-col ===== */
   .sumgrid { display: flex; gap: 26px; padding: 4px 2px 2px; }
   .sumgrid > div { flex: 1; }
@@ -95,7 +103,7 @@
   th { background: var(--thead); font-size: 7.5px; font-weight: 700; letter-spacing: .08em;
     text-transform: uppercase; color: #3c3c3c; text-align: left; padding: 5px 8px; }
   th.num, td.num { text-align: right; }
-  .items td { padding: 8px; vertical-align: top; border-bottom: 1px solid var(--rule); }
+  td { padding: 8px; vertical-align: top; border-bottom: 1px solid var(--rule); }
   .items tbody tr:nth-child(even) td { background: var(--zebra); }
   td.itemno { font-weight: 700; width: 30px; }
   td.desc b { font-size: 9.5px; display: block; margin-bottom: 3px; }
@@ -118,7 +126,7 @@
   .prose { white-space: pre-wrap; margin: 4px 2px; }
 
   /* ===== acceptance ===== */
-  .accept { display: flex; gap: 50px; margin-top: 6px; page-break-inside: avoid; }
+  .accept { display: flex; gap: 50px; margin-top: 22px; page-break-inside: avoid; }
   .accept > div { flex: 1; }
   .accept .line { margin: 14px 0 3px; border-bottom: 1px solid var(--ink); height: 16px; }
   .accept .who b { font-size: 10.5px; }
@@ -135,7 +143,7 @@
       <div class="doc cond">EQUIPMENT PROPOSAL</div>
       <div class="sub">{{ q.name }}</div>
       <div class="meta">Proposal {{ ref or "—" }} &nbsp;&middot;&nbsp; {{ issue_date }}</div>
-      {% if is_draft %}<div class="draft">Draft — internal review</div>{% endif %}
+      {% if is_draft %}<div class="draft">{{ draft_note }}</div>{% endif %}
     </div>
   </div>
 
@@ -172,7 +180,23 @@
 
     {% if q.comments %}<p class="intro prose">{{ q.comments }}</p>{% endif %}
 
-    <div class="bar"><span class="t">1. Scope of Supply and Pricing</span>
+    {% set ns = namespace(sec=0) %}
+
+    {% if design_basis_rows %}
+    {% set ns.sec = ns.sec + 1 %}
+    <div class="bar"><span class="t">{{ ns.sec }}. Design Basis</span></div>
+    <table>
+      <thead><tr><th style="width:26%">Parameter</th><th style="width:32%">Design Value</th><th>Notes</th></tr></thead>
+      <tbody>
+      {% for param, value, notes in design_basis_rows %}
+        <tr><td><b>{{ param }}</b></td><td>{{ value }}</td><td>{{ notes }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% endif %}
+
+    {% set ns.sec = ns.sec + 1 %}
+    <div class="bar"><span class="t">{{ ns.sec }}. Scope of Supply and Pricing</span>
       <span class="note">USD &middot; taxes and freight excluded unless noted</span></div>
     <table class="items">
       <thead><tr>
@@ -197,6 +221,17 @@
       </tbody>
     </table>
 
+    {% if totals_rows %}
+    <div class="totals">
+      {% for label, amt in totals_rows %}
+        {% if loop.last %}
+      <div class="row grand"><span class="cond">{{ label|upper }}</span><span class="amt">{{ amt }}</span></div>
+        {% else %}
+      <div class="row"><span>{{ label }}</span><span>{{ amt }}</span></div>
+        {% endif %}
+      {% endfor %}
+    </div>
+    {% else %}
     <div class="totals">
       <div class="row"><span>Subtotal</span><span>{{ subtotal }}</span></div>
       {% if has_discount %}
@@ -204,13 +239,56 @@
       {% endif %}
       <div class="row grand"><span class="cond">TOTAL — AS QUOTED</span><span class="amt">{{ total }}</span></div>
     </div>
+    {% endif %}
+
+    {% if options_rows %}
+    <div class="subhead">Options and Adders</div>
+    <table class="items">
+      <thead><tr>
+        <th style="width:30px">Option</th><th>Description</th>
+        <th class="num" style="width:44px">Qty</th>
+        <th class="num" style="width:82px">Unit Price</th>
+        <th class="num" style="width:90px">Net Adder</th>
+      </tr></thead>
+      <tbody>
+      {% for opt, desc, qty, unit, adder in options_rows %}
+        <tr>
+          <td class="itemno">{{ opt }}</td>
+          <td class="desc">{{ desc }}</td>
+          <td class="num">{{ qty }}</td>
+          <td class="num money">{{ unit }}</td>
+          <td class="num money">{{ adder }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% endif %}
+
+    {% if furnished_others %}
+    {% set ns.sec = ns.sec + 1 %}
+    <div class="bar"><span class="t">{{ ns.sec }}. Furnished by Others</span></div>
+    <ul class="plainlist">{% for ln in furnished_others %}<li>{{ ln }}</li>{% endfor %}</ul>
+    {% endif %}
+
+    {% if freight_rows %}
+    {% set ns.sec = ns.sec + 1 %}
+    <div class="bar"><span class="t">{{ ns.sec }}. Freight, Delivery and Schedule</span></div>
+    <table>
+      <thead><tr><th style="width:26%">Item</th><th>Basis</th></tr></thead>
+      <tbody>
+      {% for item, basis in freight_rows %}
+        <tr><td><b>{{ item }}</b></td><td>{{ basis }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% endif %}
 
     {% if q.terms %}
-    <div class="bar"><span class="t">2. Commercial Terms</span></div>
+    {% set ns.sec = ns.sec + 1 %}
+    <div class="bar"><span class="t">{{ ns.sec }}. Commercial Terms</span></div>
     <p class="prose">{{ q.terms }}</p>
     {% endif %}
 
-    <div class="bar"><span class="t">{{ "3" if q.terms else "2" }}. Acceptance</span></div>
     <div class="accept">
       <div class="who">
         <div class="lbl">Prepared by</div>
