@@ -15,6 +15,7 @@ import datetime
 import re
 
 import calculators
+import render_ctx
 from calculators import _vendor
 from calculators.baghouse import MILL_CFM_PER_IN2
 from calculators._data import PRODUCTS
@@ -445,21 +446,7 @@ def build(job, today=None, delivery_weeks=None):
         "netItems": net_items,
         "designBasis": design,
         "byOthers": by_others,
-        "schedule": [
-            {"item": "Freight", "basis": "FOB MCE plant, Newkirk, OK; freight quoted at time "
-                                        "of shipment or shipped freight collect."},
-            ({"item": "Delivery",
-              "basis": f"{delivery_weeks} weeks after receipt of order and approval "
-                       "drawings."}
-             if delivery_weeks else
-             {"item": "Delivery", "basis": "__ weeks after receipt of order and approval "
-                                           "drawings.", "needsInput": True}),
-            {"item": "Approval drawings",
-             "basis": "General arrangement drawings issued for approval before fabrication."},
-            {"item": "Installation",
-             "basis": "By others. MCE start-up assistance and operator training available at "
-                      "MCE's standard daily rate plus expenses."},
-        ],
+        "schedule": render_ctx.schedule_with_delivery(delivery_weeks),
         "options": [],
         "openItems": open_items,
         "deliveryWeeks": delivery_weeks or "",

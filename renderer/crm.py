@@ -65,25 +65,29 @@ def from_twenty(quote_id):
         ph = (contact.get("phones") or {}).get("primaryPhoneNumber") or ""
         buyer_line = " · ".join(x for x in (em, ph) if x)
 
-    return {
-        "q": q,
-        "items": items,
-        "seller": render_ctx.SELLER,
-        "seller_contact": render_ctx.seller_contact(q.get("preparedBy")),
-        "buyer_name": buyer_name,
-        "buyer_line": buyer_line,
-        "footer_right": render_ctx.FOOTER_RIGHT,
-        "is_draft": (q.get("status") == "DRAFT"),
-        "ref": q.get("quoteNumber") or "",
-        "issue_date": fmt_date(q.get("sourceCreatedAt") or q.get("createdAt")),
-        "expires": fmt_date(q.get("expirationDate")),
-        "subtotal": fmt_money(subtotal),
-        "total_discount": fmt_money(total_discount),
-        "total": fmt_money(total),
-        "has_discount": total_discount > 0,
-        "fmt_date": fmt_date,
-        **render_ctx.assets(),
-    }
+    # Through the one shared builder, so a CRM quote is the same document as a
+    # builder quote. Twenty holds no design basis, schedule or furnished-by-others,
+    # so those come back as the empty defaults and the template omits their
+    # sections — the parts it does have are laid out identically.
+    return render_ctx.base_context(
+        q=q,
+        items=items,
+        seller_contact=render_ctx.seller_contact(q.get("preparedBy")),
+        buyer_name=buyer_name,
+        buyer_line=buyer_line,
+        is_draft=(q.get("status") == "DRAFT"),
+        ref=q.get("quoteNumber") or "",
+        issue_date=fmt_date(q.get("sourceCreatedAt") or q.get("createdAt")),
+        expires=fmt_date(q.get("expirationDate")),
+        subtotal=fmt_money(subtotal),
+        total_discount=fmt_money(total_discount),
+        total=fmt_money(total),
+        has_discount=total_discount > 0,
+        # Twenty carries a standard schedule on every quote even though it stores
+        # none per-quote: without it a CRM quote would silently drop the freight,
+        # delivery and installation terms that every MCE proposal carries.
+        schedule=render_ctx.STANDARD_SCHEDULE,
+    )
 
 
 @bp.route("/")

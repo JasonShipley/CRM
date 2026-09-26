@@ -97,8 +97,19 @@ def query(gql_query, variables=None):
 # ---------------------------------------------------------------- formatting --
 
 def m2d(micros):
-    """amountMicros -> dollars (float)."""
-    return (micros or 0) / 1_000_000
+    """amountMicros -> dollars (float).
+
+    Tolerates a string: amountMicros is a big integer, and GraphQL implementations
+    commonly serialise those as strings. Dividing a string raises, which would take
+    the whole CRM quote page down over a formatting detail, so parse rather than
+    assume.
+    """
+    if micros is None or micros == "":
+        return 0.0
+    try:
+        return float(micros) / 1_000_000
+    except (TypeError, ValueError):
+        return 0.0
 
 
 def d2m(dollars):

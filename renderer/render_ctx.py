@@ -60,6 +60,73 @@ def seller_contact(prepared_by):
     return (name, "Midwest Custom Engineering, Inc.", "", "")
 
 
+# Every key quote.html reads. One place, so the builder and the CRM cannot render
+# two different documents: a path that has no data for a section passes the empty
+# default and the template omits that section, rather than the section silently
+# vanishing because a variable was never defined at all.
+#
+# tests/test_quote_format.py asserts both paths cover this exactly.
+# The schedule terms every MCE proposal carries regardless of where the quote was
+# built. quote_from_job builds its own (it can fill the delivery weeks in); the CRM
+# has nowhere to store one, so it uses this.
+STANDARD_SCHEDULE = [
+    {"item": "Freight", "basis": "FOB MCE plant, Newkirk, OK; freight quoted at time of "
+                                "shipment or shipped freight collect."},
+    {"item": "Delivery", "basis": "__ weeks after receipt of order and approval drawings.",
+     "needsInput": True},
+    {"item": "Approval drawings",
+     "basis": "General arrangement drawings issued for approval before fabrication."},
+    {"item": "Installation",
+     "basis": "By others. MCE start-up assistance and operator training available at MCE's "
+              "standard daily rate plus expenses."},
+]
+
+def schedule_with_delivery(weeks=None):
+    """STANDARD_SCHEDULE with the delivery line filled in, when it is known.
+
+    MCE's lead time moves with the backlog, so there is no default: unset, the
+    line stays a blank flagged for input rather than carrying a number nobody
+    stood behind.
+    """
+    out = []
+    for row in STANDARD_SCHEDULE:
+        if row["item"] == "Delivery" and weeks:
+            out.append({"item": "Delivery",
+                        "basis": f"{weeks} weeks after receipt of order and approval "
+                                 "drawings."})
+        else:
+            out.append(dict(row))
+    return out
+
+
+BASE_CONTEXT = {
+    "q": {}, "items": [], "net_items": [],
+    "seller": None, "seller_contact": None, "footer_right": "",
+    "buyer_name": "", "buyer_line": "",
+    "is_draft": False, "ref": "", "issue_date": "", "expires": "",
+    "design_basis": [], "options": [], "by_others": [], "schedule": [],
+    "open_items": [], "source_request": "",
+    "subtotal": "", "total": "", "net_subtotal": "", "has_net": False,
+    "total_discount": "", "has_discount": False,
+    "discount_percent": 0, "project_discount": "",
+}
+
+
+def base_context(**overrides):
+    """BASE_CONTEXT with `overrides` applied, plus the shared helpers and assets.
+
+    Both render paths go through here, which is what makes "the same format" a
+    property of the code rather than of whoever edited it last.
+    """
+    ctx = dict(BASE_CONTEXT)
+    ctx["seller"] = SELLER
+    ctx["footer_right"] = FOOTER_RIGHT
+    ctx.update(overrides)
+    ctx["fmt_date"] = fmt_date
+    ctx.update(assets())
+    return ctx
+
+
 def from_store(quote):
     """Template context for a quote held by quotes_store."""
     import quotes_store as store
@@ -113,36 +180,32 @@ def from_store(quote):
         }} if cust.get("company") else None),
         "opportunity": ({"name": quote["project"]} if quote.get("project") else None),
     }
-    return {
-        "q": q,
-        "items": items,
-        "seller": SELLER,
-        "seller_contact": seller_contact(quote.get("preparedBy")),
-        "buyer_name": cust.get("contact") or "",
-        "buyer_line": buyer_line,
-        "footer_right": FOOTER_RIGHT,
-        "is_draft": q["status"] == "DRAFT",
-        "ref": q["quoteNumber"],
-        "issue_date": fmt_date(quote.get("createdAt")),
-        "expires": fmt_date(quote.get("expirationDate")),
-        "net_items": net_items,
-        "design_basis": quote.get("designBasis") or [],
-        "options": quote.get("options") or [],
-        "by_others": quote.get("byOthers") or [],
-        "schedule": quote.get("schedule") or [],
-        "open_items": quote.get("openItems") or [],
-        "source_request": quote.get("sourceRequest") or "",
-        "subtotal": fmt_money(t["subtotal"]),
-        "total_discount": fmt_money(t["line_discount"]),
-        "has_discount": t["line_discount"] > 0,
-        "discount_percent": t["discount_percent"],
-        "project_discount": fmt_money(t["project_discount"]),
-        "net_subtotal": fmt_money(t["net_subtotal"]),
-        "has_net": t["has_net"],
-        "total": fmt_money(t["total"]),
-        "fmt_date": fmt_date,
-        **assets(),
-    }
+    return base_context(
+        q=q,
+        items=items,
+        seller_contact=seller_contact(quote.get("preparedBy")),
+        buyer_name=cust.get("contact") or "",
+        buyer_line=buyer_line,
+        is_draft=q["status"] == "DRAFT",
+        ref=q["quoteNumber"],
+        issue_date=fmt_date(quote.get("createdAt")),
+        expires=fmt_date(quote.get("expirationDate")),
+        net_items=net_items,
+        design_basis=quote.get("designBasis") or [],
+        options=quote.get("options") or [],
+        by_others=quote.get("byOthers") or [],
+        schedule=quote.get("schedule") or [],
+        open_items=quote.get("openItems") or [],
+        source_request=quote.get("sourceRequest") or "",
+        subtotal=fmt_money(t["subtotal"]),
+        total_discount=fmt_money(t["line_discount"]),
+        has_discount=t["line_discount"] > 0,
+        discount_percent=t["discount_percent"],
+        project_discount=fmt_money(t["project_discount"]),
+        net_subtotal=fmt_money(t["net_subtotal"]),
+        has_net=t["has_net"],
+        total=fmt_money(t["total"]),
+    )
 
 
 def pdf_headers(filename):
