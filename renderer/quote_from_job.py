@@ -101,7 +101,9 @@ def _size_only(job, issued, open_items, delivery_weeks):
     form = {"cleaner": job.dust_collection or "baghouse",
             "airSwept": "1" if getattr(job, "air_swept", False) else "",
             "combustible": "1" if getattr(job, "combustible_dust", False) else "",
-            "material": job.product_as_written or ""}
+            "material": job.product_as_written or "",
+            "indoors": "" if getattr(job, "indoor_install", None) is None
+                       else ("1" if job.indoor_install else "0")}
     if cfm:
         form.update({"mode": "cfm", "cfm": cfm})
     elif job.mill_model:
@@ -366,11 +368,11 @@ def build(job, today=None, delivery_weeks=None):
                 model = next((o["value"] for o in bh.get("outputs", [])
                               if o["label"] == "MCE filter"), None)
                 if model:
-                    vessel = f'MCE {model} {bh["calculator"].lower()}'
+                    vessel = f'MCE {model} {bh.get("kind", "filter").lower()}'
         # With a baghouse the air is cleaned by the filter and the fan discharges
         # to atmosphere after it — no cyclone, and no fan line of its own: the
         # baghouse calculator already selected and priced the matched AirPro fan.
-        have_baghouse = any("Baghouse" in ln["name"] or "Filter Receiver" in ln["name"]
+        have_baghouse = any(ln["name"].startswith(("Bin Vent", "Filter Receiver"))
                             for ln in lines)
         outstanding = ["Ductwork"]
         # The airlock under the filter (or cyclone) hopper is a buy-out. MCE's
@@ -476,7 +478,7 @@ def build(job, today=None, delivery_weeks=None):
         if have_baghouse:
             by_others.insert(0, "Stack and weather cap at the fan discharge")
             open_items.append(
-                f'Air system requested: {"filter receiver" if want_receiver else "baghouse"} '
+                f'Air system requested: {"filter receiver" if want_receiver else "bin vent"} '
                 "sized from the mill screen area with its "
                 "matched AirPro fan, discharging to atmosphere after the filter — no cyclone. "
                 "Ductwork is sized from the same airflow but priced on request — the run, "
@@ -520,7 +522,7 @@ def build(job, today=None, delivery_weeks=None):
         # not at all, because the vent area comes from a dust hazard analysis.
         _added, dust_notes = nfpa.protection(
             options, quantity=qty, material=job.product_as_written, vessel=vessel,
-            replacing=replacing)
+            replacing=replacing, indoors=getattr(job, "indoor_install", None))
         open_items.extend(dust_notes)
     elif airlock_line:
         # Nobody said combustible, but the certified valve is still the alternative a

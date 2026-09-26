@@ -59,14 +59,14 @@ def main():
           swept["cfm"] == round(by_model["cfm"] * airsystem.AIR_SWEPT_FACTOR),
           f'{swept["cfm"]} vs {by_model["cfm"]}')
     check("and the filter grows with it",
-          next(l["name"] for l in swept["lines"] if "Baghouse" in l["name"])
-          != next(l["name"] for l in by_model["lines"] if "Baghouse" in l["name"]))
+          next(l["name"] for l in swept["lines"] if "Bin Vent" in l["name"])
+          != next(l["name"] for l in by_model["lines"] if "Bin Vent" in l["name"]))
 
     # 4. a cyclone means no filter, and the fan cannot be selected from one
     cyc = airsystem.size({"mode": "millModel", "millModel": "XM-4430",
                           "cleaner": "cyclone"})
     names = [l["name"] for l in cyc["lines"]]
-    check("cyclone path has no baghouse", not any("Baghouse" in n for n in names), str(names))
+    check("cyclone path has no filter", not any("Bin Vent" in n for n in names), str(names))
     check("cyclone path has a cyclone", any(n.startswith("Cyclone") for n in names), str(names))
     check("cyclone path is honest about the fan",
           any("Fan — size and price TBD" in n for n in names)
@@ -80,7 +80,7 @@ def main():
     check("airlock removed", not any("Airlock" in n for n in names), str(names))
     check("duct removed", not any("Ductwork" in n for n in names), str(names))
     check("fan removed", not any(n.startswith("Fan") for n in names), str(names))
-    check("the filter is still there", any("Baghouse" in n for n in names), str(names))
+    check("the filter is still there", any("Bin Vent" in n for n in names), str(names))
 
     # 6. THE important one: the chain and the quote builder must not diverge.
     #    Both size a filter, a fan and an airlock off a mill; if they ever disagree,
@@ -89,7 +89,7 @@ def main():
     quoted = {l["name"] for l in q["lines"]}
     chained = {l["name"] for l in
                airsystem.size({"mode": "millModel", "millModel": "XM-4430"})["lines"]}
-    for kind in ("Baghouse Filter", "Fan —", "Rotary Airlock", "Ductwork"):
+    for kind in ("Bin Vent", "Fan —", "Rotary Airlock", "Ductwork"):
         a = next((n for n in quoted if n.startswith(kind)), None)
         b = next((n for n in chained if n.startswith(kind)), None)
         check(f"{kind} agrees between the builder and the chain", a == b, f"{a!r} vs {b!r}")
@@ -105,7 +105,7 @@ def main():
           chained["cfm"] == direct["req_cfm"],
           f'{chained["cfm"]} vs {direct["req_cfm"]}')
     check("and sizes a filter off it",
-          any("Baghouse" in l["name"] for l in chained["lines"]),
+          any("Bin Vent" in l["name"] for l in chained["lines"]),
           str([l["name"] for l in chained["lines"]]))
     # a meal cooler sizes on airflow rather than volume, and must still report one
     meal = next(x["id"] for x in CL_PELLETS if x.get("meal"))
@@ -117,7 +117,7 @@ def main():
     bh = airsystem.size({"mode": "millModel", "millModel": "XM-4430"})
     rec = airsystem.size({"mode": "millModel", "millModel": "XM-4430",
                           "cleaner": "filter_receiver"})
-    bh_line = next(l for l in bh["lines"] if l["name"].startswith("Baghouse"))
+    bh_line = next(l for l in bh["lines"] if l["name"].startswith("Bin Vent"))
     rec_line = next((l for l in rec["lines"] if l["name"].startswith("Filter Receiver")), None)
     check("a filter receiver is offered", rec_line, str([l["name"] for l in rec["lines"]]))
     if rec_line:
@@ -139,8 +139,8 @@ def main():
     check("and an unknown cleaner falls back to the standard filter",
           airsystem._cleaner("") == airsystem._cleaner("dust sock") == "baghouse")
 
-    # 9. combustible dust: the protection package appears as OPTIONS, with the
-    #    isolation carrying a real price range and the vent carrying none
+    # 9. combustible dust: the protection package appears as OPTIONS. What MCE has a
+    #    price for is priced; what it does not, is not.
     for cleaner in ("baghouse", "filter_receiver", "cyclone"):
         hot = airsystem.size({"mode": "millModel", "millModel": "XM-4430",
                               "cleaner": cleaner, "combustible": "1",
@@ -148,18 +148,38 @@ def main():
         names = [o["name"] for o in hot["options"]]
         check(f"{cleaner}: isolation offered",
               any("NFPA 69 isolation" in n for n in names), str(names))
-        check(f"{cleaner}: vent offered", any(n.startswith("Explosion vent") for n in names),
-              str(names))
+        check(f"{cleaner}: vent panel offered",
+              any(n.startswith("Explosion vent panel") for n in names), str(names))
+        check(f"{cleaner}: the adaptor section is its own item",
+              any("adaptor section" in n for n in names), str(names))
         check(f"{cleaner}: burst switch is its own option",
               any("burst indicator switch" in n for n in names), str(names))
-        check(f"{cleaner}: options are A, B, C in order",
-              [o["ref"] for o in hot["options"]] == ["A", "B", "C"],
+        check(f"{cleaner}: options are A-D in order",
+              [o["ref"] for o in hot["options"]] == ["A", "B", "C", "D"],
               str([o["ref"] for o in hot["options"]]))
-        check(f"{cleaner}: nothing protective is priced",
-              all(o.get("needsPrice") for o in hot["options"]))
+        by_name = {o["name"]: o for o in hot["options"]}
+        panel = next(o for o in hot["options"]
+                     if o["name"].startswith("Explosion vent panel"))
+        switch = next(o for o in hot["options"] if "burst indicator" in o["name"])
+        # the two MCE has a real quote for carry a price, at cost / the buy-out divisor
+        _k, _m, sell, cost, *_rest = _vendor.vent_panel()
+        check(f"{cleaner}: the panel is priced from the real quote",
+              panel["unitPrice"] == round(sell, 2)
+              and round(cost / _vendor.BUYOUT_DIVISOR, 2) == panel["unitPrice"],
+              f'{panel["unitPrice"]} vs {sell}')
+        sw_sell, sw_cost = _vendor.vent_sensor()[0], _vendor.vent_sensor()[1]
+        check(f"{cleaner}: the switch is priced from the real quote",
+              switch["unitPrice"] == round(sw_sell, 2), str(switch.get("unitPrice")))
+        check(f"{cleaner}: the panel says the COUNT is not sized here",
+              "PRICED PER PANEL" in panel["description"], panel["description"][:200])
+        # and the two MCE cannot price, are not priced
+        for unpriced in ("NFPA 69 isolation", "adaptor section"):
+            o = next(x for x in hot["options"] if unpriced in x["name"])
+            check(f"{cleaner}: {unpriced} is not priced",
+                  o.get("needsPrice") and not o.get("unitPrice"), str(o.get("unitPrice")))
         check(f"{cleaner}: the vent names the vessel it goes on",
-              any("MCE" in n for n in names if n.startswith("Explosion vent")), str(names))
-        # the real range MCE has on file, not a made-up number
+              any("MCE" in n for n in names if n.startswith("Explosion vent panel")),
+              str(names))
         iso = next(o for o in hot["options"] if "isolation" in o["name"])
         lo, hi, _src = _vendor.certified_valve_range()
         check(f"{cleaner}: the isolation range is the one on file",
@@ -167,22 +187,28 @@ def main():
               iso["description"])
         check(f"{cleaner}: the DHA is called out, not assumed",
               any("dust hazard analysis" in w for w in hot["warnings"]), str(hot["warnings"]))
-        check(f"{cleaner}: no Kst is invented for an untested product",
-              any("No Kst on record" in w for w in hot["warnings"]), str(hot["warnings"]))
+        check(f"{cleaner}: no dust figures are invented for an untested product",
+              any("No dust figures on record" in w for w in hot["warnings"]),
+              str(hot["warnings"]))
+        check(f"{cleaner}: the vendor basis is on the internal notes",
+              any("High Tech Duct Werks" in w and "Nix" in w for w in hot["warnings"]))
         check(f"{cleaner}: the priced scope is unchanged by the hazard",
               [l["name"] for l in hot["lines"]]
               == [l["name"] for l in airsystem.size({"mode": "millModel",
                                                      "millModel": "XM-4430",
                                                      "cleaner": cleaner})["lines"]])
 
-    # a material MCE has a tested Kst for says so, as a reference and no more
+    # dust figures MCE has actually worked to come through as reference, with their
+    # range intact where the vendor was given a range
     from calculators import nfpa
     woody = nfpa.design_basis("wood dust through a 1/4 screen")
     check("a tested Kst is offered as reference", "Kst 150" in woody["notes"], woody["notes"])
     check("and still asks for this product's own sample",
           "own sample" in woody["notes"], woody["notes"])
+    check("a range stays a range", "Kst 130-150" in nfpa.design_basis("corn")["notes"],
+          nfpa.design_basis("corn")["notes"])
     check("an untested material gets no Kst figure at all",
-          "Kst 150" not in nfpa.design_basis("pet food")["notes"],
+          "Kst 1" not in nfpa.design_basis("pet food")["notes"],
           nfpa.design_basis("pet food")["notes"])
 
     # saying nothing about the dust offers no protection package
@@ -190,22 +216,31 @@ def main():
     check("no protection unless the rep said combustible", quiet["options"] == [],
           str(quiet["options"]))
 
-    # an indoor vessel needs a flameless vent, and nobody-said says both
-    for indoors, want in (("1", "FLAMELESS"), ("0", "outdoors"), ("", "flameless vent")):
+    # indoors decides domed vs flameless, and flameless is the one with no price
+    wants = {"1": ("FLAMELESS", True), "0": ("exterior wall", False),
+             "": ("flameless panel instead", False)}
+    for indoors, (want, unpriced) in wants.items():
         hot = airsystem.size({"mode": "millModel", "millModel": "XM-4430",
                               "combustible": "1", "indoors": indoors})
         vent = next(o for o in hot["options"] if o["name"].startswith("Explosion vent")
-                    and "switch" not in o["name"])
+                    and "switch" not in o["name"] and "adaptor" not in o["name"])
         check(f"indoors={indoors!r} states the vent type", want in vent["description"],
-              vent["description"])
+              vent["description"][:160])
+        check(f"indoors={indoors!r} prices the vent only where MCE has a price",
+              bool(vent.get("needsPrice")) == unpriced, str(vent.get("unitPrice")))
+    indoor = airsystem.size({"mode": "millModel", "millModel": "XM-4430",
+                             "combustible": "1", "indoors": "1"})
+    check("a flameless job says there is no price on file",
+          any("no flameless price on file" in w for w in indoor["warnings"]),
+          str(indoor["warnings"][-3:]))
 
     # 10. the quote builder agrees with the chain on all of it
     hot_job = jb_request()
     hot_job.combustible_dust = True
     hot_job.dust_collection = "filter_receiver"
     hq = qfj.build(hot_job, today=TODAY)
-    check("the builder carries the same three protection options",
-          [o["name"] for o in hq["options"]][:3]
+    check("the builder carries the same four protection options",
+          [o["name"] for o in hq["options"]][:4]
           == [o["name"] for o in airsystem.size(
               {"mode": "millModel", "millModel": "XM-4430", "cleaner": "filter_receiver",
                "combustible": "1"})["options"]],

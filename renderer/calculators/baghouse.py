@@ -8,10 +8,15 @@ extracted verbatim into _data.py.
     required cloth area = CFM / air-to-cloth ratio
     MCE model           = smallest square-grid unit that meets it
 
-The sizing is the same whether the unit is MCE's plenum-mount filter or a
-hopper-bottom filter receiver — same cloth, same grid, same bags. `style` says
-which one is being quoted, and it changes only what the line says and how the
-budget price is justified (see _vendor.baghouse_budget).
+The sizing is the same whichever way the unit is built — same cloth, same grid,
+same bags. `style` says which one is being quoted and changes only what the line
+says and how the budget price is justified (see _vendor.baghouse_budget):
+
+    plenum    MCE's BIN VENT: the filter with no hopper, bolted straight onto the
+              plenum chamber. Jason's term and the vent vendor's, so it is the term
+              the line uses.
+    receiver  a FILTER RECEIVER: the same filter with a hopper under it, free
+              standing, so it collects and discharges on its own.
 """
 import math
 
@@ -67,6 +72,7 @@ def size(f):
     # material and drops it out, instead of sitting on a plenum that already has a
     # discharge. Nothing about the cloth sizing changes.
     receiver = str(f.get("style") or "") == "receiver"
+    kind = "Filter Receiver" if receiver else "Bin Vent"
 
     if mode == "mill":
         screen_area = _num(f.get("screenArea"))
@@ -114,13 +120,13 @@ def size(f):
             {"label": "Housing height", "value": f'{mce["housingH"]}"'},
         ]
         bh_price, bh_basis = _vendor.baghouse_budget(mce["area"], hopper=receiver)
-        kind = "Filter Receiver" if receiver else "Baghouse Filter"
         warnings.append(
             f'{kind} price is a budget figure only: {bh_basis}. Confirm against a '
             "current vendor quote or the shop estimate before release.")
         build = ("hopper-bottom filter receiver, free-standing on legs, with a flanged "
                  "hopper outlet for the airlock"
-                 if receiver else "plenum-mount (no hopper)")
+                 if receiver else
+                 "bin vent — no hopper, bolts directly onto the plenum chamber")
         notes = [
             f'{mce["bags"]} × {mce["len"]} ft bags in a {mce["grid"]} grid, '
             f'6" dia on {BAG_PITCH}" centers',
@@ -192,7 +198,8 @@ def size(f):
         outputs.append({"label": "Kice equivalent",
                         "value": "Beyond S 121-10 (1,425 ft²) — multiple units"})
 
-    return {"calculator": "Filter Receiver" if receiver else "Baghouse Filter",
-            "outputs": outputs, "warnings": warnings,
+    # `calculator` stays the tool's own name, which is what the differential test and
+    # the sizing audit trail refer to; `kind` is what the quote calls the unit.
+    return {"calculator": "Baghouse Filter", "kind": kind, "outputs": outputs, "warnings": warnings,
             "lines": lines, "total": round(total, 2), "formula": formula,
             "required_area": round(req_area), "cfm": round(cfm)}

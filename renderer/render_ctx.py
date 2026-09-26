@@ -103,6 +103,36 @@ def schedule_with_delivery(weeks=None):
     return out
 
 
+def option_rows(options):
+    """Options, with their money formatted the way the line items are.
+
+    An option MCE can price carries a real unit price and an extended adder; one it
+    cannot says so. Both render paths go through base_context, so this runs once for
+    whichever of them built the list.
+    """
+    out = []
+    for opt in options or []:
+        if not isinstance(opt, dict):
+            continue
+        try:
+            qty = float(opt.get("quantity") or 1)
+        except (TypeError, ValueError):
+            qty = 1.0
+        try:
+            unit = float(opt.get("unitPrice") or 0)
+        except (TypeError, ValueError):
+            unit = 0.0
+        priced = bool(unit) and not opt.get("needsPrice")
+        row = dict(opt)
+        row["_qty"] = int(qty) if float(qty).is_integer() else qty
+        row["_unit"] = fmt_money(unit) if priced else "—"
+        row["_net"] = fmt_money(unit * qty) if priced else "TBD"
+        row["_desc_lines"] = [ln for ln in (opt.get("description") or "").splitlines()
+                              if ln.strip()]
+        out.append(row)
+    return out
+
+
 BASE_CONTEXT = {
     "q": {}, "items": [], "net_items": [],
     "seller": None, "seller_contact": None, "footer_right": "",
@@ -128,6 +158,7 @@ def base_context(**overrides):
     ctx["seller"] = SELLER
     ctx["footer_right"] = FOOTER_RIGHT
     ctx.update(overrides)
+    ctx["options"] = option_rows(ctx.get("options"))
     ctx["fmt_date"] = fmt_date
     ctx.update(assets())
     return ctx

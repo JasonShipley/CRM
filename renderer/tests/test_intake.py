@@ -87,7 +87,7 @@ def test_jb_request():
     check("feeder quoted", any("Rotary Feeder" in n for n in names))
     check("plenum quoted", any("Plenum Chamber" in n for n in names))
     check("screw quoted", any("Screw Conveyor" in n for n in names))
-    check("baghouse sized from the mill", any("Baghouse" in n for n in names))
+    check("bin vent sized from the mill", any("Bin Vent" in n for n in names))
     # A baghouse cleans the air and the fan discharges to atmosphere after it,
     # so no cyclone is quoted and the fan comes from the AirPro lineup, priced.
     check("no cyclone alongside a baghouse",
@@ -111,7 +111,7 @@ def test_jb_request():
     check("airlock basis is internal",
           "buy-out divisor" in open_text(q), open_text(q))
     # The baghouse budget is scaled from one Airlanco pair — it must say so.
-    bh = next((l for l in q["lines"] if "Baghouse" in l["name"]), None)
+    bh = next((l for l in q["lines"] if "Bin Vent" in l["name"]), None)
     check("baghouse carries a budget price", bh and bh["unitPrice"] > 0, str(bh))
     check("baghouse budget flagged internally",
           "budget figure only" in open_text(q), open_text(q))
@@ -192,7 +192,7 @@ def test_no_air_system():
     q = qfj.build(jb_request(include_air_system=False), today=TODAY)
     names = [l["name"] for l in q["lines"]]
     check("no air lines quoted", not any(n.startswith("Fan") for n in names), str(names))
-    check("no baghouse quoted", not any("Baghouse" in n for n in names), str(names))
+    check("no bin vent quoted", not any("Bin Vent" in n for n in names), str(names))
     check("air moved to by-others",
           any("Air-relief system" in x for x in q["byOthers"]), str(q["byOthers"]))
 
@@ -203,7 +203,7 @@ def test_cyclone_when_the_rep_asks_for_one():
     customer's page."""
     q = qfj.build(jb_request(dust_collection="cyclone"), today=TODAY)
     names = [l["name"] for l in q["lines"]]
-    check("no baghouse quoted", not any("Baghouse" in n for n in names), str(names))
+    check("no bin vent quoted", not any("Bin Vent" in n for n in names), str(names))
     cyc = next((l for l in q["lines"] if l["name"].startswith("Cyclone")), None)
     check("cyclone line present", cyc is not None, str(names))
     if cyc:
@@ -228,7 +228,7 @@ def test_baghouse_is_still_the_default():
     no cyclone at all."""
     q = qfj.build(jb_request(), today=TODAY)
     names = [l["name"] for l in q["lines"]]
-    check("baghouse quoted by default", any("Baghouse" in n for n in names), str(names))
+    check("bin vent quoted by default", any("Bin Vent" in n for n in names), str(names))
     check("no cyclone alongside a baghouse",
           not any(n.startswith("Cyclone") for n in names), str(names))
 
@@ -298,8 +298,8 @@ def test_air_swept():
     check("air pan unpriced and flagged",
           next(l for l in swept["lines"] if l["name"].startswith("Drop-Down")).get("needsPrice"))
     # the filter must be sized off the higher airflow, not the calculator's
-    bh_plain = next(l["name"] for l in plain["lines"] if "Baghouse" in l["name"])
-    bh_swept = next(l["name"] for l in swept["lines"] if "Baghouse" in l["name"])
+    bh_plain = next(l["name"] for l in plain["lines"] if "Bin Vent" in l["name"])
+    bh_swept = next(l["name"] for l in swept["lines"] if "Bin Vent" in l["name"])
     check("baghouse steps up with the airflow", bh_plain != bh_swept,
           f"{bh_plain} vs {bh_swept}")
 

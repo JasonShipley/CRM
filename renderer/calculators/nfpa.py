@@ -2,8 +2,8 @@
 """Combustible dust: what MCE adds to an air system, and what it cannot size.
 
 Most of what MCE grinds is a combustible dust — feed, grain, wood, pet food, DDGs.
-When the rep says so, two things have to appear on the proposal and neither is a
-number this project can invent:
+When the rep says so, three things have to appear on the proposal, and each one is
+priced from what MCE has in writing or not priced at all:
 
   isolation    NFPA 69 wants the duct back to the process isolated. MCE's certified
                rotary valves do that job (flex-tip rotor, certified to NFPA 69
@@ -11,16 +11,23 @@ number this project can invent:
                but they are different sizes and nothing here sizes a valve, so they
                go out as a priced RANGE with the selection called out.
 
-  deflagration NFPA 68 venting. Vent area comes from Kst, Pmax, the vessel volume
-               and the design Pred — a dust hazard analysis, not a calculator. MCE
-               buys these sized and quoted by High Tech Duct Werks, so the option
-               carries the engineering basis from the job they did it on (Nix Forest
-               Industries) and no price at all. Burst indicator switches come off
-               that as their own option, which is how Nix bought it.
+  venting      NFPA 68 deflagration venting, bought from High Tech Duct Werks. MCE
+               has a real price for the domed panel and for the burst switch, so
+               those are quoted PER PANEL at real money. How many panels, and what
+               size, is the vendor's calculation against a dust hazard analysis —
+               three jobs on record took one, two and two panels, and the option
+               says so rather than guessing this job's count.
 
-Nothing in here prices a protection package. It states the basis, offers the
-options, and puts the missing quotes on the open-items list where a rep will see
-them before the proposal goes out.
+  the adaptor  A vent panel needs flat unobstructed housing wall. A bin vent bolted
+               straight onto a plenum chamber does not offer one, so MCE fabricates
+               a spool below the bin vent, drilled for the panel, ducted through the
+               wall with a rain hood. That is MCE's own steel and there is no cost
+               basis for it yet, so it goes out unpriced.
+
+Flameless venting is what an indoor vessel with nowhere to vent needs. On the one
+job where both were calculated the flameless selection took three panels against
+two domed, MCE did not buy it, and there is no flameless price on file — so an
+indoor vessel gets the requirement stated and no number.
 """
 from . import _vendor
 from ._fmt import money
@@ -38,16 +45,12 @@ def _ref(options):
 
 
 def kst_reference(material):
-    """A Kst MCE has actually worked to for this material, or None.
+    """(name, record) for a dust MCE has actually worked to, or None.
 
-    Reference only — it is what a previous job's tested sample came back at, not a
-    value to design to. A guessed Kst is a guessed vent area.
+    Reference only — it is what a previous job's figures were, not a value to design
+    to. A guessed Kst is a guessed vent area.
     """
-    want = str(material or "").lower()
-    for name, kst in _vendor.KST_ON_RECORD.items():
-        if name in want:
-            return name, kst
-    return None
+    return _vendor.dust_on_record(material)
 
 
 def design_basis(material=None):
@@ -55,11 +58,11 @@ def design_basis(material=None):
     notes = [DHA_NOTE]
     ref = kst_reference(material)
     if ref:
-        name, kst = ref
-        p = _vendor.EXPLOSION_VENT_PRECEDENT
-        notes.append(f'For reference, MCE\'s {name} dust on the {p["job"]} job tested at '
-                     f'Kst {kst} bar·m/s, Pmax {p["pmax"]} bar — this product still needs '
-                     "its own sample.")
+        name, rec = ref
+        notes.append(
+            f"For reference, MCE has worked to Kst {_vendor._span(rec['kst'])} bar·m/s and "
+            f"Pmax {_vendor._span(rec['pmax'])} bar on {name} dust — this product still "
+            "needs its own sample.")
     return {"parameter": "Dust classification", "value": "Combustible dust",
             "notes": " ".join(notes), "needsInput": True}
 
@@ -80,7 +83,7 @@ def isolation_option(options, quantity=1, replacing=None):
             "12.2.4.3.6",
             "Isolates the duct back to the process, which a standard drop-through valve "
             "is not certified to do",
-            (f"Takes the place of the standard drop-through airlock in the scope above"
+            ("Takes the place of the standard drop-through airlock in the scope above"
              if replacing else "Mounts under the collector hopper"),
             f"Indicative {money(lo)} to {money(hi)} depending on the size selected",
             "MCE to confirm the size against the actual duty and firm the price on a "
@@ -89,47 +92,82 @@ def isolation_option(options, quantity=1, replacing=None):
 
 
 def vent_option(options, quantity=1, vessel=None, indoors=None):
-    """Deflagration venting, unpriced — the vendor sizes and quotes it.
+    """Deflagration venting, priced per panel where MCE has a panel price.
 
-    `indoors` None means nobody said. It matters: a standard panel has to discharge
-    outdoors, and an indoor vessel needs a flameless vent instead, which is a
-    different price. Left unsaid, the option says both rather than picking one.
+    `indoors` None means nobody said. It matters twice over: a standard panel has to
+    discharge outdoors, and an indoor vessel with no wall to vent through needs a
+    flameless panel, which MCE has no price for. So indoors=True is unpriced and
+    says why, while anything else quotes the domed panel MCE actually buys.
     """
     on = f" on the {vessel}" if vessel else ""
-    lines = [
-        f"NFPA 68 deflagration venting{on} — vent panel, mounting frame and the vent "
-        "duct through to atmosphere with a rain hood",
-        "Sized and certified by the vent manufacturer against the dust hazard analysis "
-        "(Kst, Pmax, vessel volume and the design reduced pressure)",
-    ]
+    counts = sorted({s["selection"].split(" x ")[0].strip()
+                     for s in _vendor.VENT_SELECTIONS})
+    panel = _vendor.vent_panel()
+
     if indoors is True:
-        lines.append("Vessel is indoors, so this is a FLAMELESS vent — a standard panel "
-                     "cannot discharge inside a building")
-    elif indoors is False:
-        lines.append("Vessel vents outdoors through an exterior wall — a standard panel, "
-                     "not a flameless vent")
-    else:
-        lines.append("A vessel that vents outdoors takes a standard panel; one that has to "
-                     "vent inside a building takes a flameless vent, which prices "
-                     "differently — confirm which before this is firmed")
-    lines.append("Price on request — quoted by the vent manufacturer once the DHA figures "
-                 "and the vessel arrangement are fixed")
-    return {"ref": _ref(options), "quantity": quantity, "needsPrice": True,
-            "name": "Explosion vent" + (f" — {vessel}" if vessel else ""),
+        flam = _vendor.FLAMELESS_ON_RECORD
+        return {"ref": _ref(options), "quantity": quantity, "needsPrice": True,
+                "name": "Explosion vent — flameless" + (f", {vessel}" if vessel else ""),
+                "description": "\n".join([
+                    f"NFPA 68 deflagration venting{on} — the vessel is indoors, so this is "
+                    "a FLAMELESS vent: a standard panel cannot discharge inside a building",
+                    "Sized and certified by the vent manufacturer against the dust hazard "
+                    "analysis (Kst, Pmax, vessel volume and the design reduced pressure)",
+                    f"A flameless selection takes more panels than a domed one — on the "
+                    f'one MCE job where both were calculated for the same vessel it was '
+                    f'{flam["flameless_panels"]} flameless against {flam["domed_panels"]} '
+                    "domed",
+                    "Price on request — MCE has no flameless price on file, and it is "
+                    "materially more than a domed panel",
+                    _vendor.VENT_INSTALL_RULE,
+                ])}
+
+    key, model, sell, cost, date, source, size, relief = panel
+    lines = [
+        f"NFPA 68 deflagration venting{on} — {size} domed vent panel with its mounting "
+        f"frame, {relief:g} ft² relief area",
+    ] + _vendor.VENT_PANEL_SPEC + [
+        f"PRICED PER PANEL. How many panels, and what size, comes from the vent "
+        f"manufacturer's calculation against the dust hazard analysis — comparable MCE "
+        f'vessels have taken {" or ".join(counts)} panels',
+        ("Vents outdoors through an exterior wall, which is what a standard domed "
+         "panel requires" if indoors is False else
+         "Vents outdoors through the wall — an indoor vessel with no wall to vent "
+         "through needs a flameless panel instead, quoted on request"),
+        _vendor.VENT_INSTALL_RULE,
+    ]
+    return {"ref": _ref(options), "quantity": quantity,
+            "unitPrice": round(sell, 2), "sku": model, "budgetPrice": True,
+            "name": f"Explosion vent panel — {size}" + (f", {vessel}" if vessel else ""),
             "description": "\n".join(lines)}
 
 
-def switch_option(options, quantity=1):
-    """Burst indicator switches, separate from the vent — the way Nix bought it."""
+def adaptor_option(options, quantity=1, vessel=None):
+    """The fabricated section the panel actually bolts to. MCE steel, unpriced."""
+    on = f" under the {vessel}" if vessel else " under the filter"
     return {"ref": _ref(options), "quantity": quantity, "needsPrice": True,
+            "name": "Explosion vent adaptor section and vent duct",
+            "description": "\n".join(
+                [f"MCE-fabricated adaptor section{on}, so the vent panel has the flat "
+                 "unobstructed wall it needs"]
+                + _vendor.VENT_ADAPTOR_SCOPE[1:]
+                + ["Price from the fabrication estimate — sized once the vent panel and "
+                   "the wall penetration are fixed"])}
+
+
+def switch_option(options, quantity=1):
+    """Burst indicator switch, per panel, separate from the vent — as Nix bought it."""
+    sell, cost, date, source, spec = _vendor.vent_sensor()
+    return {"ref": _ref(options), "quantity": quantity, "unitPrice": round(sell, 2),
+            "budgetPrice": True,
             "name": "Explosion vent burst indicator switch",
             "description": "\n".join([
-                "Tether-mounted burst sensor on the vent panel, dry contact out for the "
-                "plant to shut the system down on a vent event",
-                "Optional on the vent above — quoted separately because it is usually "
-                "specified by the plant's controls scope, not with the vessel",
+                spec,
+                "Dry contact out for the plant to shut the system down on a vent event",
+                "PRICED PER PANEL, and quoted separately from the vent because it is "
+                "usually specified by the plant's controls scope rather than with the "
+                "vessel",
                 "Wiring, interlock and shutdown logic by others",
-                "Price on request",
             ])}
 
 
@@ -141,16 +179,19 @@ def protection(options, quantity=1, material=None, vessel=None, replacing=None,
     are appended to it, so one proposal has one A/B/C sequence.
     """
     added, open_items = [], [
-        "Combustible dust was stated. Nothing in this proposal sizes a protection "
-        "package: the dust hazard analysis sets Kst and Pmax, and those set the vent "
-        "area and the isolation. Get the DHA figures, or a tested sample, before "
-        "release.",
+        "Combustible dust was stated. Nothing here sizes a protection package: the dust "
+        "hazard analysis sets Kst and Pmax, and those set the vent area and the "
+        "isolation. Get the DHA figures, or a tested sample, before release.",
     ]
+
+    def add(option):
+        if option:
+            options.append(option)
+            added.append(option)
 
     isolation = isolation_option(options, quantity=quantity, replacing=replacing)
     if isolation:
-        options.append(isolation)
-        added.append(isolation)
+        add(isolation)
         lo, hi, source = _vendor.certified_valve_range()
         open_items.append(
             f"Isolation offered as a certified rotary valve at an indicative {money(lo)}–"
@@ -159,22 +200,47 @@ def protection(options, quantity=1, material=None, vessel=None, replacing=None,
             "range rather than a quoted line — get a firm vendor quote.")
 
     vent = vent_option(options, quantity=quantity, vessel=vessel, indoors=indoors)
-    options.append(vent)
-    added.append(vent)
-    switches = switch_option(options, quantity=quantity)
-    options.append(switches)
-    added.append(switches)
+    add(vent)
+    add(adaptor_option(options, quantity=quantity, vessel=vessel))
+    add(switch_option(options, quantity=quantity))
 
-    p = _vendor.EXPLOSION_VENT_PRECEDENT
+    if indoors is True:
+        open_items.append(
+            "Vessel is indoors, so the vent has to be flameless and MCE has no flameless "
+            "price on file. On the one job where both were calculated the flameless "
+            f'selection took {_vendor.FLAMELESS_ON_RECORD["flameless_panels"]} panels '
+            f'against {_vendor.FLAMELESS_ON_RECORD["domed_panels"]} domed, and MCE did '
+            "not buy it. Get a current quote before this option goes out with a number.")
+    else:
+        key, model, sell, cost, date, source, size, relief = _vendor.vent_panel()
+        open_items.append(
+            f"Vent panel priced per panel: {size} {model} at {money(cost)} cost "
+            f"({source}, {date}), marked up at MCE's buy-out divisor "
+            f"{_vendor.BUYOUT_DIVISOR:g} to {money(sell)}. The PANEL COUNT is not sized "
+            "here — the vent manufacturer sets it off the DHA and the vessel volume.")
+        if indoors is None:
+            open_items.append(
+                "Nobody said whether the vessel is indoors. Outdoors takes the domed "
+                "panel quoted; indoors with no wall to vent through takes a flameless "
+                "panel, which prices materially higher and is not on file.")
+
+    sell_sw, cost_sw, date_sw, source_sw, _spec = _vendor.vent_sensor()
     open_items.append(
-        f"Explosion vent and burst switch are unpriced. MCE buys these from "
-        f'{_vendor.EXPLOSION_VENT_VENDOR} ({_vendor.EXPLOSION_VENT_CONTACT}) — get a '
-        f'quote the way {p["quote"]} was done for {p["job"]}. That basis: '
-        + "; ".join(_vendor.explosion_vent_basis()[2:]) + ".")
+        f"Burst switch priced at {money(cost_sw)} cost per panel ({source_sw}, "
+        f"{date_sw}) ÷ {_vendor.BUYOUT_DIVISOR:g}. It is optioned out because MCE has "
+        "twice been asked to drop it — it belongs to the plant's controls scope.")
+    open_items.append(
+        "Vent adaptor section is unpriced: it is MCE's own fabrication and there is no "
+        "cost basis for one yet. " + _vendor.VENT_ADAPTOR_SCOPE[0])
+    open_items.append(
+        f"Vent basis — {_vendor.EXPLOSION_VENT_VENDOR} "
+        f"({_vendor.EXPLOSION_VENT_CONTACT}): "
+        + "; ".join(_vendor.vent_selection_lines()) + ".")
+
     ref = kst_reference(material)
     if not ref:
         open_items.append(
-            f'No Kst on record for {material or "this product"} — MCE has tested figures '
-            f'only for {", ".join(sorted(_vendor.KST_ON_RECORD))}. The vent supplier needs '
-            "a Kst and Pmax from the customer's DHA before it can size anything.")
+            f'No dust figures on record for {material or "this product"} — MCE has them '
+            f'only for {", ".join(sorted(_vendor.DUST_ON_RECORD))}. The vent supplier '
+            "needs a Kst and Pmax from the customer's DHA before it can size anything.")
     return added, open_items

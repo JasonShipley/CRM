@@ -393,29 +393,120 @@ def motor(hp):
 
 
 # ------------------------------------------- combustible dust: NFPA protection --
-# MCE's precedent is the Nix Forest Industries job: wood ground through a 1/4"
-# screen, vented on the 25AST-8 filter. High Tech Duct Werks (Darryl Lind) sized
-# and quoted it — quote Q-26693, ref 72326RN, 2026-07-23. The engineering basis is
-# recorded here; the DOLLAR FIGURE IS NOT, because it is in an attachment MCE has
-# but this project has not read, and a protection package is not a number to guess.
+# Everything here comes from MCE's own correspondence with High Tech Duct Werks
+# (Darryl Lind), who sizes and quotes the Boss VIGILEX EV panels MCE buys. Three
+# jobs are on record, and between them they give the panel price, the sensor price,
+# the dust figures MCE has actually worked to, and the rule about where a panel can
+# physically go. Vent AREA still comes from the vendor's calculation against a dust
+# hazard analysis — nothing here sizes a vent.
 EXPLOSION_VENT_VENDOR = "High Tech Duct Werks, Inc."
 EXPLOSION_VENT_CONTACT = "Darryl Lind · ductwerks@aol.com · 772-473-0538"
-EXPLOSION_VENT_PRECEDENT = {
-    "job": "Nix Forest Industries",
-    "quote": "Q-26693 (ref 72326RN)",
-    "date": "2026-07-23",
-    "material": 'wood ground through a 1/4" screen',
-    "kst": 150,                 # bar·m/s, coarse wood dust
-    "pmax": 8.0,                # bar
-    "pred": 0.2,                # bar(g) design reduced pressure
-    "vessel": "25AST-8 dust filter",
-    "selection": 'one EV-VD domed vent, 23" x 36" panel, below the hopper',
-    "ducting": 'roughly 40" x 28" duct, about 5 ft, through the wall with a rain hood',
+
+# Boss quotes off a list sheet, and MCE's net is list less 25% — stated for the 2024
+# VDL HT valve sheet ("your net cost is -25% off the above list pricing"). The panel
+# and sensor figures below are NOT list: Darryl gave them to MCE directly ("we can
+# do (2) of the 36" x 44" that are $2775.00 each"), so they are already MCE's cost
+# and take the ordinary buy-out divisor, not the discount as well.
+BOSS_LIST_DISCOUNT = 0.25
+BOSS_LIST_PRICES = {
+    # item: (list price, date, source) — list, so net cost is x (1 - discount)
+    '18" VDL HT certified rotary valve, 460 V, 15 RPM':
+        (15856.00, "2024-12-06", "High Tech Duct Werks, Boss list"),
+    '18" VDL HT certified rotary valve, 460 V, 30 RPM':
+        (16099.00, "2024-12-06", "High Tech Duct Werks, Boss list"),
+    "Spark detection, single zone":
+        (9023.00, "2024-10-29", "High Tech Duct Werks, Boss Raptor"),
 }
-# Kst values MCE has actually worked to. Anything else comes from a dust hazard
-# analysis, not from here — Kst drives the vent area, so a guessed Kst is a
-# guessed protection package.
-KST_ON_RECORD = {"wood": 150}
+
+# Vent panels MCE has a price for, keyed by panel size. `cost` is MCE's cost each.
+#   relief_sqft is the vendor's stated relief area, not the geometric panel area.
+VENT_PANELS = {
+    "36x44": {
+        "model": "EV-VD9151118", "cost": 2775.00, "relief_sqft": 10.9792,
+        "date": "2026-06-09", "source": "High Tech Duct Werks, EV calc ref 0609-RCRI",
+        "size": '36" x 44" (915 x 1118 mm)',
+    },
+}
+# Every VD panel MCE has bought carries this specification.
+VENT_PANEL_SPEC = [
+    "EV-VD domed vent panel, 304L stainless steel with integrated flange and EPDM "
+    "gasket — the domed form is for negative-pressure service with frequent cycling "
+    "or pulsation, which is what a pulse-cleaned filter is",
+    "Pstat 0.1 bar (1.45 PSI) ±15%, rated to Kst 500 bar·m/s, Pmax < 12 bar, "
+    'Pred max < 1.8 bar, max vacuum -80" WG',
+    "Certified ATEX II GD, EN 14491, EN 14994, EN 14797, EN 1127.1 "
+    "(INERIS15ATEX0001)",
+    "Service temperature -4 to +176 °F",
+]
+# The burst indicator switch, quoted per panel and always separately.
+VENT_SENSOR = {
+    "cost": 445.00, "date": "2026-06-09",
+    "source": "High Tech Duct Werks, EV calc ref 0609-RCRI",
+    "spec": "Sensor, magnetic breaking signal, 12-60 VDC, ATEX zone 21",
+}
+
+# What the vendor actually selected, job by job. This is the only honest answer to
+# "how many panels and what size" until a DHA and a vessel drawing exist: it says
+# what comparable vessels took, and it does not pretend to be a calculation.
+VENT_SELECTIONS = [
+    {"job": "Nix Forest Industries", "quote": "Q-26693 (ref 72326RN / 0723-R0UD)",
+     "date": "2026-07-23", "material": 'wood ground through a 1/4" screen',
+     "kst": 150, "pmax": 8.0, "pred": 0.2,
+     "vessel": "25AST-8 dust filter, vent below the hopper on the screw conveyor",
+     "selection": '1 x EV-VD domed, 23" x 36" panel', "type": "domed"},
+    # The vendor's calc table for this one is in the attachment; what MCE stated to
+    # him was the range, so the range is what goes on record here.
+    {"job": "corn mill air system", "quote": "EV calc ref 0609-RCRI",
+     "date": "2026-06-09", "material": "ground corn",
+     "kst": (130, 150), "pmax": (8.0, 9.0), "pred": 0.2,
+     "vessel": "below the baghouse extension, above the discharge screw",
+     "selection": '2 x EV-VD domed, 36" x 44" panels', "type": "domed"},
+    {"job": "XM-4460 plenum bin vent", "quote": "Q-25602 (refs 0507-BR82, 0507-RCCO)",
+     "date": "2026-05-07", "material": "corn ground to 500 micron",
+     "kst": 150, "pmax": 9.0, "pred": 0.2,
+     "vessel": "bin vent bolted to the plenum chamber, indoors, 37.56 ft² plenum",
+     "selection": '2 x EV-VD domed 44" x 44", or 3 x EV-VQ flameless 44" x 44"',
+     "type": "both"},
+]
+# On the one job where both were calculated for the same vessel, flameless took
+# THREE panels where domed took two, and MCE did not buy it ("we ain't doing
+# flameless vents on this job, that's crazy priced" — JB, 2026-05-07). So flameless
+# is more panels AND a higher price per panel, and MCE has no flameless price on
+# file. Indoors without an outside wall to vent through, it is the only option.
+FLAMELESS_ON_RECORD = {
+    "job": "XM-4460 plenum bin vent", "date": "2026-05-07",
+    "domed_panels": 2, "flameless_panels": 3,
+    "note": "no flameless price on file — quote it when a job actually needs one",
+}
+
+# The dust figures MCE has worked to, as (low, high). A range means the vendor was
+# given a range; the DHA replaces it. Nothing outside this dict gets a number.
+DUST_ON_RECORD = {
+    "wood": {"kst": (150, 150), "pmax": (8.0, 8.0),
+             "source": "Nix Forest Industries, coarse wood dust through 1/4\" screen"},
+    "corn": {"kst": (130, 150), "pmax": (8.0, 9.0),
+             "source": "MCE's own figures for ground corn, given to the vent vendor"},
+}
+
+# Darryl's installation rule, verbatim in substance. It is why MCE fabricates an
+# adaptor section: the vent needs flat unobstructed housing wall, and a bin vent
+# bolted straight onto a plenum chamber does not offer one.
+VENT_INSTALL_RULE = (
+    "Explosion vents install on a clear, unobstructed flat surface on the main body "
+    "of the collector. Areas near structural supports, motors, ducts, platforms, "
+    "corners or hopper sections have to be avoided, or the panel cannot relieve "
+    "properly.")
+# MCE's own answer to that, from the Nix build: a fabricated spool between the bin
+# vent and what it bolts to, drilled for the panel, with the panel sideways and a
+# rain hood outside. MCE has no cost basis for this section yet.
+VENT_ADAPTOR_SCOPE = [
+    "Fabricated adaptor section below the bin vent, drilled and flanged for the "
+    "vent panel, so the panel sits on flat unobstructed wall rather than on the "
+    "housing or the hopper",
+    "Panel mounted sideways, ducted through the building wall with a rain hood "
+    "outside — a lasered and bent flange welded to the adaptor, bolted to the duct",
+    'Nix took roughly a 40" x 28" duct about 5 ft long through the wall',
+]
 
 # An NFPA 69 isolation device stops flame and pressure propagating back down the
 # duct. MCE's certified rotary valves do that job (flex-tip, certified to NFPA 69
@@ -426,15 +517,62 @@ ISOLATION_NOTE = ("NFPA 69 isolation is served by a certified rotary valve — t
                   "12.2.4.3.6. See the certified-valve option.")
 
 
+def vent_panel(size=None):
+    """(size key, model, sell price, cost, date, source, size text, relief ft²).
+
+    Defaults to the only size MCE has a price for. A size with no price returns
+    None — the caller says the panel is priced on request rather than scaling a
+    price off one panel of a different area.
+    """
+    key = size or next(iter(VENT_PANELS))
+    row = VENT_PANELS.get(key)
+    if not row:
+        return None
+    return (key, row["model"], buyout_price(row["cost"]), row["cost"], row["date"],
+            row["source"], row["size"], row["relief_sqft"])
+
+
+def vent_sensor():
+    """(sell price, cost, date, source, spec) for one burst indicator switch."""
+    v = VENT_SENSOR
+    return (buyout_price(v["cost"]), v["cost"], v["date"], v["source"], v["spec"])
+
+
+def dust_on_record(material):
+    """(name, record) for a dust MCE has figures for, or None."""
+    want = str(material or "").lower()
+    for name, rec in DUST_ON_RECORD.items():
+        if name in want:
+            return name, rec
+    return None
+
+
+def _span(value, unit=""):
+    """A figure, or a range where the vendor was given one. Never averaged."""
+    if isinstance(value, (tuple, list)):
+        lo, hi = value
+        if lo != hi:
+            return f"{lo:g}-{hi:g}{unit}"
+        value = lo
+    return f"{value:g}{unit}"
+
+
+def vent_selection_lines():
+    """What comparable vessels actually took — for an internal note, not a quote."""
+    out = []
+    for sel in VENT_SELECTIONS:
+        out.append(f'{sel["job"]} ({sel["date"]}, {sel["quote"]}): {sel["material"]}, '
+                   f'Kst {_span(sel["kst"])}, Pmax {_span(sel["pmax"])}, '
+                   f'Pred {_span(sel["pred"])} — {sel["vessel"]} took {sel["selection"]}')
+    return out
+
+
 def explosion_vent_basis():
-    """The Nix precedent, as a list of lines for an internal note."""
-    p = EXPLOSION_VENT_PRECEDENT
-    return [
-        f'Sized and quoted by {EXPLOSION_VENT_VENDOR} ({EXPLOSION_VENT_CONTACT})',
-        f'Precedent: {p["job"]}, {p["quote"]}, {p["date"]} — {p["material"]}',
-        f'Dust basis Kst {p["kst"]} bar·m/s, Pmax {p["pmax"]} bar, design Pred '
-        f'{p["pred"]} bar(g)',
-        f'That job took {p["selection"]} on the {p["vessel"]}',
-        f'Vented outdoors through {p["ducting"]}',
-        "Indoors needs a FLAMELESS vent instead of a standard panel",
-    ]
+    """The whole vent basis, as lines for an internal note."""
+    return ([f"Sized and quoted by {EXPLOSION_VENT_VENDOR} ({EXPLOSION_VENT_CONTACT})"]
+            + vent_selection_lines()
+            + [f'Flameless: on {FLAMELESS_ON_RECORD["job"]} the same vessel took '
+               f'{FLAMELESS_ON_RECORD["flameless_panels"]} flameless panels against '
+               f'{FLAMELESS_ON_RECORD["domed_panels"]} domed, and MCE did not buy it '
+               f'— {FLAMELESS_ON_RECORD["note"]}',
+               VENT_INSTALL_RULE])

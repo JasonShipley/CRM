@@ -285,11 +285,11 @@
         <tr>
           <td class="itemno">{{ o.ref or loop.index }}</td>
           <td class="desc"><b>{{ o.name }}</b>
-            {% if o.description %}<ul>{% for ln in o.description.splitlines() %}{% if ln.strip() %}<li>{{ ln }}</li>{% endif %}{% endfor %}</ul>{% endif %}
+            {% if o._desc_lines %}<ul>{% for ln in o._desc_lines %}<li>{{ ln }}</li>{% endfor %}</ul>{% endif %}
           </td>
-          <td class="num">{{ o.quantity or 1 }}</td>
-          <td class="num money {{ 'tbd' if o.needsPrice }}">{{ o.unitPrice or "—" }}</td>
-          <td class="num money {{ 'tbd' if o.needsPrice }}">{{ o.netAdder or "TBD" }}</td>
+          <td class="num">{{ o._qty }}</td>
+          <td class="num money {{ 'tbd' if o._unit == '—' }}">{{ o._unit }}</td>
+          <td class="num money {{ 'tbd' if o._net == 'TBD' }}">{{ o.netAdder or o._net }}</td>
         </tr>
       {% endfor %}
       </tbody>

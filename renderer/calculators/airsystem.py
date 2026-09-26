@@ -17,7 +17,8 @@ ports the standalone calculators use, so a filter sized here and a filter sized 
       cooler     a cooler's own airflow requirement
 
     then the air cleaner, one of three:
-      baghouse         CFM / air-to-cloth -> MCE filter -> its matched AirPro fan
+      baghouse         MCE's BIN VENT: CFM / air-to-cloth -> filter -> its matched
+                       AirPro fan. No hopper; it bolts onto the plenum chamber
       filter_receiver  the same filter with a hopper under it, so it collects and
                        discharges rather than sitting on the mill plenum
       cyclone          CFM -> HE or H series (no filter, so the fan ducts to atmosphere)
@@ -38,11 +39,11 @@ from ._data import MCE_XM_MILLS
 AIR_SWEPT_FACTOR = 1.25            # a drop-down pan is sized on 1.25 x screen area
 DEFAULT_RATIO = 7                  # MCE's air-to-cloth standard
 DEFAULT_WG = "3"
-CLEANERS = [("baghouse", "Baghouse filter — fan discharges to atmosphere after it"),
+CLEANERS = [("baghouse", "Bin vent — baghouse with no hopper, bolts to the plenum"),
             ("filter_receiver", "Filter receiver — the same filter with a hopper"),
             ("cyclone", "Cyclone — no filter, fan ducts to atmosphere")]
 CLEANER_KEYS = [k for k, _ in CLEANERS]
-CLEANER_LABELS = {"baghouse": "Baghouse filter",
+CLEANER_LABELS = {"baghouse": "Bin vent (baghouse, no hopper)",
                   "filter_receiver": "Filter receiver (hopper-bottom)",
                   "cyclone": "Cyclone"}
 TRUE = ("1", "true", "yes", "on", "y")
@@ -61,7 +62,7 @@ def _cleaner(raw):
         return "filter_receiver"
     if "cyclone" in want:
         return "cyclone"
-    return "baghouse"
+    return "baghouse"          # a bin vent, however the rep spelled it
 
 
 def _num(raw, default=0.0):
@@ -168,7 +169,7 @@ def size(f):
             total += line["unitPrice"]
         for o in res.get("outputs", []):
             if o["label"] in ("MCE filter", "Cyclone"):
-                vessel = f'MCE {o["value"]} {res["calculator"].lower()}'
+                vessel = f'MCE {o["value"]} {res.get("kind", res["calculator"]).lower()}'
             if o["label"] not in ("System airflow",):
                 outputs.append(o)
 

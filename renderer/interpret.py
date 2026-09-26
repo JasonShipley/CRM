@@ -89,10 +89,12 @@ class JobRequest(BaseModel):
         False, description="Rep asked for an air system (fans, cyclone, filter, ducting).")
     dust_collection: Optional[Literal["baghouse", "cyclone", "filter_receiver"]] = Field(
         None, description='Which dust collection the rep named, if they named one: '
-                          '"baghouse" for a bag/dust filter or collector, "filter_receiver" '
-                          'for a filter receiver or a hopper-bottom filter, "cyclone" for a '
-                          "cyclone. Null if they only said \"air system\" or named neither "
-                          "— do not infer one from the rest of the request.")
+                          '"baghouse" for a bag filter, a dust filter, a dust collector or '
+                          'a BIN VENT (MCE\'s filter with no hopper, which bolts onto the '
+                          'plenum chamber), "filter_receiver" for a filter receiver or a '
+                          'hopper-bottom filter, "cyclone" for a cyclone. Null if they only '
+                          'said "air system" or named neither — do not infer one from the '
+                          "rest of the request.")
     include_magnet: bool = Field(False, description="Rep asked for a magnet or magnet adapter.")
     system_cfm: Optional[float] = Field(
         None, description="An airflow the rep stated directly, in CFM or SCFM — e.g. "
@@ -108,6 +110,12 @@ class JobRequest(BaseModel):
                            "from the material — plenty of combustible products get ground "
                            "without anyone saying so, and this switches on protection "
                            "options the customer sees.")
+    indoor_install: Optional[bool] = Field(
+        None, description="True if the rep said the equipment is installed indoors or "
+                          "inside a building, False if they said outdoors or outside. Null "
+                          "if they did not say. On a combustible dust this decides whether "
+                          "an explosion vent can discharge through a wall or has to be a "
+                          "flameless vent, so never guess it.")
     air_swept: bool = Field(
         False, description="Rep asked for an air-swept mill, a drop-down air pan, or a drop "
                            "down airpan. These go together and change how the air is sized.")

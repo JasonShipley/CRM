@@ -119,7 +119,29 @@ def main():
         for heading in ("SCOPE OF SUPPLY", "TOTAL"):
             check(f"{label} has {heading}", heading in html.upper())
 
-    # 6. the schedule is one list, so it cannot drift between the two
+    # 6. an option's money is formatted like a line item's, whichever path built it.
+    #    A priced option shows the price and the extended adder; one MCE cannot price
+    #    shows a dash and TBD, never a bare float on a customer page.
+    priced = render_ctx.option_rows([
+        {"ref": "A", "name": "Priced", "quantity": 2, "unitPrice": 3964.29},
+        {"ref": "B", "name": "Not priced", "quantity": 2, "needsPrice": True},
+        {"ref": "C", "name": "Zero is not a price", "quantity": 1, "unitPrice": 0},
+    ])
+    check("a priced option formats its money", priced[0]["_unit"] == "$3,964.29",
+          priced[0]["_unit"])
+    check("and extends it by the quantity", priced[0]["_net"] == "$7,928.58",
+          priced[0]["_net"])
+    check("an unpriced option shows no number",
+          (priced[1]["_unit"], priced[1]["_net"]) == ("—", "TBD"), str(priced[1]))
+    check("and neither does a zero", (priced[2]["_unit"], priced[2]["_net"]) == ("—", "TBD"),
+          str(priced[2]))
+    with appmod.app.test_request_context():
+        opt_html = render_template("quote.html",
+                                   **render_ctx.base_context(options=priced, q={}))
+    check("the rendered page carries the formatted price", "$3,964.29" in opt_html)
+    check("and never the raw float", "3964.29<" not in opt_html)
+
+    # 7. the schedule is one list, so it cannot drift between the two
     check("CRM carries the standard schedule",
           [r["item"] for r in crm_ctx["schedule"]]
           == [r["item"] for r in render_ctx.STANDARD_SCHEDULE],
