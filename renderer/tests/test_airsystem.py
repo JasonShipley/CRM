@@ -153,9 +153,11 @@ def main():
         check(f"{cleaner}: the adaptor section is its own item",
               any("adaptor section" in n for n in names), str(names))
         check(f"{cleaner}: burst switch is its own option",
-              any("burst indicator switch" in n for n in names), str(names))
-        check(f"{cleaner}: options are A-D in order",
-              [o["ref"] for o in hot["options"]] == ["A", "B", "C", "D"],
+              any("burst indicator sensor" in n for n in names), str(names))
+        check(f"{cleaner}: duct isolation is offered",
+              any("duct isolation" in n for n in names), str(names))
+        check(f"{cleaner}: options are A-E in order",
+              [o["ref"] for o in hot["options"]] == list("ABCDE"),
               str([o["ref"] for o in hot["options"]]))
         by_name = {o["name"]: o for o in hot["options"]}
         panel = next(o for o in hot["options"]
@@ -172,19 +174,28 @@ def main():
               switch["unitPrice"] == round(sw_sell, 2), str(switch.get("unitPrice")))
         check(f"{cleaner}: the panel says the COUNT is not sized here",
               "PRICED PER PANEL" in panel["description"], panel["description"][:200])
-        # and the two MCE cannot price, are not priced
-        for unpriced in ("NFPA 69 isolation", "adaptor section"):
-            o = next(x for x in hot["options"] if unpriced in x["name"])
-            check(f"{cleaner}: {unpriced} is not priced",
-                  o.get("needsPrice") and not o.get("unitPrice"), str(o.get("unitPrice")))
+        # the isolation and the duct package price from Est 7659, and the sum of the
+        # parts has to come back to the estimate Darryl actually wrote
+        iso_opt = next(x for x in hot["options"] if "NFPA 69 isolation" in x["name"])
+        duct_opt = next(x for x in hot["options"] if "duct isolation" in x["name"])
+        for opt in (iso_opt, duct_opt):
+            check(f'{cleaner}: {opt["name"][:28]} is priced',
+                  opt.get("unitPrice") and not opt.get("needsPrice"),
+                  str(opt.get("unitPrice")))
+        # the one thing MCE cannot price is its own fabrication
+        adaptor = next(x for x in hot["options"] if "adaptor section" in x["name"])
+        check(f"{cleaner}: the adaptor section is not priced",
+              adaptor.get("needsPrice") and not adaptor.get("unitPrice"),
+              str(adaptor.get("unitPrice")))
         check(f"{cleaner}: the vent names the vessel it goes on",
               any("MCE" in n for n in names if n.startswith("Explosion vent panel")),
               str(names))
-        iso = next(o for o in hot["options"] if "isolation" in o["name"])
         lo, hi, _src = _vendor.certified_valve_range()
-        check(f"{cleaner}: the isolation range is the one on file",
-              money(lo) in iso["description"] and money(hi) in iso["description"],
-              iso["description"])
+        check(f"{cleaner}: the isolation range for larger sizes is the one on file",
+              money(lo) in iso_opt["description"] and money(hi) in iso_opt["description"],
+              iso_opt["description"])
+        check(f"{cleaner}: and it refuses to be read as a size-for-size swap",
+              "NOT a size-for-size swap" in iso_opt["description"])
         check(f"{cleaner}: the DHA is called out, not assumed",
               any("dust hazard analysis" in w for w in hot["warnings"]), str(hot["warnings"]))
         check(f"{cleaner}: no dust figures are invented for an untested product",
@@ -230,17 +241,29 @@ def main():
               bool(vent.get("needsPrice")) == unpriced, str(vent.get("unitPrice")))
     indoor = airsystem.size({"mode": "millModel", "millModel": "XM-4430",
                              "combustible": "1", "indoors": "1"})
-    check("a flameless job says there is no price on file",
-          any("no flameless price on file" in w for w in indoor["warnings"]),
+    check("a flameless job says MCE has never bought one",
+          any("never bought one" in w for w in indoor["warnings"]),
           str(indoor["warnings"][-3:]))
+    check("and carries the distributor figures internally, not on the option",
+          any("$46,623" in w for w in indoor["warnings"])
+          and not any("46,623" in o.get("description", "") for o in indoor["options"]),
+          str([w for w in indoor["warnings"] if "46,623" in w])[:200])
+
+    # the parts of the package must add back up to the estimate Darryl wrote
+    pkg = _vendor.NFPA_PACKAGE_ON_RECORD
+    rebuilt = _vendor.vent_panel()[3] + _vendor.vent_sensor()[1] + sum(
+        _vendor.protection_item(k)[2] * _vendor.protection_item(k)[3]
+        for k in ("rotary", "flap", "control", "level"))
+    check("the package rebuilds to the vendor's own total",
+          round(rebuilt, 2) == pkg["total"], f'{rebuilt:.2f} vs {pkg["total"]}')
 
     # 10. the quote builder agrees with the chain on all of it
     hot_job = jb_request()
     hot_job.combustible_dust = True
     hot_job.dust_collection = "filter_receiver"
     hq = qfj.build(hot_job, today=TODAY)
-    check("the builder carries the same four protection options",
-          [o["name"] for o in hq["options"]][:4]
+    check("the builder carries the same five protection options",
+          [o["name"] for o in hq["options"]][:5]
           == [o["name"] for o in airsystem.size(
               {"mode": "millModel", "millModel": "XM-4430", "cleaner": "filter_receiver",
                "combustible": "1"})["options"]],

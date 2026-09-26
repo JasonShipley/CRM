@@ -413,9 +413,9 @@ def build(job, today=None, delivery_weeks=None):
                 f"Airlock priced as {al_brand} {al_number} from {al_source} "
                 f"({al_date}), marked up at "
                 f"MCE's buy-out divisor {_vendor.BUYOUT_DIVISOR:g}. It is the standard "
-                "mill-scale drop-through; an ATEX/NFPA 69 certified valve costs "
-                "substantially more and should be priced separately if the dust hazard "
-                "assessment calls for one.")
+                "mill-scale drop-through, not a certified valve. If the dust hazard "
+                "analysis calls for NFPA 69 isolation, take the certified valve option — "
+                "and settle its size, which is not the same as this one's.")
         else:
             outstanding.append("Airlock")
         if not have_baghouse:
@@ -534,10 +534,12 @@ def build(job, today=None, delivery_weeks=None):
             options.append(iso)
             lo, hi, source = _vendor.certified_valve_range()
             open_items.append(
-                f"Certified airlock offered as an option at an indicative {money(lo)}–"
-                f"{money(hi)} (the two ATEX valves on {source}). Neither was sized against "
-                "this mill and there is no airlock calculator, so the option is unpriced "
-                f'rather than quoted as a swap for the {replacing}.')
+                f'Certified valve offered as an option, priced from the 10" VDL HT250 on '
+                f"High Tech Duct Werks estimate 7659. It is a 10\" valve and the "
+                f"{replacing} in the scope is larger, so it prices BELOW the standard "
+                "airlock — do not read that as a credit. Larger certified valves on file "
+                f"run {money(lo)}–{money(hi)} ({source}); settle the size against the "
+                "duty before this goes out.")
 
     if motor or job.motor_hp:
         hp_for_opt = job.motor_hp or _hp_number(motor)

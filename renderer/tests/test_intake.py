@@ -320,7 +320,7 @@ def test_options_and_reference_block():
     for o in q["options"]:
         # every option is either genuinely priced or openly unpriced — never a
         # number nobody stands behind
-        priced = bool(o.get("netAdder"))
+        priced = bool(o.get("unitPrice")) or bool(o.get("netAdder"))
         check(f"option {o['ref']} is priced or flagged",
               priced != bool(o.get("needsPrice")), str(o))
         check(f"option {o['ref']} has a description", o.get("description"), str(o))
@@ -328,13 +328,17 @@ def test_options_and_reference_block():
     valve = next((o for o in q["options"] if "certified rotary valve" in o["name"]), None)
     check("certified valve option exists", valve is not None, str(refs))
     if valve:
-        check("certified valve is unpriced, not a fake adder",
-              valve.get("needsPrice") and not valve.get("netAdder"), str(valve))
-        check("certified valve carries the real range",
+        # It is priced now, from a real vendor estimate — but it is a 10" valve and the
+        # standard airlock in the scope is larger, so it must never read as a swap.
+        check("certified valve is priced from the vendor estimate",
+              valve.get("unitPrice") and not valve.get("needsPrice"), str(valve))
+        check("certified valve refuses to be a size-for-size swap",
+              "NOT a size-for-size swap" in valve["description"], valve["description"])
+        check("certified valve carries the range for larger sizes",
               "$10,273" in valve["description"] and "$22,998" in valve["description"],
               valve["description"])
-        check("the reason is recorded internally",
-              "no airlock calculator" in open_text(q), open_text(q))
+        check("and the cheaper-than-standard trap is recorded internally",
+              "do not read that as a credit" in open_text(q).lower(), open_text(q))
 
 
 def test_quantity():
