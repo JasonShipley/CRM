@@ -19,6 +19,7 @@ import render_ctx
 from calculators import _vendor
 from calculators.baghouse import MILL_CFM_PER_IN2
 from calculators._data import PRODUCTS
+from calculators._fmt import money
 
 FALLBACK_PLENUM_VELOCITY = "300"
 
@@ -103,6 +104,13 @@ def build(job, today=None, delivery_weeks=None):
     number nobody stood behind.
     """
     open_items = list(job.ambiguities or [])
+    issued = today or datetime.date.today()
+    # MCE's own proposals attribute the design basis to a person and a date. A quote
+    # built from a typed request is attributed to the request itself — naming an
+    # engineer who did not review it would be worse than naming nothing.
+    design_basis_note = f"as requested, {issued:%b %-d, %Y}"
+    basis_line = (f"Basis: sales request of {issued:%b %-d, %Y}, sized by MCE's own "
+                  "calculators")
     design = []
     lines = []
     by_others = list(STANDARD_BY_OTHERS)
@@ -386,6 +394,62 @@ def build(job, today=None, delivery_weeks=None):
         open_items.append(f'"{extra}" was requested but has no calculator — priced at zero '
                           "pending engineering.")
 
+    # --- options and adders -----------------------------------------------------
+    # Only alternatives MCE has a real price for, or a real quote pending. An option
+    # nobody can price is not an option, it is a conversation.
+    options = []
+    airlock_line = next((l for l in lines if l["name"].startswith("Rotary Airlock")), None)
+    if airlock_line:
+        # One option, not one per model. MCE has sell prices for two certified valves
+        # ($10,273 for the HT37 at 1 HP / 0.70 ft³, $22,998 for the HT45 at 2 HP /
+        # 1.23 ft³), but they are different SIZES, and neither was sized against this
+        # mill — there is no airlock calculator. Quoting either as a drop-in swap for
+        # the FT-12 would imply an equivalence that is not established, and the
+        # smaller one prices BELOW the standard valve, which would read as a
+        # certified unit costing less. So the option carries the real range and says
+        # the selection has to be made.
+        lo, hi = None, None
+        for number in ("EMVDL-RVEX-HT37", "EMVDL-RVEX-HT45"):
+            alt = _vendor.airlock(number)
+            if alt:
+                lo = alt[1] if lo is None else min(lo, alt[1])
+                hi = alt[1] if hi is None else max(hi, alt[1])
+        if lo and hi:
+            options.append({
+                "ref": chr(ord("A") + len(options)),
+                "name": "ATEX / NFPA 69 certified rotary valve in lieu of the standard "
+                        f'{airlock_line["sku"]}',
+                "quantity": qty, "needsPrice": True,
+                "description": "\n".join([
+                    "Certified rotary valve rated to 40 in WG differential, cast iron with "
+                    "an 8-vane polyurethane flex-tip rotor, flame-passage certified to "
+                    "NFPA 69 12.2.4.3.6",
+                    "Takes the place of the standard drop-through airlock in the scope above",
+                    f"Indicative {money(lo)} to {money(hi)} depending on the size selected",
+                    "Specify if the dust hazard assessment calls for a certified valve — "
+                    "MCE to confirm the size against the actual duty",
+                ])})
+            open_items.append(
+                f"Certified airlock offered as an option at an indicative {money(lo)}–"
+                f"{money(hi)} (the two ATEX valves on the NEMO Feed proposal). Neither was "
+                "sized against this mill and there is no airlock calculator, so the option "
+                "is unpriced rather than quoted as a swap for the "
+                f'{airlock_line["sku"]}.')
+
+    if motor or job.motor_hp:
+        hp_for_opt = job.motor_hp or _hp_number(motor)
+        pending = _vendor.MOTOR_ALTERNATE_PENDING.get(int(hp_for_opt or 0))
+        if pending:
+            options.append({
+                "ref": chr(ord("A") + len(options)),
+                "name": f"Alternate main drive motor — {motor or f'{job.motor_hp:g} HP'}",
+                "quantity": qty, "needsPrice": True,
+                "description": "\n".join([
+                    pending.split(",")[0].strip().capitalize(),
+                    "Same rating, mounting and alignment as the motor in the net items below",
+                    "Price on request",
+                ])})
+
     # --- main drive motor, priced net like MCE's own proposals -------------------
     net_items = []
     if motor or job.motor_hp:
@@ -447,9 +511,13 @@ def build(job, today=None, delivery_weeks=None):
         "designBasis": design,
         "byOthers": by_others,
         "schedule": render_ctx.schedule_with_delivery(delivery_weeks),
-        "options": [],
+        "options": options,
         "openItems": open_items,
         "deliveryWeeks": delivery_weeks or "",
+        "designBasisNote": design_basis_note,
+        "basis": basis_line,
+        "validity": render_ctx.VALIDITY,
+        "fob": render_ctx.FOB,
         "sizing": sizing,
         "sourceRequest": None,
     }

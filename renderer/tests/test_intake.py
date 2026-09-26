@@ -304,6 +304,39 @@ def test_air_swept():
           f"{bh_plain} vs {bh_swept}")
 
 
+def test_options_and_reference_block():
+    """MCE's proposal format carries an Options and Adders section, a basis line and
+    a design-basis attribution. Options only appear where there is a real price or a
+    real quote pending."""
+    q = qfj.build(jb_request(), today=TODAY, delivery_weeks="10–12")
+    check("basis line present", q["basis"].startswith("Basis:"), q["basis"])
+    check("design basis attributed", q["designBasisNote"], q["designBasisNote"])
+    check("validity is a duration", "90 days" in q["validity"], q["validity"])
+    check("FOB on the reference block", "Newkirk" in q["fob"], q["fob"])
+
+    refs = [o["ref"] for o in q["options"]]
+    check("options are lettered", refs == list("AB"[:len(refs)]), str(refs))
+    check("an option exists", q["options"], "none generated")
+    for o in q["options"]:
+        # every option is either genuinely priced or openly unpriced — never a
+        # number nobody stands behind
+        priced = bool(o.get("netAdder"))
+        check(f"option {o['ref']} is priced or flagged",
+              priced != bool(o.get("needsPrice")), str(o))
+        check(f"option {o['ref']} has a description", o.get("description"), str(o))
+    # the certified airlock must NOT be quoted as a like-for-like swap
+    valve = next((o for o in q["options"] if "certified rotary valve" in o["name"]), None)
+    check("certified valve option exists", valve is not None, str(refs))
+    if valve:
+        check("certified valve is unpriced, not a fake adder",
+              valve.get("needsPrice") and not valve.get("netAdder"), str(valve))
+        check("certified valve carries the real range",
+              "$10,273" in valve["description"] and "$22,998" in valve["description"],
+              valve["description"])
+        check("the reason is recorded internally",
+              "no airlock calculator" in open_text(q), open_text(q))
+
+
 def test_quantity():
     q = qfj.build(jb_request(quantity=8), today=TODAY)
     check("quantity on every line", all(l["quantity"] == 8 for l in q["lines"]))
@@ -347,7 +380,7 @@ def main():
                test_no_air_system, test_cyclone_when_the_rep_asks_for_one,
                test_baghouse_is_still_the_default,
                test_no_vendor_brands_on_customer_lines, test_delivery_weeks,
-               test_air_swept,
+               test_air_swept, test_options_and_reference_block,
                test_quantity,
                test_fan_quote_validity, test_reference_slug):
         fn()

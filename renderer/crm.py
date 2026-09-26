@@ -87,6 +87,7 @@ def from_twenty(quote_id):
         # none per-quote: without it a CRM quote would silently drop the freight,
         # delivery and installation terms that every MCE proposal carries.
         schedule=render_ctx.STANDARD_SCHEDULE,
+        fob=render_ctx.FOB,
     )
 
 

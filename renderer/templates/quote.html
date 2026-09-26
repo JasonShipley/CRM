@@ -190,9 +190,11 @@
       <div>
         <div class="lbl">Reference</div>
         {{ ref or "—" }}<br>
+        {% if basis %}{{ basis }}<br>{% endif %}
         Prepared: {{ issue_date }}<br>
-        {% if expires %}Validity: <span class="orange">through {{ expires }}</span><br>{% endif %}
-        Currency: USD
+        {% if validity %}Validity: {{ validity }}<br>
+        {% elif expires %}Validity: <span class="orange">through {{ expires }}</span><br>{% endif %}
+        Currency: USD{% if fob %}<br>{{ fob }}{% endif %}
       </div>
     </div>
 
@@ -202,7 +204,8 @@
 
     {% if design_basis %}
     {% set ns.n = ns.n + 1 %}
-    <div class="bar"><span class="t">{{ ns.n }}. Design Basis</span></div>
+    <div class="bar"><span class="t">{{ ns.n }}. Design Basis</span>
+      {% if design_basis_note %}<span class="hint">{{ design_basis_note }}</span>{% endif %}</div>
     <table class="spec">
       <thead><tr><th>Parameter</th><th>Design value</th><th>Notes</th></tr></thead>
       <tbody>
@@ -219,7 +222,7 @@
 
     {% set ns.n = ns.n + 1 %}
     <div class="bar"><span class="t">{{ ns.n }}. Scope of Supply and Pricing</span>
-      <span class="note">USD &middot; taxes and freight excluded unless noted</span></div>
+      <span class="note">USD &middot; taxes and freight excluded</span></div>
     <table class="items">
       <thead><tr>
         <th style="width:30px">Item</th><th>Description</th>
@@ -275,6 +278,7 @@
     <table class="items">
       <thead><tr><th style="width:44px">Option</th><th>Description</th>
         <th class="num" style="width:44px">Qty</th>
+        <th class="num" style="width:90px">Unit price</th>
         <th class="num" style="width:90px">Net adder</th></tr></thead>
       <tbody>
       {% for o in options %}
@@ -284,6 +288,7 @@
             {% if o.description %}<ul>{% for ln in o.description.splitlines() %}{% if ln.strip() %}<li>{{ ln }}</li>{% endif %}{% endfor %}</ul>{% endif %}
           </td>
           <td class="num">{{ o.quantity or 1 }}</td>
+          <td class="num money {{ 'tbd' if o.needsPrice }}">{{ o.unitPrice or "—" }}</td>
           <td class="num money {{ 'tbd' if o.needsPrice }}">{{ o.netAdder or "TBD" }}</td>
         </tr>
       {% endfor %}
@@ -321,8 +326,6 @@
     <p class="prose">{{ q.terms }}</p>
     {% endif %}
 
-    {% set ns.n = ns.n + 1 %}
-    <div class="bar"><span class="t">{{ ns.n }}. Acceptance</span></div>
     <div class="accept">
       <div class="who">
         <div class="lbl">Prepared by</div>

@@ -69,6 +69,10 @@ def seller_contact(prepared_by):
 # The schedule terms every MCE proposal carries regardless of where the quote was
 # built. quote_from_job builds its own (it can fill the delivery weeks in); the CRM
 # has nowhere to store one, so it uses this.
+# Standing terms that appear on every MCE proposal's reference block.
+FOB = "FOB MCE Oklahoma shop (Newkirk or Ponca City, OK)"
+VALIDITY = "90 days from date of issue"
+
 STANDARD_SCHEDULE = [
     {"item": "Freight", "basis": "FOB MCE plant, Newkirk, OK; freight quoted at time of "
                                 "shipment or shipped freight collect."},
@@ -104,7 +108,9 @@ BASE_CONTEXT = {
     "seller": None, "seller_contact": None, "footer_right": "",
     "buyer_name": "", "buyer_line": "",
     "is_draft": False, "ref": "", "issue_date": "", "expires": "",
-    "design_basis": [], "options": [], "by_others": [], "schedule": [],
+    "design_basis": [], "design_basis_note": "",
+    "options": [], "by_others": [], "schedule": [],
+    "basis": "", "validity": "", "fob": "",
     "open_items": [], "source_request": "",
     "subtotal": "", "total": "", "net_subtotal": "", "has_net": False,
     "total_discount": "", "has_discount": False,
@@ -192,6 +198,10 @@ def from_store(quote):
         expires=fmt_date(quote.get("expirationDate")),
         net_items=net_items,
         design_basis=quote.get("designBasis") or [],
+        design_basis_note=quote.get("designBasisNote") or "",
+        basis=quote.get("basis") or "",
+        validity=quote.get("validity") or "",
+        fob=quote.get("fob") or "",
         options=quote.get("options") or [],
         by_others=quote.get("byOthers") or [],
         schedule=quote.get("schedule") or [],
