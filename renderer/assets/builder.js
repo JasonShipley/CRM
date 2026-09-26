@@ -148,12 +148,17 @@ function collect(key) {
 }
 
 /* Fields that only apply to one mode (the baghouse airflow basis) hide when that
-   mode isn't selected, so nobody fills in a box the calculator will ignore. */
+   mode isn't selected, so nobody fills in a box the calculator will ignore. A
+   condition value may be a list, for a field that applies to more than one choice
+   — air-to-cloth ratio belongs to both the baghouse and the filter receiver. */
 function applyShowWhen(key) {
   const form = collect(key);
+  const matches = (v, actual) =>
+    Array.isArray(v) ? v.some((x) => String(x) === String(actual))
+                     : String(v) === String(actual);
   $$(`#panel-${key} [data-show-when]`).forEach((el) => {
     const cond = JSON.parse(el.dataset.showWhen);
-    el.hidden = !Object.entries(cond).every(([k, v]) => String(form[k]) === String(v));
+    el.hidden = !Object.entries(cond).every(([k, v]) => matches(v, form[k]));
   });
 }
 
@@ -228,6 +233,28 @@ function renderResult(key, data) {
     box.appendChild(p);
   }
 
+  /* Options a calculator returned — alternatives and adders that are NOT in the
+     priced scope. They go to the proposal's options section, not the line table, so
+     they are shown here separately and never counted in the total. */
+  if (data.options && data.options.length) {
+    const t = document.createElement("table");
+    t.style.marginTop = "14px";
+    const head = document.createElement("tr");
+    head.innerHTML = '<th>Options (quoted separately)</th><th class="num">Unit price</th>';
+    const rows = data.options.map((o) => {
+      const tr = document.createElement("tr");
+      const a = document.createElement("td");
+      a.textContent = `${o.ref ? o.ref + ". " : ""}${o.name}`;
+      const b = document.createElement("td");
+      b.className = "num money";
+      b.textContent = o.needsPrice || !o.unitPrice ? "on request" : usd(o.unitPrice);
+      tr.append(a, b);
+      return tr;
+    });
+    t.append(head, ...rows);
+    box.appendChild(t);
+  }
+
   if (data.total) {
     const tot = document.createElement("div");
     tot.className = "formula";
@@ -278,6 +305,19 @@ BOOT.calcKeys.forEach((key) => {
     const data = lastResult[key];
     if (!data) return;
     addLines(data.lines || []);
+    /* Options and warnings belong to the proposal, not to the line table: the
+       options print in their own section and the warnings are the open items a rep
+       has to clear before release. Appended, not replaced — a quote can carry more
+       than one calculator's worth. Refs are renumbered so the merged list reads
+       A, B, C. */
+    (data.options || []).forEach((o) => {
+      sections.options = sections.options || [];
+      sections.options.push({ ...o, ref: String.fromCharCode(65 + sections.options.length) });
+    });
+    (data.warnings || []).forEach((w) => {
+      sections.openItems = sections.openItems || [];
+      if (!sections.openItems.includes(w)) sections.openItems.push(w);
+    });
     sizing.push({
       calculator: data.calculator, key,
       inputs: collect(key),

@@ -7,6 +7,11 @@ extracted verbatim into _data.py.
 
     required cloth area = CFM / air-to-cloth ratio
     MCE model           = smallest square-grid unit that meets it
+
+The sizing is the same whether the unit is MCE's plenum-mount filter or a
+hopper-bottom filter receiver — same cloth, same grid, same bags. `style` says
+which one is being quoted, and it changes only what the line says and how the
+budget price is justified (see _vendor.baghouse_budget).
 """
 import math
 
@@ -58,6 +63,10 @@ def size(f):
     mode = "mill" if f.get("mode") == "mill" else "cfm"
     ratio = _num(f.get("ratio"), 7)
     len_filter = str(f.get("lenFilter") or "any")
+    # A filter receiver is the same filter with a hopper under it: it collects the
+    # material and drops it out, instead of sitting on a plenum that already has a
+    # discharge. Nothing about the cloth sizing changes.
+    receiver = str(f.get("style") or "") == "receiver"
 
     if mode == "mill":
         screen_area = _num(f.get("screenArea"))
@@ -104,22 +113,32 @@ def size(f):
             {"label": "Plan", "value": f'{mce["plan"]}" × {mce["plan"]}"'},
             {"label": "Housing height", "value": f'{mce["housingH"]}"'},
         ]
-        bh_price, bh_basis = _vendor.baghouse_budget(mce["area"])
+        bh_price, bh_basis = _vendor.baghouse_budget(mce["area"], hopper=receiver)
+        kind = "Filter Receiver" if receiver else "Baghouse Filter"
         warnings.append(
-            f'Baghouse price is a budget figure only: {bh_basis}. Confirm against a '
+            f'{kind} price is a budget figure only: {bh_basis}. Confirm against a '
             "current vendor quote or the shop estimate before release.")
+        build = ("hopper-bottom filter receiver, free-standing on legs, with a flanged "
+                 "hopper outlet for the airlock"
+                 if receiver else "plenum-mount (no hopper)")
+        notes = [
+            f'{mce["bags"]} × {mce["len"]} ft bags in a {mce["grid"]} grid, '
+            f'6" dia on {BAG_PITCH}" centers',
+            f'{mce["area"]:,.0f} ft² cloth — runs at {actual:.2f}:1 on {cfm:,.0f} CFM',
+            f'{mce["plan"]}" × {mce["plan"]}" plan, {mce["housingH"]}" housing height, '
+            + build,
+            f'{mce["pulse"]:.2f} SCFM pulse air required',
+        ]
+        if receiver:
+            # There is no hopper or leg geometry in the calculator, so the overall
+            # height is not stated rather than estimated.
+            notes.append("Hopper and support height set by the discharge elevation — "
+                         "confirmed on the approval drawing")
+        notes.append("Budgetary price — firm on receipt of the fabrication estimate")
         lines.append({
-            "name": f'Baghouse Filter — MCE {mce["model"]}', "quantity": 1,
+            "name": f'{kind} — MCE {mce["model"]}', "quantity": 1,
             "unitPrice": round(bh_price, 2), "budgetPrice": True,
-            "description": "\n".join([
-                f'{mce["bags"]} × {mce["len"]} ft bags in a {mce["grid"]} grid, '
-                f'6" dia on {BAG_PITCH}" centers',
-                f'{mce["area"]:,.0f} ft² cloth — runs at {actual:.2f}:1 on {cfm:,.0f} CFM',
-                f'{mce["plan"]}" × {mce["plan"]}" plan, {mce["housingH"]}" housing height, '
-                "plenum-mount (no hopper)",
-                f'{mce["pulse"]:.2f} SCFM pulse air required',
-                "Budgetary price — firm on receipt of the fabrication estimate",
-            ])})
+            "description": "\n".join(notes)})
         total += bh_price
 
         # The fan is selected against the baghouse, not sized independently:
@@ -173,6 +192,7 @@ def size(f):
         outputs.append({"label": "Kice equivalent",
                         "value": "Beyond S 121-10 (1,425 ft²) — multiple units"})
 
-    return {"calculator": "Baghouse Filter", "outputs": outputs, "warnings": warnings,
+    return {"calculator": "Filter Receiver" if receiver else "Baghouse Filter",
+            "outputs": outputs, "warnings": warnings,
             "lines": lines, "total": round(total, 2), "formula": formula,
             "required_area": round(req_area), "cfm": round(cfm)}

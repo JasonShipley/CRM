@@ -203,17 +203,28 @@ AIRSYSTEM_FIELDS = [
                  ("1", f"Yes — × {airsystem.AIR_SWEPT_FACTOR:g} on the screen area")],
      "showWhen": {"mode": "millModel"}},
     {"key": "cleaner", "label": "Air cleaning", "type": "select", "default": "baghouse",
-     "options": [("baghouse", "Baghouse filter — fan discharges after it"),
-                 ("cyclone", "Cyclone — fan ducts to atmosphere")]},
+     "options": list(airsystem.CLEANERS)},
     {"key": "ratio", "label": "Air-to-cloth ratio", "type": "number", "default": 7,
-     "step": 0.25, "min": 1, "max": 15, "showWhen": {"cleaner": "baghouse"}},
+     "step": 0.25, "min": 1, "max": 15,
+     "showWhen": {"cleaner": ["baghouse", "filter_receiver"]}},
     {"key": "lenFilter", "label": "Bag length", "type": "select", "default": "any",
      "options": [("any", "Any"), ("4", "4 ft"), ("6", "6 ft"), ("8", "8 ft"),
-                 ("10", "10 ft")], "showWhen": {"cleaner": "baghouse"}},
+                 ("10", "10 ft")],
+     "showWhen": {"cleaner": ["baghouse", "filter_receiver"]}},
     {"key": "wg", "label": "Cyclone static", "type": "select", "default": "3",
      "options": cyclone.WG_OPTIONS, "showWhen": {"cleaner": "cyclone"}},
     {"key": "velocity", "label": "Duct conveying velocity", "type": "select",
      "default": "4000", "options": duct.VELOCITY_PRESETS},
+    {"key": "combustible", "label": "Combustible dust", "type": "select", "default": "",
+     "options": [("", "Not stated — no protection offered"),
+                 ("1", "Yes — offer NFPA isolation and venting")],
+     "help": "Adds the certified valve, the explosion vent and the burst switch as "
+             "options. It sizes none of them: the vent area comes from the dust hazard "
+             "analysis."},
+    {"key": "indoors", "label": "Vessel location", "type": "select", "default": "",
+     "options": [("", "Not stated"), ("0", "Outdoors — standard vent panel"),
+                 ("1", "Indoors — flameless vent required")],
+     "showWhen": {"combustible": "1"}},
     {"key": "include_airlock", "label": "Include airlock", "type": "select", "default": "1",
      "options": [("1", "Yes"), ("", "No")], "advanced": True},
     {"key": "include_duct", "label": "Include ductwork", "type": "select", "default": "1",
@@ -239,9 +250,10 @@ CALCULATORS = {
     },
     "airsystem": {
         "key": "airsystem", "label": "Air System",
-        "blurb": "One airflow, everything downstream: filter or cyclone, its matched "
-                 "fan, the airlock and the duct — from a mill model, a screen area, "
-                 "a CFM figure or a cooler.",
+        "blurb": "One airflow, everything downstream: baghouse, filter receiver or "
+                 "cyclone, its matched fan, the airlock and the duct — from a mill "
+                 "model, a screen area, a CFM figure or a cooler. Combustible dust "
+                 "adds NFPA isolation and venting as options.",
         "fields": AIRSYSTEM_FIELDS, "run": airsystem.size, "prices": True,
     },
     "cyclone": {

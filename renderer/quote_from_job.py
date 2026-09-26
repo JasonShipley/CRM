@@ -16,7 +16,7 @@ import re
 
 import calculators
 import render_ctx
-from calculators import _vendor
+from calculators import _vendor, airsystem, nfpa
 from calculators.baghouse import MILL_CFM_PER_IN2
 from calculators._data import PRODUCTS
 from calculators._fmt import money
@@ -99,7 +99,9 @@ def _size_only(job, issued, open_items, delivery_weeks):
     """Air-system sizing with no mill quote behind it."""
     cfm = getattr(job, "system_cfm", None)
     form = {"cleaner": job.dust_collection or "baghouse",
-            "airSwept": "1" if getattr(job, "air_swept", False) else ""}
+            "airSwept": "1" if getattr(job, "air_swept", False) else "",
+            "combustible": "1" if getattr(job, "combustible_dust", False) else "",
+            "material": job.product_as_written or ""}
     if cfm:
         form.update({"mode": "cfm", "cfm": cfm})
     elif job.mill_model:
@@ -111,10 +113,14 @@ def _size_only(job, issued, open_items, delivery_weeks):
         form = None
 
     result = calculators.run("airsystem", form) if form else {"error": "no basis"}
-    lines, design, sizing = [], [], []
+    lines, design, sizing, options = [], [], [], []
     qty = max(1, int(job.quantity or 1))
+    if getattr(job, "combustible_dust", False):
+        design.append(nfpa.design_basis(job.product_as_written))
     if not result.get("error"):
         lines = [{**l, "quantity": qty} for l in result["lines"]]
+        # The chain builds the protection options itself, off the vessel it sized.
+        options = [{**o, "quantity": qty} for o in result.get("options", [])]
         open_items.extend(result.get("warnings", []))
         sizing.append({"calculator": result["calculator"], "inputs": form,
                        "formula": result.get("formula", ""),
@@ -123,9 +129,11 @@ def _size_only(job, issued, open_items, delivery_weeks):
         design.append({"parameter": "System airflow", "value": f'{result["cfm"]:,} CFM',
                        "notes": result.get("formula", "")})
         design.append({"parameter": "Air cleaning",
-                       "value": result["cleaner"].title(),
-                       "notes": "Baghouse: fan discharges to atmosphere after the filter. "
-                                "Cyclone: fan ducts to atmosphere."})
+                       "value": airsystem.CLEANER_LABELS.get(result["cleaner"],
+                                                             result["cleaner"].title()),
+                       "notes": "A filter — baghouse or hopper-bottom receiver — cleans the "
+                                "air and the fan discharges to atmosphere after it. A "
+                                "cyclone has no filter, so the fan ducts to atmosphere."})
     else:
         open_items.append(f'Air system could not be sized: {result["error"]}')
 
@@ -150,7 +158,7 @@ def _size_only(job, issued, open_items, delivery_weeks):
         "byOthers": ["Mill, feeder and plenum — not included in this sizing",
                      "Installation, supports and electrical"],
         "schedule": render_ctx.schedule_with_delivery(delivery_weeks),
-        "options": [],
+        "options": options,
         "openItems": open_items,
         "sizing": sizing,
         "terms": TERMS,
@@ -191,6 +199,8 @@ def build(job, today=None, delivery_weeks=None):
     lines = []
     by_others = list(STANDARD_BY_OTHERS)
     sizing = []
+    # The vessel a deflagration vent would go on, once something sizes one.
+    vessel = None
 
     qty = max(int(job.quantity or 1), 1)
     product = _product(job)
@@ -213,6 +223,11 @@ def build(job, today=None, delivery_weeks=None):
             f"\"{job.product_as_written}\". The pet food entries grind very differently — "
             "confirm before release.")
 
+    # Both of these are read by the air-system section below, which runs whether or
+    # not the mill could be sized — a request that names an air system but no product
+    # still has to produce a proposal rather than an exception.
+    air_swept = bool(getattr(job, "air_swept", False))
+    system_cfm = 0.0
     result = None
     if pph and job.screen_64ths and product:
         feeder = job.feeder
@@ -242,7 +257,6 @@ def build(job, today=None, delivery_weeks=None):
         result = calculators.run("hammermill", form)
         # Every air item downstream sizes off one number. Without an air-swept pan
         # that is the calculator's own plenum CFM; with one it is 1.25x higher.
-        air_swept = bool(getattr(job, "air_swept", False))
         system_cfm = (result.get("plenum_cfm") or 0) * (AIR_SWEPT_FACTOR if air_swept else 1)
         if result.get("error"):
             open_items.append(f"Hammermill sizing failed: {result['error']}")
@@ -277,6 +291,12 @@ def build(job, today=None, delivery_weeks=None):
     row("Product", product["name"] if product else (job.product_as_written or "TBD"),
         f'As described: "{job.product_as_written}"' if job.product_as_written else "",
         needs_input=not product)
+    if getattr(job, "combustible_dust", False):
+        # Stated by the rep, never inferred from the material. It belongs next to the
+        # product because it is a property of the product, and it prints as an item
+        # needing MCE input: the protection package waits on the dust hazard analysis.
+        dust_row = nfpa.design_basis(job.product_as_written)
+        row(dust_row["parameter"], dust_row["value"], dust_row["notes"], needs_input=True)
     row("Number of mills", f"{qty} × {out.get('Mill', 'TBD')}",
         "Direct drive, dual grinding chamber" if result else "", needs_input=not result)
     if pph:
@@ -326,35 +346,50 @@ def build(job, today=None, delivery_weeks=None):
         # A baghouse unless the rep named a cyclone: MCE's standard air relief is a
         # filter, and with one the fan ducts to atmosphere after it — no cyclone.
         want_cyclone = getattr(job, "dust_collection", None) == "cyclone"
+        # A filter receiver is the same filter with a hopper under it — same cloth,
+        # same fan, so it goes through the same sizing with the build flagged.
+        want_receiver = getattr(job, "dust_collection", None) == "filter_receiver"
+        bh_style = "receiver" if want_receiver else "plenum"
         if screen_area and not want_cyclone:
             bh = calculators.run("baghouse", {"mode": "cfm", "cfm": system_cfm,
-                                              "ratio": 7, "lenFilter": "any"})
+                                              "ratio": 7, "lenFilter": "any",
+                                              "style": bh_style})
             if not bh.get("error"):
                 for line in bh["lines"]:
                     lines.append({**line, "quantity": qty})
                 sizing.append({"calculator": bh["calculator"], "inputs": {
-                    "mode": "cfm", "cfm": round(system_cfm), "ratio": 7},
+                    "mode": "cfm", "cfm": round(system_cfm), "ratio": 7,
+                    "style": bh_style},
                     "formula": bh.get("formula", ""), "outputs": bh.get("outputs", []),
                     "warnings": bh.get("warnings", [])})
                 open_items.extend(bh.get("warnings", []))
+                model = next((o["value"] for o in bh.get("outputs", [])
+                              if o["label"] == "MCE filter"), None)
+                if model:
+                    vessel = f'MCE {model} {bh["calculator"].lower()}'
         # With a baghouse the air is cleaned by the filter and the fan discharges
         # to atmosphere after it — no cyclone, and no fan line of its own: the
         # baghouse calculator already selected and priced the matched AirPro fan.
-        have_baghouse = any("Baghouse" in ln["name"] for ln in lines)
+        have_baghouse = any("Baghouse" in ln["name"] or "Filter Receiver" in ln["name"]
+                            for ln in lines)
         outstanding = ["Ductwork"]
         # The airlock under the filter (or cyclone) hopper is a buy-out. MCE's
         # standard mill-scale unit is the Airlanco FT-12; price it at MCE's own
         # buy-out divisor rather than listing it TBD.
         if air_swept:
+            pan = ["Drop-down air pan under the mill with structure and air pickup fitting"]
+            if result and result.get("screen_area"):
+                pan.append(
+                    f'Sized on {result["screen_area"]:,} in² screen × {AIR_SWEPT_FACTOR:g} '
+                    f"= {result['screen_area'] * AIR_SWEPT_FACTOR:,.0f} in² pan area")
+            else:
+                pan.append(f"Sized on {AIR_SWEPT_FACTOR:g} × the mill screen area, once the "
+                           "mill is fixed")
+            pan += ["Hinged for screen and hammer access without breaking the duct",
+                    "Price from the fabrication estimate"]
             lines.append({
                 "name": "Drop-Down Air Pan", "quantity": qty, "unitPrice": 0,
-                "needsPrice": True, "description": "\n".join([
-                    "Drop-down air pan under the mill with structure and air pickup fitting",
-                    f'Sized on {result["screen_area"]:,} in² screen × {AIR_SWEPT_FACTOR:g} '
-                    f"= {result['screen_area'] * AIR_SWEPT_FACTOR:,.0f} in² pan area",
-                    "Hinged for screen and hammer access without breaking the duct",
-                    "Price from the fabrication estimate",
-                ])})
+                "needsPrice": True, "description": "\n".join(pan)})
             open_items.append(
                 "Drop-down air pan and air-swept conversion are unpriced — MCE has no "
                 "calculator or cost basis for either yet. The NEMO Feed proposal carried a "
@@ -398,6 +433,7 @@ def build(job, today=None, delivery_weeks=None):
                     "mode": "cfm", "cfm": plenum_cfm, "series": "mce", "wg": "3"},
                     "formula": cyc.get("formula", ""), "outputs": cyc.get("outputs", []),
                     "warnings": cyc.get("warnings", [])})
+                vessel = f'MCE {cyc["matchSize"]} cyclone'
                 open_items.extend(cyc.get("warnings", []))
                 open_items.append(
                     f'Cyclone sized {cyc["matchSize"]} from the mill\'s '
@@ -440,7 +476,8 @@ def build(job, today=None, delivery_weeks=None):
         if have_baghouse:
             by_others.insert(0, "Stack and weather cap at the fan discharge")
             open_items.append(
-                "Air system requested: baghouse sized from the mill screen area with its "
+                f'Air system requested: {"filter receiver" if want_receiver else "baghouse"} '
+                "sized from the mill screen area with its "
                 "matched AirPro fan, discharging to atmosphere after the filter — no cyclone. "
                 "Ductwork is sized from the same airflow but priced on request — the run, "
                 "the fittings and whether it vents to atmosphere all come out of the site "
@@ -475,42 +512,30 @@ def build(job, today=None, delivery_weeks=None):
     # nobody can price is not an option, it is a conversation.
     options = []
     airlock_line = next((l for l in lines if l["name"].startswith("Rotary Airlock")), None)
-    if airlock_line:
-        # One option, not one per model. MCE has sell prices for two certified valves
-        # ($10,273 for the HT37 at 1 HP / 0.70 ft³, $22,998 for the HT45 at 2 HP /
-        # 1.23 ft³), but they are different SIZES, and neither was sized against this
-        # mill — there is no airlock calculator. Quoting either as a drop-in swap for
-        # the FT-12 would imply an equivalence that is not established, and the
-        # smaller one prices BELOW the standard valve, which would read as a
-        # certified unit costing less. So the option carries the real range and says
-        # the selection has to be made.
-        lo, hi = None, None
-        for number in ("EMVDL-RVEX-HT37", "EMVDL-RVEX-HT45"):
-            alt = _vendor.airlock(number)
-            if alt:
-                lo = alt[1] if lo is None else min(lo, alt[1])
-                hi = alt[1] if hi is None else max(hi, alt[1])
-        if lo and hi:
-            options.append({
-                "ref": chr(ord("A") + len(options)),
-                "name": "ATEX / NFPA 69 certified rotary valve in lieu of the standard "
-                        f'{airlock_line["sku"]}',
-                "quantity": qty, "needsPrice": True,
-                "description": "\n".join([
-                    "Certified rotary valve rated to 40 in WG differential, cast iron with "
-                    "an 8-vane polyurethane flex-tip rotor, flame-passage certified to "
-                    "NFPA 69 12.2.4.3.6",
-                    "Takes the place of the standard drop-through airlock in the scope above",
-                    f"Indicative {money(lo)} to {money(hi)} depending on the size selected",
-                    "Specify if the dust hazard assessment calls for a certified valve — "
-                    "MCE to confirm the size against the actual duty",
-                ])})
+    replacing = airlock_line["sku"] if airlock_line else None
+    if getattr(job, "combustible_dust", False):
+        # The rep said combustible. That is the whole protection package: NFPA 69
+        # isolation, NFPA 68 venting, and the burst switch off the vent — built in
+        # calculators/nfpa.py, which prices the isolation as a range and the venting
+        # not at all, because the vent area comes from a dust hazard analysis.
+        _added, dust_notes = nfpa.protection(
+            options, quantity=qty, material=job.product_as_written, vessel=vessel,
+            replacing=replacing)
+        open_items.extend(dust_notes)
+    elif airlock_line:
+        # Nobody said combustible, but the certified valve is still the alternative a
+        # dust hazard assessment would call for, and MCE has real prices for two of
+        # them — different SIZES, so it goes out as a range with the selection called
+        # out rather than as a drop-in swap for the standard valve.
+        iso = nfpa.isolation_option(options, quantity=qty, replacing=replacing)
+        if iso:
+            options.append(iso)
+            lo, hi, source = _vendor.certified_valve_range()
             open_items.append(
                 f"Certified airlock offered as an option at an indicative {money(lo)}–"
-                f"{money(hi)} (the two ATEX valves on the NEMO Feed proposal). Neither was "
-                "sized against this mill and there is no airlock calculator, so the option "
-                "is unpriced rather than quoted as a swap for the "
-                f'{airlock_line["sku"]}.')
+                f"{money(hi)} (the two ATEX valves on {source}). Neither was sized against "
+                "this mill and there is no airlock calculator, so the option is unpriced "
+                f'rather than quoted as a swap for the {replacing}.')
 
     if motor or job.motor_hp:
         hp_for_opt = job.motor_hp or _hp_number(motor)

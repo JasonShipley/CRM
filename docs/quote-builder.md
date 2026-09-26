@@ -99,6 +99,8 @@ input is free text.
 | Stated HP disagrees with the calculation | Quotes the calculated figure; the conflict goes to MCE internally |
 | Named mill too small for the motor | Quotes the mill asked for; the shortfall goes to MCE internally, **not** onto the proposal |
 | Rep names a cyclone instead of a filter | Sizes the cyclone from the mill's own plenum airflow, quotes no baghouse |
+| Rep names a filter receiver | Same cloth, same fan, same price — the line says hopper-bottom and the budget basis becomes like-for-like |
+| Rep says the dust is combustible | Adds NFPA isolation, an explosion vent and its burst switch as **options**, sizes none of them, and asks for the dust hazard analysis |
 | No calculator exists (fan, duct, airlock) | Lists the item unpriced rather than omitting or guessing it |
 | A price is a budget or a model, not a quote | Prices it anyway, marks it budget, and names the source document internally |
 | Governing spec missing entirely | Quotes nothing, says what it needs |
@@ -157,11 +159,14 @@ Duct:        CFM / velocity -> ft2 x 144 -> D = 2 x sqrt(area/pi)
 
 Air system:  ONE airflow drives the rest. It comes from whichever basis is to
              hand - a CFM figure, a mill screen area, an XM model, or a cooler's
-             own requirement - and then the filter, its matched fan, the airlock
-             and the duct all follow. calculators/airsystem.py owns that chain and
-             calls the same ports the standalone calculators use, so a filter
-             sized there and one sized on /tools/baghouse are the same filter.
-             tests/test_airsystem.py holds the two to each other.
+             own requirement - and then the air cleaner, its matched fan, the
+             airlock and the duct all follow. calculators/airsystem.py owns that
+             chain and calls the same ports the standalone calculators use, so a
+             filter sized there and one sized on /tools/baghouse are the same
+             filter. tests/test_airsystem.py holds the two to each other.
+             Three air cleaners, one sizing: baghouse, filter receiver (the same
+             filter with a hopper under it, so it collects and discharges instead
+             of sitting on the mill plenum) and cyclone.
 
 Cyclone:     rated CFM, or inlet ID area / 144 x inlet FPM
              <= 12,600 CFM -> HE series on its rated min/opt/max
@@ -194,7 +199,9 @@ the hammermill just reported, and the two agree by construction.
 | Cooler | MCE list (2016/17 basis escalated), plus options | Price rev shown on the result |
 | Screw conveyor | SCC vendor quote x MCE markup | Budget figure; flags when the run length differs from the vendor basis |
 | Fan | AirPro OEM lineup cost x 2 | Selected against the baghouse model, not sized separately |
-| Baghouse | **not priced** | Sized only — price from the fabrication estimate |
+| Baghouse / filter receiver | $40.20/ft² of cloth ÷ 0.70 | Budget figure; the basis says whether it is an upper bound (plenum-mount) or like-for-like (hopper-bottom) |
+| NFPA isolation valve | **not priced** | Offered as an option with the real $10,273–$22,998 range — the size has to be picked against the duty |
+| Explosion vent, burst switch | **not priced** | Options; the vent manufacturer sizes and quotes them off the dust hazard analysis |
 
 Unpriced lines land on the quote at $0.00 and are highlighted in the line-item
 table, so they can't quietly go out at zero. Fill the price in before sending.
@@ -229,6 +236,9 @@ writing these into Twenty later is a mapping job, not a rewrite.
 | Airlock | FT-12 vendor cost ÷ 0.70 | Airlanco quote 024350 |
 | Main drive motor | vendor cost ÷ 0.70, by horsepower | `MOTOR_QUOTES` |
 | Baghouse | $40.20/ft² of cloth ÷ 0.70 — **budget only, upper bound** | Airlanco quote 024350 vs NEMO Feed sell |
+| Filter receiver | the same $40.20/ft² ÷ 0.70 — **budget, like-for-like** | as above; the reference unit *is* a hopper-bottom receiver |
+| NFPA 69 isolation valve | sell prices on file for two certified valves, quoted as a range | NEMO Feed 20260428 |
+| Explosion vent | **no price on file** — engineering basis only | High Tech Duct Werks Q-26693 (Nix Forest Industries) |
 | Ductwork | sized from the system CFM; **priced on request** — run, fittings and whether it vents to atmosphere come from the layout | duct calculator |
 
 Buy-out lines print the **model number and the specification** — airflow, static,
@@ -276,6 +286,39 @@ source quote and expiry:
   of what the model predicts for carbon at that size, so no material premium is
   applied. That is one data point against a model that may simply over-predict at
   12" — worth confirming with SCC before leaning on it for a sanitary job.
+
+### Combustible dust
+
+Set by the rep, never inferred from the material: plenty of combustible products
+get ground without anyone asking for protection, and the flag puts three options
+in front of a customer. `calculators/nfpa.py` owns what happens when it is set.
+
+- **Isolation** (NFPA 69) is a certified rotary valve — flex-tip rotor, certified
+  to NFPA 69 12.2.4.3.6. MCE has sell prices for two of them, but they are
+  different **sizes** and nothing here sizes a valve, so the option carries the
+  range ($10,273–$22,998) and says the selection has to be made. The smaller one
+  prices *below* the standard FT-12, which is exactly why it is never offered as
+  a drop-in swap.
+- **Deflagration venting** (NFPA 68) is unpriced, on purpose. Vent area comes
+  from Kst, Pmax, the vessel volume and the design reduced pressure — a dust
+  hazard analysis, not a calculator. MCE buys these sized and quoted by **High
+  Tech Duct Werks** (Darryl Lind). The precedent on file is the Nix Forest
+  Industries job: wood through a 1/4" screen, Kst 150 bar·m/s, Pmax 8.0 bar,
+  design Pred 0.2 bar(g), one EV-VD domed vent with a 23" × 36" panel below the
+  hopper of a 25AST-8, vented outdoors through ~40" × 28" duct with a rain hood.
+  Quote Q-26693 — **its dollar figure is in an attachment this project has not
+  read, and is deliberately not in `_vendor.py`.** A protection package is not a
+  number to interpolate.
+- **Burst indicator switches** are their own option, off the vent, which is how
+  Nix bought it — the plant's controls scope usually specifies them.
+- **Kst** is only ever quoted as a reference from a job MCE actually ran
+  (`KST_ON_RECORD`, wood 150). For anything else the open items say the vent
+  supplier needs a Kst and Pmax from the customer's DHA. A guessed Kst is a
+  guessed vent area.
+
+Indoors matters: a standard panel has to discharge outdoors, and an indoor vessel
+needs a flameless vent, which prices differently. Unsaid, the option states both
+rather than picking one.
 
 A quote past its expiry still prices, but says so on the line and raises an open
 item — a stale basis is visible rather than silent. Update the numbers here when

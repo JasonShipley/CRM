@@ -16,7 +16,8 @@ HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent))
 
 import quote_from_job as qfj  # noqa: E402
-from calculators import airsystem  # noqa: E402
+from calculators import _vendor, airsystem  # noqa: E402
+from calculators._fmt import money  # noqa: E402
 from calculators._data import MCE_XM_MILLS  # noqa: E402
 from test_intake import jb_request  # noqa: E402
 
@@ -111,7 +112,118 @@ def main():
     check("a meal cooler reports its airflow too",
           cooler.size({"pellet": meal, "tph": 20, "density": 40}).get("req_cfm"))
 
-    # 8. a basis that is not there is refused, not guessed
+    # 8. the three air cleaners: a filter receiver is the same filter with a hopper,
+    #    priced the same and sized the same, and it says so on the line
+    bh = airsystem.size({"mode": "millModel", "millModel": "XM-4430"})
+    rec = airsystem.size({"mode": "millModel", "millModel": "XM-4430",
+                          "cleaner": "filter_receiver"})
+    bh_line = next(l for l in bh["lines"] if l["name"].startswith("Baghouse"))
+    rec_line = next((l for l in rec["lines"] if l["name"].startswith("Filter Receiver")), None)
+    check("a filter receiver is offered", rec_line, str([l["name"] for l in rec["lines"]]))
+    if rec_line:
+        check("the receiver is the same filter",
+              rec_line["name"].split("MCE ")[-1] == bh_line["name"].split("MCE ")[-1],
+              f'{rec_line["name"]} vs {bh_line["name"]}')
+        check("and the same price — one data point supports one rate",
+              rec_line["unitPrice"] == bh_line["unitPrice"])
+        check("the receiver line says it has a hopper",
+              "hopper" in rec_line["description"].lower())
+        check("the baghouse line says it does not",
+              "no hopper" in bh_line["description"].lower())
+    check("the receiver still gets its matched fan",
+          any(l["name"].startswith("Fan —") and "TBD" not in l["name"]
+              for l in rec["lines"]))
+    check("however the rep spells it",
+          airsystem._cleaner("Filter Receiver") == airsystem._cleaner("receiver")
+          == "filter_receiver")
+    check("and an unknown cleaner falls back to the standard filter",
+          airsystem._cleaner("") == airsystem._cleaner("dust sock") == "baghouse")
+
+    # 9. combustible dust: the protection package appears as OPTIONS, with the
+    #    isolation carrying a real price range and the vent carrying none
+    for cleaner in ("baghouse", "filter_receiver", "cyclone"):
+        hot = airsystem.size({"mode": "millModel", "millModel": "XM-4430",
+                              "cleaner": cleaner, "combustible": "1",
+                              "material": "pet food"})
+        names = [o["name"] for o in hot["options"]]
+        check(f"{cleaner}: isolation offered",
+              any("NFPA 69 isolation" in n for n in names), str(names))
+        check(f"{cleaner}: vent offered", any(n.startswith("Explosion vent") for n in names),
+              str(names))
+        check(f"{cleaner}: burst switch is its own option",
+              any("burst indicator switch" in n for n in names), str(names))
+        check(f"{cleaner}: options are A, B, C in order",
+              [o["ref"] for o in hot["options"]] == ["A", "B", "C"],
+              str([o["ref"] for o in hot["options"]]))
+        check(f"{cleaner}: nothing protective is priced",
+              all(o.get("needsPrice") for o in hot["options"]))
+        check(f"{cleaner}: the vent names the vessel it goes on",
+              any("MCE" in n for n in names if n.startswith("Explosion vent")), str(names))
+        # the real range MCE has on file, not a made-up number
+        iso = next(o for o in hot["options"] if "isolation" in o["name"])
+        lo, hi, _src = _vendor.certified_valve_range()
+        check(f"{cleaner}: the isolation range is the one on file",
+              money(lo) in iso["description"] and money(hi) in iso["description"],
+              iso["description"])
+        check(f"{cleaner}: the DHA is called out, not assumed",
+              any("dust hazard analysis" in w for w in hot["warnings"]), str(hot["warnings"]))
+        check(f"{cleaner}: no Kst is invented for an untested product",
+              any("No Kst on record" in w for w in hot["warnings"]), str(hot["warnings"]))
+        check(f"{cleaner}: the priced scope is unchanged by the hazard",
+              [l["name"] for l in hot["lines"]]
+              == [l["name"] for l in airsystem.size({"mode": "millModel",
+                                                     "millModel": "XM-4430",
+                                                     "cleaner": cleaner})["lines"]])
+
+    # a material MCE has a tested Kst for says so, as a reference and no more
+    from calculators import nfpa
+    woody = nfpa.design_basis("wood dust through a 1/4 screen")
+    check("a tested Kst is offered as reference", "Kst 150" in woody["notes"], woody["notes"])
+    check("and still asks for this product's own sample",
+          "own sample" in woody["notes"], woody["notes"])
+    check("an untested material gets no Kst figure at all",
+          "Kst 150" not in nfpa.design_basis("pet food")["notes"],
+          nfpa.design_basis("pet food")["notes"])
+
+    # saying nothing about the dust offers no protection package
+    quiet = airsystem.size({"mode": "millModel", "millModel": "XM-4430"})
+    check("no protection unless the rep said combustible", quiet["options"] == [],
+          str(quiet["options"]))
+
+    # an indoor vessel needs a flameless vent, and nobody-said says both
+    for indoors, want in (("1", "FLAMELESS"), ("0", "outdoors"), ("", "flameless vent")):
+        hot = airsystem.size({"mode": "millModel", "millModel": "XM-4430",
+                              "combustible": "1", "indoors": indoors})
+        vent = next(o for o in hot["options"] if o["name"].startswith("Explosion vent")
+                    and "switch" not in o["name"])
+        check(f"indoors={indoors!r} states the vent type", want in vent["description"],
+              vent["description"])
+
+    # 10. the quote builder agrees with the chain on all of it
+    hot_job = jb_request()
+    hot_job.combustible_dust = True
+    hot_job.dust_collection = "filter_receiver"
+    hq = qfj.build(hot_job, today=TODAY)
+    check("the builder carries the same three protection options",
+          [o["name"] for o in hq["options"]][:3]
+          == [o["name"] for o in airsystem.size(
+              {"mode": "millModel", "millModel": "XM-4430", "cleaner": "filter_receiver",
+               "combustible": "1"})["options"]],
+          str([o["name"] for o in hq["options"]]))
+    check("and quotes the receiver, not the plenum-mount filter",
+          any(l["name"].startswith("Filter Receiver") for l in hq["lines"]),
+          str([l["name"] for l in hq["lines"]]))
+    check("the dust classification reaches the design basis",
+          any(r["parameter"] == "Dust classification" for r in hq["designBasis"]))
+    check("and it prints as needing MCE input",
+          next(r for r in hq["designBasis"]
+               if r["parameter"] == "Dust classification")["needsInput"])
+    cold = qfj.build(jb_request(), today=TODAY)
+    check("a quiet job still offers the certified valve, as one option",
+          sum(1 for o in cold["options"] if "certified rotary valve" in o["name"]) == 1,
+          str([o["name"] for o in cold["options"]]))
+
+    # 11. a basis that is not there is refused, not guessed
     for bad, why in (({"mode": "millModel", "millModel": "9999"}, "unknown model"),
                      ({"mode": "mill", "screenArea": 0}, "no screen area"),
                      ({"mode": "cfm", "cfm": 0}, "no CFM")):

@@ -277,6 +277,24 @@ AIRLOCK_QUOTES = [
      "8-vane polyurethane flex-tip rotor, 2 HP at 30 RPM, 1.23 ft³ per rotation"),
 ]
 AIRLOCK_DEFAULT = "FT-12"
+# The two certified valves above are the ones MCE has sell prices for. They are
+# DIFFERENT SIZES, so neither is a drop-in for the other or for the standard
+# FT-12 — they are carried as a range, and the size gets picked against the real
+# duty. Anything that offers a certified valve quotes the range, not a model.
+CERTIFIED_VALVES = ("EMVDL-RVEX-HT37", "EMVDL-RVEX-HT45")
+
+
+def certified_valve_range():
+    """(low, high, source) sell prices across the certified valves on file."""
+    prices, source = [], ""
+    for number in CERTIFIED_VALVES:
+        found = airlock(number)
+        if found:
+            prices.append(found[1])
+            source = found[4]
+    if not prices:
+        return None
+    return min(prices), max(prices), source
 
 # -------------------------------------------------------- baghouse, bought out --
 # One real pair: Airlanco quote 024350 (April 23 2026) costed the 60 Series
@@ -327,16 +345,29 @@ def cyclone_price(model, weight_lb=None):
     return None, ""
 
 
-def baghouse_budget(cloth_sqft):
-    """(price, basis) for a filter of this cloth area, from the one Airlanco pair."""
+def baghouse_budget(cloth_sqft, hopper=False):
+    """(price, basis) for a filter of this cloth area, from the one Airlanco pair.
+
+    `hopper=True` means a filter receiver — a hopper-bottom free-standing unit. The
+    reference IS one of those, so for a receiver the rate is a like-for-like scale
+    rather than an upper bound, and the basis string says which it is. The rate
+    itself is the same either way: one data point supports one rate, and a hopper
+    adder nobody has costed would be a guess dressed up as a price.
+    """
     cost = cloth_sqft * BAGHOUSE_COST_PER_SQFT
     ref, ref_cost, ref_area, ref_date, ref_source = BAGHOUSE_REF
+    scale = (
+        "That unit is a free-standing filter receiver with a hopper, ladder, cage and "
+        "guardrail, which is what is being priced here, so this is a like-for-like "
+        "scale on cloth area — still a budget figure, since nothing but the cloth area "
+        "was matched"
+        if hopper else
+        "That unit is a free-standing Airlanco with hopper and access steel, so this is "
+        "an upper bound on an MCE plenum-mount build, not a quote for one")
     return (buyout_price(cost),
             f"budget only — scaled from {ref} at ${BAGHOUSE_COST_PER_SQFT:.2f}/ft² "
             f"cost ({ref_source}, {ref_date}: ${ref_cost:,.0f} for {ref_area:,.0f} ft²), "
-            f"marked up at MCE's buy-out divisor {BUYOUT_DIVISOR:g}. That unit is a "
-            "free-standing Airlanco with hopper and access steel, so this is an upper "
-            "bound on an MCE plenum-mount build, not a quote for one")
+            f"marked up at MCE's buy-out divisor {BUYOUT_DIVISOR:g}. {scale}")
 
 
 # --------------------------------------------------------------- drive motors --
@@ -359,3 +390,51 @@ def motor(hp):
         return None
     make, model, cost, date, source = entry
     return model, buyout_price(cost), date, make, source
+
+
+# ------------------------------------------- combustible dust: NFPA protection --
+# MCE's precedent is the Nix Forest Industries job: wood ground through a 1/4"
+# screen, vented on the 25AST-8 filter. High Tech Duct Werks (Darryl Lind) sized
+# and quoted it — quote Q-26693, ref 72326RN, 2026-07-23. The engineering basis is
+# recorded here; the DOLLAR FIGURE IS NOT, because it is in an attachment MCE has
+# but this project has not read, and a protection package is not a number to guess.
+EXPLOSION_VENT_VENDOR = "High Tech Duct Werks, Inc."
+EXPLOSION_VENT_CONTACT = "Darryl Lind · ductwerks@aol.com · 772-473-0538"
+EXPLOSION_VENT_PRECEDENT = {
+    "job": "Nix Forest Industries",
+    "quote": "Q-26693 (ref 72326RN)",
+    "date": "2026-07-23",
+    "material": 'wood ground through a 1/4" screen',
+    "kst": 150,                 # bar·m/s, coarse wood dust
+    "pmax": 8.0,                # bar
+    "pred": 0.2,                # bar(g) design reduced pressure
+    "vessel": "25AST-8 dust filter",
+    "selection": 'one EV-VD domed vent, 23" x 36" panel, below the hopper',
+    "ducting": 'roughly 40" x 28" duct, about 5 ft, through the wall with a rain hood',
+}
+# Kst values MCE has actually worked to. Anything else comes from a dust hazard
+# analysis, not from here — Kst drives the vent area, so a guessed Kst is a
+# guessed protection package.
+KST_ON_RECORD = {"wood": 150}
+
+# An NFPA 69 isolation device stops flame and pressure propagating back down the
+# duct. MCE's certified rotary valves do that job (flex-tip, certified to NFPA 69
+# 12.2.4.3.6) and are already in AIRLOCK_QUOTES, so isolation is priced from there
+# rather than as a separate line.
+ISOLATION_NOTE = ("NFPA 69 isolation is served by a certified rotary valve — the "
+                  "flex-tip design is certified to prevent flame passage per NFPA 69 "
+                  "12.2.4.3.6. See the certified-valve option.")
+
+
+def explosion_vent_basis():
+    """The Nix precedent, as a list of lines for an internal note."""
+    p = EXPLOSION_VENT_PRECEDENT
+    return [
+        f'Sized and quoted by {EXPLOSION_VENT_VENDOR} ({EXPLOSION_VENT_CONTACT})',
+        f'Precedent: {p["job"]}, {p["quote"]}, {p["date"]} — {p["material"]}',
+        f'Dust basis Kst {p["kst"]} bar·m/s, Pmax {p["pmax"]} bar, design Pred '
+        f'{p["pred"]} bar(g)',
+        f'That job took {p["selection"]} on the {p["vessel"]}',
+        f'Vented outdoors through {p["ducting"]}',
+        "Indoors needs a FLAMELESS vent instead of a standard panel",
+    ]

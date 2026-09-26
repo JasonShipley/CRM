@@ -87,9 +87,10 @@ class JobRequest(BaseModel):
     include_screw: bool = Field(False, description="Rep asked for a discharge/transfer screw.")
     include_air_system: bool = Field(
         False, description="Rep asked for an air system (fans, cyclone, filter, ducting).")
-    dust_collection: Optional[Literal["baghouse", "cyclone"]] = Field(
+    dust_collection: Optional[Literal["baghouse", "cyclone", "filter_receiver"]] = Field(
         None, description='Which dust collection the rep named, if they named one: '
-                          '"baghouse" for a bag/dust filter or collector, "cyclone" for a '
+                          '"baghouse" for a bag/dust filter or collector, "filter_receiver" '
+                          'for a filter receiver or a hopper-bottom filter, "cyclone" for a '
                           "cyclone. Null if they only said \"air system\" or named neither "
                           "— do not infer one from the rest of the request.")
     include_magnet: bool = Field(False, description="Rep asked for a magnet or magnet adapter.")
@@ -100,6 +101,13 @@ class JobRequest(BaseModel):
         False, description="True when the rep asked to SIZE equipment rather than quote a "
                            "mill — e.g. \"size me a fan, baghouse and airlock for ...\". "
                            "False when they asked for a mill quote.")
+    combustible_dust: bool = Field(
+        False, description="True only if the rep said the material is a combustible or "
+                           "explosive dust, or asked for NFPA/ATEX protection, an explosion "
+                           "vent, a rupture panel or an isolation valve. Do not infer it "
+                           "from the material — plenty of combustible products get ground "
+                           "without anyone saying so, and this switches on protection "
+                           "options the customer sees.")
     air_swept: bool = Field(
         False, description="Rep asked for an air-swept mill, a drop-down air pan, or a drop "
                            "down airpan. These go together and change how the air is sized.")

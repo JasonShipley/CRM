@@ -16,20 +16,52 @@ ports the standalone calculators use, so a filter sized here and a filter sized 
       millModel  an XM model -> its screen area -> as above
       cooler     a cooler's own airflow requirement
 
-    then:
-      baghouse   CFM / air-to-cloth -> MCE filter -> its matched AirPro fan
-      cyclone    CFM -> HE or H series (no filter, so the fan ducts to atmosphere)
+    then the air cleaner, one of three:
+      baghouse         CFM / air-to-cloth -> MCE filter -> its matched AirPro fan
+      filter_receiver  the same filter with a hopper under it, so it collects and
+                       discharges rather than sitting on the mill plenum
+      cyclone          CFM -> HE or H series (no filter, so the fan ducts to atmosphere)
+
+    and then:
       airlock    the standard drop-through under the hopper
       duct       CFM / conveying velocity -> next even inch
+
+Say the dust is combustible and the chain adds what NFPA asks for and prices what
+it honestly can: isolation as a certified rotary valve with a real price range, and
+deflagration venting as an unpriced option with the burst switches separated out
+(calculators/nfpa.py). It sizes neither — the vent area comes from a dust hazard
+analysis, not from here.
 """
-from . import _vendor, baghouse, cooler, cyclone, duct
+from . import _vendor, baghouse, cooler, cyclone, duct, nfpa
 from ._data import MCE_XM_MILLS
 
 AIR_SWEPT_FACTOR = 1.25            # a drop-down pan is sized on 1.25 x screen area
 DEFAULT_RATIO = 7                  # MCE's air-to-cloth standard
 DEFAULT_WG = "3"
 CLEANERS = [("baghouse", "Baghouse filter — fan discharges to atmosphere after it"),
+            ("filter_receiver", "Filter receiver — the same filter with a hopper"),
             ("cyclone", "Cyclone — no filter, fan ducts to atmosphere")]
+CLEANER_KEYS = [k for k, _ in CLEANERS]
+CLEANER_LABELS = {"baghouse": "Baghouse filter",
+                  "filter_receiver": "Filter receiver (hopper-bottom)",
+                  "cyclone": "Cyclone"}
+TRUE = ("1", "true", "yes", "on", "y")
+
+
+def _flag(raw):
+    return str(raw or "").strip().lower() in TRUE
+
+
+def _cleaner(raw):
+    """What the rep picked, however they spelled it. Defaults to a baghouse."""
+    want = str(raw or "").strip().lower().replace(" ", "_").replace("-", "_")
+    if want in CLEANER_KEYS:
+        return want
+    if "receiver" in want:
+        return "filter_receiver"
+    if "cyclone" in want:
+        return "cyclone"
+    return "baghouse"
 
 
 def _num(raw, default=0.0):
@@ -95,22 +127,29 @@ def size(f):
     if not cfm or cfm <= 0:
         return {"error": "An airflow is required — give a CFM, a mill or a cooler."}
 
-    cleaner = "cyclone" if f.get("cleaner") == "cyclone" else "baghouse"
+    cleaner = _cleaner(f.get("cleaner"))
+    combustible = _flag(f.get("combustible"))
+    indoors = (None if str(f.get("indoors") or "") == ""
+               else _flag(f.get("indoors")))
     ratio = _num(f.get("ratio"), DEFAULT_RATIO) or DEFAULT_RATIO
     velocity = _num(f.get("velocity"), duct.DEFAULT_VELOCITY) or duct.DEFAULT_VELOCITY
     want = {k for k in ("cleaner", "fan", "airlock", "duct")
             if str(f.get("include_" + k, "1")).lower() not in ("0", "false", "no", "")}
 
-    outputs = [{"label": "System airflow", "value": f"{cfm:,.0f} CFM", "headline": True}]
-    warnings, lines, sizing = [], [], []
+    outputs = [{"label": "System airflow", "value": f"{cfm:,.0f} CFM", "headline": True},
+               {"label": "Air cleaning", "value": CLEANER_LABELS[cleaner]}]
+    warnings, lines, sizing, options = [], [], [], []
     total = 0.0
+    vessel = None
 
     # --- the air cleaner, and with a filter its matched fan ---------------------
     fan_from_filter = False
     if "cleaner" in want:
-        if cleaner == "baghouse":
+        if cleaner in ("baghouse", "filter_receiver"):
             res = baghouse.size({"mode": "cfm", "cfm": cfm, "ratio": ratio,
-                                 "lenFilter": f.get("lenFilter") or "any"})
+                                 "lenFilter": f.get("lenFilter") or "any",
+                                 "style": "receiver" if cleaner == "filter_receiver"
+                                          else "plenum"})
             fan_from_filter = "fan" in want
         else:
             res = cyclone.size({"mode": "cfm", "cfm": cfm,
@@ -128,6 +167,8 @@ def size(f):
             lines.append(line)
             total += line["unitPrice"]
         for o in res.get("outputs", []):
+            if o["label"] in ("MCE filter", "Cyclone"):
+                vessel = f'MCE {o["value"]} {res["calculator"].lower()}'
             if o["label"] not in ("System airflow",):
                 outputs.append(o)
 
@@ -177,6 +218,23 @@ def size(f):
                     "Straight run, elbows, transitions and supports to suit the layout",
                     "Priced upon request once the layout is determined"])})
 
+    # --- combustible dust ------------------------------------------------------
+    # Not priced into the scope: isolation goes out as a certified valve with a real
+    # range, the vent and its switches as unpriced options. Both carry the basis, and
+    # the warnings say what has to come back before anyone sends this.
+    if combustible:
+        airlock_line = next((l for l in lines if l["name"].startswith("Rotary Airlock")),
+                            None)
+        outputs.insert(1, {"label": "Dust classification", "value": "Combustible dust",
+                           "note": "Protection per NFPA 652/654 and NFPA 68/69 — sized "
+                                   "off the dust hazard analysis, not off this calculator"})
+        _added, notes = nfpa.protection(
+            options, quantity=1, material=f.get("material"), vessel=vessel,
+            replacing=airlock_line["sku"] if airlock_line else None, indoors=indoors)
+        warnings += notes
+
     return {"calculator": "Air System", "outputs": outputs, "warnings": warnings,
-            "lines": lines, "total": round(total, 2), "formula": formula,
-            "cfm": round(cfm), "cleaner": cleaner, "chain": [s["calculator"] for s in sizing]}
+            "lines": lines, "options": options, "total": round(total, 2),
+            "formula": formula, "cfm": round(cfm), "cleaner": cleaner,
+            "combustible": combustible,
+            "chain": [s["calculator"] for s in sizing]}
