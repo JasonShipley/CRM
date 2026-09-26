@@ -275,7 +275,7 @@ def _pellet(f, p, tph, density, margin, upsize):
         {"label": "Shipping weight", "value": f'{best["wt"]:,} lb'},
     ] + _air(req_cfm, p["wci"], p["wci"] + 8, True)
 
-    return _finish(f, p, best, 1, outputs, warnings, formula, hits)
+    return _finish(f, p, best, 1, outputs, warnings, formula, hits, req_cfm)
 
 
 def _meal(f, p, tph, density, margin, upsize):
@@ -302,7 +302,8 @@ def _meal(f, p, tph, density, margin, upsize):
         warnings.append(
             f"Required bed area {num(req_area)} ft² exceeds four CC 21{suffix} coolers "
             f"(largest {suffix} height). Confirm with engineering.")
-        return {"calculator": "Counterflow Cooler (meal)", "outputs": [
+        return {"calculator": "Counterflow Cooler (meal)",
+                "req_cfm": round(req_cfm), "outputs": [
             {"label": "Required airflow", "value": f"{num(req_cfm)} CFM", "headline": True},
             {"label": "Required bed area", "value": f"{num(req_area)} ft²", "headline": True},
         ], "warnings": warnings, "lines": [], "total": 0.0, "formula": formula,
@@ -341,10 +342,10 @@ def _meal(f, p, tph, density, margin, upsize):
         {"label": "Shipping weight", "value": f'{best["wt"]:,} lb ea'},
     ] + _air(req_cfm, 12, 25 if req_cfm > 10000 else 20, False)
 
-    return _finish(f, p, best, units, outputs, warnings, formula, None)
+    return _finish(f, p, best, units, outputs, warnings, formula, None, req_cfm)
 
 
-def _finish(f, p, best, units, outputs, warnings, formula, hits):
+def _finish(f, p, best, units, outputs, warnings, formula, hits, req_cfm=0.0):
     opts = OPTS[str(best["series"])]
     quote_lines, total, checks = _quote(best, units, f, opts)
 
@@ -372,4 +373,7 @@ def _finish(f, p, best, units, outputs, warnings, formula, hits):
     return {"calculator": "Counterflow Cooler", "outputs": outputs, "warnings": warnings,
             "lines": lines, "total": round(total, 2), "formula": formula,
             "quote_lines": quote_lines, "checks": checks, "alternates": alts,
-            "pricing_rev": PRICING_REV, "model": best["model"], "units": units}
+            # what every downstream air item sizes off, so callers do not have to
+            # scrape it back out of the display outputs
+            "req_cfm": round(req_cfm), "pricing_rev": PRICING_REV,
+            "model": best["model"], "units": units}

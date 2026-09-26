@@ -95,6 +95,76 @@ def _hp_number(label):
     return float(m.group(1)) if m else None
 
 
+def _size_only(job, issued, open_items, delivery_weeks):
+    """Air-system sizing with no mill quote behind it."""
+    cfm = getattr(job, "system_cfm", None)
+    form = {"cleaner": job.dust_collection or "baghouse",
+            "airSwept": "1" if getattr(job, "air_swept", False) else ""}
+    if cfm:
+        form.update({"mode": "cfm", "cfm": cfm})
+    elif job.mill_model:
+        form.update({"mode": "millModel", "millModel": job.mill_model})
+    else:
+        open_items.append(
+            "Sizing request with neither an airflow nor a mill model — give a CFM, or "
+            "name the mill, and this sizes the whole air train.")
+        form = None
+
+    result = calculators.run("airsystem", form) if form else {"error": "no basis"}
+    lines, design, sizing = [], [], []
+    qty = max(1, int(job.quantity or 1))
+    if not result.get("error"):
+        lines = [{**l, "quantity": qty} for l in result["lines"]]
+        open_items.extend(result.get("warnings", []))
+        sizing.append({"calculator": result["calculator"], "inputs": form,
+                       "formula": result.get("formula", ""),
+                       "outputs": result.get("outputs", []),
+                       "warnings": result.get("warnings", [])})
+        design.append({"parameter": "System airflow", "value": f'{result["cfm"]:,} CFM',
+                       "notes": result.get("formula", "")})
+        design.append({"parameter": "Air cleaning",
+                       "value": result["cleaner"].title(),
+                       "notes": "Baghouse: fan discharges to atmosphere after the filter. "
+                                "Cyclone: fan ducts to atmosphere."})
+    else:
+        open_items.append(f'Air system could not be sized: {result["error"]}')
+
+    what = job.product_as_written or "the mill air system"
+    quote = {
+        "name": f"Air System Sizing — {what}"
+                + (f" ({qty} systems)" if qty > 1 else ""),
+        "quoteNumber": quote_number(job.customer_company, issued),
+        "status": "DRAFT",
+        "customer": {"company": job.customer_company or "",
+                     "contact": job.customer_contact or "",
+                     "email": "", "phone": "", "street1": "", "street2": "",
+                     "city": "", "state": "", "postcode": "", "country": ""},
+        "preparedBy": "JASON_SHIPLEY",
+        "project": f"Air system sizing — {what}",
+        "comments": ("Midwest Custom Engineering is pleased to provide the following air "
+                     "system sizing and budgetary pricing. This covers the air train "
+                     "only — no mill is included."),
+        "lines": lines,
+        "netItems": [],
+        "designBasis": design,
+        "byOthers": ["Mill, feeder and plenum — not included in this sizing",
+                     "Installation, supports and electrical"],
+        "schedule": render_ctx.schedule_with_delivery(delivery_weeks),
+        "options": [],
+        "openItems": open_items,
+        "sizing": sizing,
+        "terms": TERMS,
+        "expirationDate": "",
+        "deliveryWeeks": delivery_weeks or "",
+        "designBasisNote": f"as requested, {issued:%b %-d, %Y}",
+        "basis": f"Basis: sizing request of {issued:%b %-d, %Y}, sized by MCE's own "
+                 "calculators",
+        "validity": render_ctx.VALIDITY,
+        "fob": render_ctx.FOB,
+    }
+    return quote
+
+
 def build(job, today=None, delivery_weeks=None):
     """JobRequest -> (quote dict, open items). Never raises on a thin request.
 
@@ -105,6 +175,12 @@ def build(job, today=None, delivery_weeks=None):
     """
     open_items = list(job.ambiguities or [])
     issued = today or datetime.date.today()
+
+    # A sizing-only request skips the mill entirely: the rep wants the air train for
+    # an airflow or a mill they already have, not a mill quote. It still goes through
+    # the same chain the quote builder uses, so the numbers are the same ones.
+    if getattr(job, "sizing_only", False):
+        return _size_only(job, issued, open_items, delivery_weeks)
     # MCE's own proposals attribute the design basis to a person and a date. A quote
     # built from a typed request is attributed to the request itself — naming an
     # engineer who did not review it would be worse than naming nothing.

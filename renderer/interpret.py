@@ -93,6 +93,13 @@ class JobRequest(BaseModel):
                           "cyclone. Null if they only said \"air system\" or named neither "
                           "— do not infer one from the rest of the request.")
     include_magnet: bool = Field(False, description="Rep asked for a magnet or magnet adapter.")
+    system_cfm: Optional[float] = Field(
+        None, description="An airflow the rep stated directly, in CFM or SCFM — e.g. "
+                          "\"4,680 SCFM through the mill\". Only if they gave a number.")
+    sizing_only: bool = Field(
+        False, description="True when the rep asked to SIZE equipment rather than quote a "
+                           "mill — e.g. \"size me a fan, baghouse and airlock for ...\". "
+                           "False when they asked for a mill quote.")
     air_swept: bool = Field(
         False, description="Rep asked for an air-swept mill, a drop-down air pan, or a drop "
                            "down airpan. These go together and change how the air is sized.")

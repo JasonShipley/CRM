@@ -155,6 +155,14 @@ Baghouse:    the same "screen area x 1.3" gives system CFM
 Duct:        CFM / velocity -> ft2 x 144 -> D = 2 x sqrt(area/pi)
              rounded UP to the next even inch, which is how duct is bought
 
+Air system:  ONE airflow drives the rest. It comes from whichever basis is to
+             hand - a CFM figure, a mill screen area, an XM model, or a cooler's
+             own requirement - and then the filter, its matched fan, the airlock
+             and the duct all follow. calculators/airsystem.py owns that chain and
+             calls the same ports the standalone calculators use, so a filter
+             sized there and one sized on /tools/baghouse are the same filter.
+             tests/test_airsystem.py holds the two to each other.
+
 Cyclone:     rated CFM, or inlet ID area / 144 x inlet FPM
              <= 12,600 CFM -> HE series on its rated min/opt/max
              >  12,600 CFM -> H series on its rating at 2" / 3" / 4" WG

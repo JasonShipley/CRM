@@ -1,0 +1,130 @@
+#!/usr/bin/env python3
+"""The air-system chain, and that it agrees with the quote builder.
+
+One airflow drives the filter, the fan, the airlock and the duct. Two things can go
+wrong: the chain derives the wrong airflow, or it derives the right one and then
+disagrees with what the quote builder would have produced for the same mill. Both
+are covered here.
+
+    cd renderer && python3 tests/test_airsystem.py
+"""
+import datetime
+import pathlib
+import sys
+
+HERE = pathlib.Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE.parent))
+
+import quote_from_job as qfj  # noqa: E402
+from calculators import airsystem  # noqa: E402
+from calculators._data import MCE_XM_MILLS  # noqa: E402
+from test_intake import jb_request  # noqa: E402
+
+FAILS = []
+TODAY = datetime.date(2026, 9, 26)
+
+
+def check(name, cond, detail=""):
+    if not cond:
+        FAILS.append(f"{name}{': ' + detail if detail else ''}")
+
+
+def main():
+    # 1. every basis that should reach the same airflow, does
+    area = next(m["area"] for m in MCE_XM_MILLS if m["model"] == "XM-4430")
+    by_model = airsystem.size({"mode": "millModel", "millModel": "XM-4430"})
+    by_area = airsystem.size({"mode": "mill", "screenArea": area})
+    by_cfm = airsystem.size({"mode": "cfm", "cfm": area * 1.3})
+    check("model, area and CFM bases agree",
+          by_model["cfm"] == by_area["cfm"] == by_cfm["cfm"],
+          f'{by_model["cfm"]} / {by_area["cfm"]} / {by_cfm["cfm"]}')
+    check("and they pick the same equipment",
+          [l["name"] for l in by_model["lines"]] == [l["name"] for l in by_cfm["lines"]])
+
+    # a bare model number is what a rep would actually type
+    check("a bare model number works",
+          airsystem.size({"mode": "millModel", "millModel": "4430"})["cfm"]
+          == by_model["cfm"])
+
+    # 2. the XM-4460 cross-check: MCE's own Mid-States proposal states 9,360 CFM
+    #    for that mill, which is 7,200 in² x 1.3. Independent of this code.
+    check("XM-4460 matches MCE's own stated 9,360 CFM",
+          airsystem.size({"mode": "millModel", "millModel": "XM-4460"})["cfm"] == 9360,
+          str(airsystem.size({"mode": "millModel", "millModel": "XM-4460"})["cfm"]))
+
+    # 3. the air-swept pan raises it by exactly the factor
+    swept = airsystem.size({"mode": "millModel", "millModel": "XM-4430", "airSwept": "1"})
+    check("air-swept applies the factor",
+          swept["cfm"] == round(by_model["cfm"] * airsystem.AIR_SWEPT_FACTOR),
+          f'{swept["cfm"]} vs {by_model["cfm"]}')
+    check("and the filter grows with it",
+          next(l["name"] for l in swept["lines"] if "Baghouse" in l["name"])
+          != next(l["name"] for l in by_model["lines"] if "Baghouse" in l["name"]))
+
+    # 4. a cyclone means no filter, and the fan cannot be selected from one
+    cyc = airsystem.size({"mode": "millModel", "millModel": "XM-4430",
+                          "cleaner": "cyclone"})
+    names = [l["name"] for l in cyc["lines"]]
+    check("cyclone path has no baghouse", not any("Baghouse" in n for n in names), str(names))
+    check("cyclone path has a cyclone", any(n.startswith("Cyclone") for n in names), str(names))
+    check("cyclone path is honest about the fan",
+          any("Fan — size and price TBD" in n for n in names)
+          and any("no standalone fan calculator" in w for w in cyc["warnings"]),
+          str(names))
+
+    # 5. opting items out actually removes them
+    bare = airsystem.size({"mode": "millModel", "millModel": "XM-4430",
+                           "include_airlock": "", "include_duct": "", "include_fan": ""})
+    names = [l["name"] for l in bare["lines"]]
+    check("airlock removed", not any("Airlock" in n for n in names), str(names))
+    check("duct removed", not any("Ductwork" in n for n in names), str(names))
+    check("fan removed", not any(n.startswith("Fan") for n in names), str(names))
+    check("the filter is still there", any("Baghouse" in n for n in names), str(names))
+
+    # 6. THE important one: the chain and the quote builder must not diverge.
+    #    Both size a filter, a fan and an airlock off a mill; if they ever disagree,
+    #    a rep gets one answer on /tools and a different one on the quote.
+    q = qfj.build(jb_request(), today=TODAY)
+    quoted = {l["name"] for l in q["lines"]}
+    chained = {l["name"] for l in
+               airsystem.size({"mode": "millModel", "millModel": "XM-4430"})["lines"]}
+    for kind in ("Baghouse Filter", "Fan —", "Rotary Airlock", "Ductwork"):
+        a = next((n for n in quoted if n.startswith(kind)), None)
+        b = next((n for n in chained if n.startswith(kind)), None)
+        check(f"{kind} agrees between the builder and the chain", a == b, f"{a!r} vs {b!r}")
+
+    # 7. a cooler drives the same chain — its own airflow requirement, not a mill's
+    from calculators import cooler
+    from calculators._data import CL_PELLETS
+    cool_form = {"pellet": "p6", "tph": 20, "density": 40}
+    direct = cooler.size(cool_form)
+    chained = airsystem.size({"mode": "cooler", **cool_form})
+    check("cooler exposes its airflow", direct.get("req_cfm"), str(direct.get("req_cfm")))
+    check("the chain uses the cooler's own airflow",
+          chained["cfm"] == direct["req_cfm"],
+          f'{chained["cfm"]} vs {direct["req_cfm"]}')
+    check("and sizes a filter off it",
+          any("Baghouse" in l["name"] for l in chained["lines"]),
+          str([l["name"] for l in chained["lines"]]))
+    # a meal cooler sizes on airflow rather than volume, and must still report one
+    meal = next(x["id"] for x in CL_PELLETS if x.get("meal"))
+    check("a meal cooler reports its airflow too",
+          cooler.size({"pellet": meal, "tph": 20, "density": 40}).get("req_cfm"))
+
+    # 8. a basis that is not there is refused, not guessed
+    for bad, why in (({"mode": "millModel", "millModel": "9999"}, "unknown model"),
+                     ({"mode": "mill", "screenArea": 0}, "no screen area"),
+                     ({"mode": "cfm", "cfm": 0}, "no CFM")):
+        check(f"{why} is refused", airsystem.size(bad).get("error"), str(airsystem.size(bad)))
+
+    if FAILS:
+        print(f"{len(FAILS)} FAILURE(S):")
+        for f in FAILS:
+            print("  " + f)
+        return 1
+    print("OK — one airflow drives the chain, and it matches the quote builder.")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

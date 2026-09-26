@@ -12,7 +12,8 @@ own JavaScript headless — run it after touching either side.
 This module is the registry: it declares each calculator's inputs so the form UI
 and the JSON API are generated from one description, and dispatches `run()`.
 """
-from . import baghouse, cooler, cyclone, duct, hammer_pattern, hammermill
+from . import (airsystem, baghouse, cooler, cyclone, duct, hammer_pattern,
+               hammermill)
 from ._data import CL_CHECK_DEFS, CL_PELLETS, MCE_XM_MILLS, PRODUCTS, XM_CHART
 
 # --------------------------------------------------------------- input specs --
@@ -183,6 +184,44 @@ DUCT_FIELDS = [
      "help": "Below this the material drops out of the airstream."},
 ]
 
+AIRSYSTEM_FIELDS = [
+    {"key": "mode", "label": "Airflow from", "type": "select", "default": "millModel",
+     "options": [("millModel", "An MCE mill model"),
+                 ("mill", "A mill screen area"),
+                 ("cfm", "A CFM figure I already have"),
+                 ("cooler", "A counterflow cooler")],
+     "help": "Everything downstream sizes off one airflow — this is where it comes from."},
+    {"key": "millModel", "label": "Mill model", "type": "select", "default": "XM-4430",
+     "options": [(m["model"], f'{m["model"]} — {m["area"]:,} in²') for m in MCE_XM_MILLS],
+     "showWhen": {"mode": "millModel"}},
+    {"key": "screenArea", "label": "Mill screen area", "type": "number", "unit": "in²",
+     "default": 3600, "step": 10, "min": 0, "showWhen": {"mode": "mill"}},
+    {"key": "cfm", "label": "System airflow", "type": "number", "unit": "CFM",
+     "default": 4680, "step": 50, "min": 0, "showWhen": {"mode": "cfm"}},
+    {"key": "airSwept", "label": "Air-swept drop-down pan", "type": "select", "default": "",
+     "options": [("", "No — plain plenum"),
+                 ("1", f"Yes — × {airsystem.AIR_SWEPT_FACTOR:g} on the screen area")],
+     "showWhen": {"mode": "millModel"}},
+    {"key": "cleaner", "label": "Air cleaning", "type": "select", "default": "baghouse",
+     "options": [("baghouse", "Baghouse filter — fan discharges after it"),
+                 ("cyclone", "Cyclone — fan ducts to atmosphere")]},
+    {"key": "ratio", "label": "Air-to-cloth ratio", "type": "number", "default": 7,
+     "step": 0.25, "min": 1, "max": 15, "showWhen": {"cleaner": "baghouse"}},
+    {"key": "lenFilter", "label": "Bag length", "type": "select", "default": "any",
+     "options": [("any", "Any"), ("4", "4 ft"), ("6", "6 ft"), ("8", "8 ft"),
+                 ("10", "10 ft")], "showWhen": {"cleaner": "baghouse"}},
+    {"key": "wg", "label": "Cyclone static", "type": "select", "default": "3",
+     "options": cyclone.WG_OPTIONS, "showWhen": {"cleaner": "cyclone"}},
+    {"key": "velocity", "label": "Duct conveying velocity", "type": "select",
+     "default": "4000", "options": duct.VELOCITY_PRESETS},
+    {"key": "include_airlock", "label": "Include airlock", "type": "select", "default": "1",
+     "options": [("1", "Yes"), ("", "No")], "advanced": True},
+    {"key": "include_duct", "label": "Include ductwork", "type": "select", "default": "1",
+     "options": [("1", "Yes"), ("", "No")], "advanced": True},
+    {"key": "include_fan", "label": "Include fan", "type": "select", "default": "1",
+     "options": [("1", "Yes"), ("", "No")], "advanced": True},
+]
+
 CALCULATORS = {
     "hammermill": {
         "key": "hammermill", "label": "Hammermill + Plenum",
@@ -197,6 +236,13 @@ CALCULATORS = {
                  "pellets, airflow-first for meal — with option pricing.",
         "fields": COOLER_FIELDS, "run": cooler.size, "prices": True,
         "tool": "counterflow-cooler-sizing-calculator.html",
+    },
+    "airsystem": {
+        "key": "airsystem", "label": "Air System",
+        "blurb": "One airflow, everything downstream: filter or cyclone, its matched "
+                 "fan, the airlock and the duct — from a mill model, a screen area, "
+                 "a CFM figure or a cooler.",
+        "fields": AIRSYSTEM_FIELDS, "run": airsystem.size, "prices": True,
     },
     "cyclone": {
         "key": "cyclone", "label": "Cyclone",
