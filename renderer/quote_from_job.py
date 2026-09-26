@@ -332,9 +332,13 @@ def build(job, today=None, delivery_weeks=None):
 
     # --- scope of supply -------------------------------------------------------
     if result:
+        # An air system normally implies a plenum for the mill to relieve into — unless
+        # the pickup is a venturi, which replaces the plenum outright.
+        venturi = getattr(job, "air_pickup", None) == "venturi"
         wanted = {"Hammermill": True,
                   "Rotary Feeder": True,
-                  "Plenum Chamber": job.include_plenum or job.include_air_system,
+                  "Plenum Chamber": bool(job.include_plenum
+                                         or (job.include_air_system and not venturi)),
                   "Screw Conveyor": job.include_screw}
         for line in result["lines"]:
             keep = next((v for k, v in wanted.items() if k in line["name"]), True)
@@ -393,7 +397,24 @@ def build(job, today=None, delivery_weeks=None):
         # The airlock under the filter (or cyclone) hopper is a buy-out. MCE's
         # standard mill-scale unit is the Airlanco FT-12; price it at MCE's own
         # buy-out divisor rather than listing it TBD.
-        if air_swept:
+        if air_swept and getattr(job, "air_pickup", None) == "venturi":
+            # A venturi pickup replaces the plenum outright: the product never lands on
+            # a pan, it goes straight into the air stream and travels to the collector.
+            # MCE fabricates it and has no cost basis, so the line is honest about that
+            # rather than borrowing the drop-down pan's price.
+            lines.append({
+                "name": "Venturi Pickup Fitting with Air Adaptor", "quantity": qty,
+                "unitPrice": 0, "needsPrice": True,
+                "description": "\n".join(_vendor.VENTURI_PICKUP_SCOPE + [
+                    "Adaptor opens out to the duct diameter sized below",
+                    "Price from the fabrication estimate",
+                ])})
+            open_items.append(
+                "Venturi pickup fitting and air adaptor are unpriced: MCE fabricates "
+                "them and there is no cost basis for one yet. The drop-down air pan's "
+                "$9,204 is NOT a stand-in — a pan is a larger assembly with its own "
+                "structure. Get a shop estimate before release.")
+        elif air_swept:
             pan = ["Drop-down air pan under the mill with structure and air pickup fitting"]
             if result and result.get("screen_area"):
                 pan.append(
@@ -422,7 +443,8 @@ def build(job, today=None, delivery_weeks=None):
                 "unitPrice": round(al_price, 2), "sku": al_number,
                 "description": "\n".join([
                     al_desc,
-                    "Mounts under the dust filter hopper",
+                    "Mounts under the cyclone hopper" if want_cyclone
+                    else "Mounts under the dust filter hopper",
                     "Budgetary price — firm on receipt of a current vendor quote",
                 ])})
             open_items.append(
@@ -473,17 +495,50 @@ def build(job, today=None, delivery_weeks=None):
             else:
                 desc = [f'{dk["diameter"]}" dia duct at {DUCT_VELOCITY_FPM:,} FPM conveying '
                         f'velocity on {dk["cfm"]:,.0f} CFM '
-                        f'({dk["minDiameter"]:.2f}" minimum, rounded up to the next even inch)',
-                        "Straight run, elbows, transitions and supports to suit the layout",
-                        "May vent to atmosphere depending on the arrangement"]
+                        f'({dk["minDiameter"]:.2f}" minimum, rounded up to the next even inch)']
                 sizing.append({"calculator": dk["calculator"], "inputs": {
                     "mode": "dia", "cfm": plenum_cfm, "velocity": DUCT_VELOCITY_FPM},
                     "formula": dk.get("formula", ""), "outputs": dk.get("outputs", []),
                     "warnings": dk.get("warnings", [])})
-            desc.append("Priced upon request once the layout is determined")
-            lines.append({
-                "name": "Ductwork — priced upon request", "quantity": qty,
-                "unitPrice": 0, "needsPrice": True, "description": "\n".join(desc)})
+            # A run the rep actually stated becomes a bill of material, which is what a
+            # duct vendor needs to quote from — and what prices itself the moment a
+            # price list is on file.
+            run_ft = getattr(job, "duct_run_ft", None)
+            elbows = int(getattr(job, "duct_elbows", None) or 0)
+            priced = None
+            if run_ft or elbows:
+                bom = []
+                if run_ft:
+                    bom.append(f"{run_ft:g} ft of straight run")
+                if elbows:
+                    bom.append(f"{elbows} × 90° segmented elbow")
+                desc.append("Bill of material: " + ", ".join(bom)
+                            + (", plus hangers, supports and the bolted flange joints"))
+                if not dk.get("error"):
+                    priced = _vendor.duct_price(dk["diameter"], run_ft or 0, elbows)
+            else:
+                desc.append("Straight run, elbows, transitions and supports to suit the "
+                            "layout")
+            desc.append("May vent to atmosphere depending on the arrangement")
+            if priced:
+                duct_total, duct_basis = priced
+                desc.append("Primed gray air-handling duct with bolted flange joints")
+                lines.append({
+                    "name": f'Ductwork — {dk["diameter"]}" dia', "quantity": qty,
+                    "unitPrice": round(duct_total, 2), "budgetPrice": True,
+                    "description": "\n".join(desc)})
+                open_items.append(f"Ductwork priced from {duct_basis}.")
+            else:
+                desc.append("Priced upon request once the layout is determined")
+                lines.append({
+                    "name": "Ductwork — priced upon request", "quantity": qty,
+                    "unitPrice": 0, "needsPrice": True, "description": "\n".join(desc)})
+                if run_ft or elbows:
+                    open_items.append(
+                        f'Ductwork is quantified but not priced: '
+                        + ", ".join(bom)
+                        + (f' of {dk["diameter"]}" dia duct' if not dk.get("error") else "")
+                        + ". " + _vendor.DUCT_PRICE_NOTE)
         for item in outstanding:
             lines.append({
                 "name": f"{item} — size and price TBD", "quantity": qty,
@@ -507,9 +562,9 @@ def build(job, today=None, delivery_weeks=None):
                  if want_cyclone else
                  "Air system requested but no baghouse could be sized, so the quote shows "
                  "a cyclone instead — confirm that is what the customer wants.")
-                + " The cyclone is sized above but carries no price; the fan, ductwork and "
-                  "airlock are neither sized nor priced — take them to engineering or "
-                  "quote the air system by others.")
+                + " The fan is the gap: with no filter to select it against, it has to be "
+                  "picked against the cyclone's pressure drop and MCE has no fan "
+                  "calculator yet — take it to engineering or get a vendor selection.")
     else:
         by_others.insert(0, "Air-relief system for the mill — fans, dust filters, ducting, "
                             "airlocks and explosion protection")

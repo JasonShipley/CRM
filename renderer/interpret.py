@@ -116,6 +116,17 @@ class JobRequest(BaseModel):
                           "if they did not say. On a combustible dust this decides whether "
                           "an explosion vent can discharge through a wall or has to be a "
                           "flameless vent, so never guess it.")
+    air_pickup: Optional[Literal["pan", "venturi"]] = Field(
+        None, description='How the air picks the product up off an air-swept mill: '
+                          '"pan" for a drop-down air pan under the mill, "venturi" for a '
+                          "venturi pickup fitting with an air adaptor. Null if the rep "
+                          "did not say which.")
+    duct_run_ft: Optional[float] = Field(
+        None, description="Length of ductwork in feet, if the rep gave one — e.g. "
+                          "\"60 ft of duct\". Only if they stated it.")
+    duct_elbows: Optional[int] = Field(
+        None, description="Number of 90 degree elbows in the duct run, if the rep gave "
+                          "one — e.g. \"4 90s\". Only if they stated it.")
     air_swept: bool = Field(
         False, description="Rep asked for an air-swept mill, a drop-down air pan, or a drop "
                            "down airpan. These go together and change how the air is sized.")

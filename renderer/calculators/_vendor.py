@@ -370,6 +370,42 @@ def baghouse_budget(cloth_sqft, hopper=False):
             f"marked up at MCE's buy-out divisor {BUYOUT_DIVISOR:g}. {scale}")
 
 
+# ----------------------------------------------------------- air-handling duct --
+# Duct is a BOUGHT item: Nolin Milling stocks primed gray air-handling duct,
+# segmented elbows and the round-to-round adaptors, and High Tech Duct Werks sells
+# Nordfab. MCE's duct calculator sizes the diameter; nothing here has ever priced
+# one, so DUCT_PRICES is empty on purpose and duct_price() returns None until a
+# real page of a real price list is in it. A duct line with no price says so and
+# carries its full bill of material, which is what a vendor needs to quote it.
+#
+# To fill it: Nolin's air-handling ductwork pages (43-45 of the 2026 catalog) carry
+# primed gray duct per foot and segmented elbows by size. Add the rows here, keep
+# the source and the date, and every duct line prices itself.
+#   diameter_in: {"per_ft": x, "elbow_90": y, "adaptor": z, "date": ..., "source": ...}
+DUCT_PRICES = {}
+DUCT_PRICE_NOTE = ("No duct price list is on file. Nolin Milling's air-handling pages "
+                   "(43-45 of the 2026 catalog) price primed gray duct per foot and "
+                   "segmented elbows by size — add them to DUCT_PRICES and every duct "
+                   "line prices itself.")
+
+
+def duct_price(diameter_in, run_ft=0, elbows=0, adaptors=0):
+    """(price, basis) for a duct run, or None while no price list is on file.
+
+    Never estimated from the steel: duct is bought, and a fabricated-weight guess
+    would be a number nobody could stand behind against a catalog page.
+    """
+    row = DUCT_PRICES.get(int(diameter_in or 0))
+    if not row:
+        return None
+    total = (run_ft * row.get("per_ft", 0) + elbows * row.get("elbow_90", 0)
+             + adaptors * row.get("adaptor", 0))
+    return (buyout_price(total),
+            f'{run_ft:g} ft at ${row.get("per_ft", 0):,.2f}/ft, {elbows} x 90° elbow at '
+            f'${row.get("elbow_90", 0):,.2f} ({row.get("source", "")}, '
+            f'{row.get("date", "")}), at MCE\'s buy-out divisor {BUYOUT_DIVISOR:g}')
+
+
 # ------------------------------------------------ air-swept pan, from a proposal --
 # An air-swept mill runs on a drop-down pan under the rotor instead of a plain
 # plenum: the pan is sized on 1.25 x the screen area, and the air pickup fitting on
@@ -382,6 +418,20 @@ AIR_PAN_PRECEDENT = {
     "price": 9204.00, "date": "2026-04-28", "source": "NEMO Feed proposal 20260428",
     "desc": "drop-down air pan with structure and air pickup fitting",
 }
+
+
+# A venturi pickup takes the mill discharge straight into the air stream: a venturi
+# throat under the mill and an adaptor that opens out to the duct diameter. It is
+# MCE fabrication and there is no cost basis for one — the drop-down pan's $9,204 is
+# NOT a stand-in, because a pan is a different (larger) assembly with its own
+# structure.
+VENTURI_PICKUP_SCOPE = [
+    "Venturi pickup fitting under the mill discharge, so the ground product is picked "
+    "up into the air stream without a plenum",
+    "Air adaptor from the venturi throat out to the duct diameter",
+    "Replaces the plenum chamber and the discharge screw: the product leaves the mill "
+    "in the air and is collected at the cyclone",
+]
 
 
 def air_pan_price():

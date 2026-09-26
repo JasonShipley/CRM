@@ -103,6 +103,8 @@ input is free text.
 | Rep says indoors | The explosion vent becomes flameless, which MCE has never bought — the option states the requirement instead of carrying the domed price |
 | Rep asks for air-swept | The filter becomes a **receiver**, because the product is carried over with the air and has to drop out of it — a bin vent cannot do that |
 | Air system, but not air-swept | Offers the air-swept conversion as one option with a real net adder: the pan, plus every step-up the extra airflow forces |
+| Rep asks for a venturi pickup | Drops the plenum from the scope — a venturi replaces it — and quotes the pickup and its adaptor unpriced, refusing the pan's price as a stand-in |
+| Rep gives a duct run and elbow count | The duct line becomes a bill of material a vendor can quote from, and prices itself the moment a price list is in `DUCT_PRICES` |
 | Rep says the dust is combustible | Adds NFPA isolation, an explosion vent and its burst switch as **options**, sizes none of them, and asks for the dust hazard analysis |
 | No calculator exists (fan, duct, airlock) | Lists the item unpriced rather than omitting or guessing it |
 | A price is a budget or a model, not a quote | Prices it anyway, marks it budget, and names the source document internally |
@@ -330,6 +332,29 @@ all three rather than just raising the CFM:
    air-swept quotes a **filter receiver**, whatever the rep named, and says so on the
    open items.
 3. **The pan is a line**, priced at $9,204 from the one MCE has sold.
+
+There are two ways to pick the product up, and they are not interchangeable. A
+**drop-down air pan** sits under the mill and the air sweeps the pan; a **venturi
+pickup** takes the discharge straight into the air stream through a venturi throat
+and an adaptor out to the duct diameter. The venturi **replaces the plenum
+outright**, so `air_pickup="venturi"` drops the plenum from the scope rather than
+relying on the rep to remember. MCE fabricates the venturi and has no cost basis for
+one, and the pan's $9,204 is explicitly refused as a stand-in — a pan is a larger
+assembly with its own structure.
+
+### Ductwork
+
+Duct is a **bought** item — Nolin Milling stocks primed gray air-handling duct and
+segmented elbows, High Tech Duct Werks sells Nordfab — so it is never estimated from
+the steel. The calculator sizes the diameter; `DUCT_PRICES` holds the price list and
+is **empty**, so `duct_price()` returns None and every duct line says "priced upon
+request".
+
+What a stated run buys you today is a bill of material: give the builder a run length
+and an elbow count and the line reads "60 ft of straight run, 4 × 90° segmented
+elbow" of 18" dia duct — which is exactly what a vendor needs to quote from. Fill
+`DUCT_PRICES` with Nolin's air-handling pages (43–45 of the 2026 catalog: duct per
+foot, segmented elbows by size) and the same line prices itself with no other change.
 
 On a quote that is *not* air-swept, the same arithmetic runs in reverse as an option:
 "Air-swept conversion — air pickup fitting and filter receiver" carries a real net

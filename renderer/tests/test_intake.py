@@ -339,6 +339,51 @@ def test_air_swept():
           str([o["name"] for o in swept["options"]]))
 
 
+def test_venturi_cyclone_arrangement():
+    """A venturi pickup replaces the plenum outright: the product never lands on a
+    pan or a screw, it goes into the air and is collected at the cyclone. Removing
+    the plenum has to follow from the pickup, not from someone remembering to."""
+    q = qfj.build(jb_request(include_plenum=False, include_screw=False, air_swept=True,
+                             air_pickup="venturi", dust_collection="cyclone",
+                             duct_run_ft=60, duct_elbows=4),
+                  today=TODAY, delivery_weeks="10–12")
+    names = [l["name"] for l in q["lines"]]
+    check("no plenum with a venturi pickup",
+          not any("Plenum" in n for n in names), str(names))
+    check("no screw either", not any("Screw" in n for n in names), str(names))
+    check("the venturi pickup is a line",
+          any(n.startswith("Venturi Pickup") for n in names), str(names))
+    venturi = next(l for l in q["lines"] if l["name"].startswith("Venturi"))
+    check("and it is honestly unpriced", venturi.get("needsPrice"), str(venturi))
+    check("the pan's price is explicitly refused as a stand-in",
+          "NOT a stand-in" in open_text(q), open_text(q))
+    check("a cyclone collects, sized off the air-swept airflow",
+          any(n.startswith("Cyclone") for n in names), str(names))
+    check("the airlock sits under the cyclone, and says so",
+          "cyclone hopper" in next(l["description"] for l in q["lines"]
+                                   if l["name"].startswith("Rotary Airlock")))
+    # a stated run becomes a bill of material a duct vendor can quote from
+    duct = next(l for l in q["lines"] if l["name"].startswith("Ductwork"))
+    for want in ("60 ft of straight run", "4 × 90° segmented elbow", '18" dia'):
+        check(f"the duct line states {want}", want in duct["description"],
+              duct["description"])
+    check("and it is unpriced while no price list is on file",
+          duct.get("needsPrice") and "No duct price list" in open_text(q),
+          open_text(q))
+    # the fan is the honest gap: nothing selects one against a cyclone
+    check("the fan is flagged, not invented",
+          any("Fan — size and price TBD" in n for n in names), str(names))
+    check("and the reason is recorded",
+          "no fan calculator" in open_text(q), open_text(q))
+    # a plain air-swept job still keeps its plenum and its pan
+    pan_job = qfj.build(jb_request(air_swept=True, air_pickup="pan"), today=TODAY)
+    pan_names = [l["name"] for l in pan_job["lines"]]
+    check("a pan job keeps the plenum", any("Plenum" in n for n in pan_names),
+          str(pan_names))
+    check("and quotes the pan, not a venturi",
+          any(n.startswith("Drop-Down Air Pan") for n in pan_names), str(pan_names))
+
+
 def test_options_and_reference_block():
     """MCE's proposal format carries an Options and Adders section, a basis line and
     a design-basis attribution. Options only appear where there is a real price or a
@@ -419,8 +464,8 @@ def main():
                test_no_air_system, test_cyclone_when_the_rep_asks_for_one,
                test_baghouse_is_still_the_default,
                test_no_vendor_brands_on_customer_lines, test_delivery_weeks,
-               test_air_swept, test_options_and_reference_block,
-               test_quantity,
+               test_air_swept, test_venturi_cyclone_arrangement,
+               test_options_and_reference_block, test_quantity,
                test_fan_quote_validity, test_reference_slug):
         fn()
         print(f"  {fn.__name__}")
