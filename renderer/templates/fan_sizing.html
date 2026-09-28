@@ -11,9 +11,11 @@
     src: url(data:font/woff2;base64,{{ fonts.inter }}) format("woff2"); }
 
   :root {
-    --black: #111111;
+    /* MCE Brand Guidelines v1.0: orange #FF6602, black #000000, steel grey #575D5E, silver #C8C7C7 */
+    --black: #000000;
     --orange: #ff6602;
     --gray: #575d5e;
+    --silver: #c8c7c7;
     --ink: #1f1f1f;
     --ink-soft: #6b6f71;
     --thead: #e4e4e4;
@@ -78,7 +80,13 @@
   button.linkbtn { background: none; border: none; color: var(--orange); font-size: 12px; font-family: inherit;
     cursor: pointer; padding: 0; text-decoration: underline; }
 
-  footer { text-align: center; font-size: 11px; color: var(--ink-soft); padding: 20px; }
+  footer.bfoot { border-top: 1px solid var(--silver); margin-top: 8px; padding: 14px 28px 26px; }
+  footer.bfoot .rule { height: 3px; width: 46px; background: var(--orange); margin-bottom: 10px; }
+  footer.bfoot .row { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 6px; }
+  footer.bfoot .brand { font-family: "Oswald"; font-weight: 700; font-size: 11.5px; letter-spacing: .04em;
+    color: var(--gray); text-transform: uppercase; }
+  footer.bfoot .tag { font-size: 10.5px; color: #9a9a9a; letter-spacing: .03em; margin-top: 2px; }
+  footer.bfoot .fnote { font-size: 10.5px; color: #9a9a9a; text-align: right; }
 </style>
 </head>
 <body>
@@ -237,7 +245,16 @@
     </div>
   </div>
 </main>
-<footer>Midwest Custom Engineering &middot; internal engineering estimating tool</footer>
+<footer class="bfoot">
+  <div class="rule"></div>
+  <div class="row">
+    <div>
+      <div class="brand">Midwest Custom Engineering</div>
+      <div class="tag">Precision. Quality. Integrity.</div>
+    </div>
+    <div class="fnote">Internal engineering estimating tool<br>Not a certified fan selection</div>
+  </div>
+</footer>
 
 <script>
 const NEMA_HP = [0.5,0.75,1,1.5,2,3,5,7.5,10,15,20,25,30,40,50,60,75,100,125,150,200,250,300,350,400,450,500];
