@@ -12,8 +12,9 @@ own JavaScript headless — run it after touching either side.
 This module is the registry: it declares each calculator's inputs so the form UI
 and the JSON API are generated from one description, and dispatches `run()`.
 """
-from . import (_pricing, airsystem, baghouse, cooler, cooler_heat, cyclone, duct,
-               fan, hammer_pattern, hammermill, rotary_cooler, xf_fan)
+from . import (_pricing, airlock, airsystem, baghouse, cooler, cooler_heat,
+               cyclone, dilute_phase, dryer, duct, fan, hammer_pattern,
+               hammermill, live_bottom, rotary_cooler, xf_fan)
 from ._data import CL_CHECK_DEFS, CL_PELLETS, MCE_XM_MILLS, PRODUCTS, XM_CHART
 
 # --------------------------------------------------------------- input specs --
@@ -479,6 +480,189 @@ ROTARY_COOLER_FIELDS = [
      "help": "Dense winter air is what actually sizes the fan motor."},
 ]
 
+AIRLOCK_FIELDS = [
+    {"key": "tph", "label": "Material rate", "type": "number", "unit": "TPH",
+     "default": 4, "step": 0.5, "min": 0},
+    {"key": "rate", "label": "or rate", "type": "number", "unit": "lb/h",
+     "default": "", "step": 100, "min": 0, "advanced": True},
+    {"key": "bulkDensity", "label": "Bulk density", "type": "number", "unit": "lb/ft³",
+     "default": 35, "step": 1, "min": 1},
+    {"key": "service", "label": "Service", "type": "select", "default": "gravity",
+     "options": list(airlock.SERVICE)},
+    {"key": "differential", "label": "Differential", "type": "number", "unit": '" WG',
+     "default": "", "step": 1, "min": 0,
+     "help": "Across the valve. Leakage and fill both move with it."},
+    {"key": "rpm", "label": "Rotor speed", "type": "select",
+     "default": str(airlock.DEFAULT_RPM), "options": list(airlock.RPM_PRESETS)},
+    {"key": "fill", "label": "Pocket fill", "type": "select",
+     "default": str(airlock.DEFAULT_FILL), "options": list(airlock.FILL_PRESETS),
+     "help": "The one judgement call. A pocket that is open for a third of a second "
+             "does not fill with anything fluffy."},
+    {"key": "combustible", "label": "Combustible dust", "type": "select", "default": "",
+     "options": [("", "Not stated"), ("1", "Yes — needs NFPA 69 isolation")]},
+]
+
+LIVE_BOTTOM_FIELDS = [
+    {"key": "tph", "label": "Draw-down rate", "type": "number", "unit": "TPH",
+     "default": 20, "step": 1, "min": 0},
+    {"key": "bulkDensity", "label": "Bulk density", "type": "number", "unit": "lb/ft³",
+     "default": 35, "step": 1, "min": 1},
+    {"key": "screws", "label": "Screws", "type": "number", "default": 1, "step": 1,
+     "min": 1, "max": 8},
+    {"key": "screwOd", "label": "Screw diameter", "type": "number", "unit": "in",
+     "default": 12, "step": 1, "min": 3},
+    {"key": "shaftOd", "label": "Centre pipe", "type": "number", "unit": "in",
+     "default": 2.5, "step": 0.25, "min": 0},
+    {"key": "pitch", "label": "Pitch", "type": "number", "unit": "in", "default": 12,
+     "step": 1, "min": 1, "help": "Standard pitch equals the screw diameter."},
+    {"key": "rpm", "label": "Screw speed", "type": "number", "unit": "RPM",
+     "default": 20, "step": 1, "min": 1},
+    {"key": "loading", "label": "Trough loading", "type": "select", "default": "1.0",
+     "options": list(live_bottom.LOADING_PRESETS),
+     "help": "A feeder under a bin runs full. CEMA's 15/30/45% loadings are for a "
+             "conveyor and undersize a live bottom badly."},
+    {"key": "openingLength", "label": "Bin opening length", "type": "number",
+     "unit": "ft", "default": "", "step": 0.5, "min": 0},
+    {"key": "openingWidth", "label": "Bin opening width", "type": "number",
+     "unit": "ft", "default": "", "step": 0.5, "min": 0},
+    {"key": "headHeight", "label": "Head height", "type": "number", "unit": "ft",
+     "default": "", "step": 1, "min": 0,
+     "help": "Material depth above the outlet — sets the Janssen load."},
+    {"key": "taper", "label": "Draw-down geometry", "type": "select",
+     "default": "pitch", "options": list(live_bottom.TAPER_STYLES)},
+    {"key": "pitchRatio", "label": "Pitch ratio", "type": "number", "default": "",
+     "step": 0.1, "min": 1, "showWhen": {"taper": ["pitch", "both"]},
+     "help": "Last pitch over first, across the opening."},
+    {"key": "wallFriction", "label": "Wall friction coefficient", "type": "number",
+     "default": 0.45, "step": 0.05, "min": 0.05, "max": 1, "advanced": True,
+     "help": "From a wall friction test on the actual liner. 0.45 is a placeholder."},
+    {"key": "screwLength", "label": "Screw length", "type": "number", "unit": "ft",
+     "default": "", "step": 1, "min": 0, "advanced": True},
+    {"key": "cemaFd", "label": "CEMA Fd — diameter", "type": "number", "default": "",
+     "step": 1, "min": 0, "advanced": True},
+    {"key": "cemaFb", "label": "CEMA Fb — hanger bearing", "type": "number",
+     "default": "", "step": 0.1, "min": 0, "advanced": True},
+    {"key": "cemaFf", "label": "CEMA Ff — flight", "type": "number", "default": "",
+     "step": 0.1, "min": 0, "advanced": True},
+    {"key": "cemaFm", "label": "CEMA Fm — material", "type": "number", "default": "",
+     "step": 0.1, "min": 0, "advanced": True},
+    {"key": "cemaFp", "label": "CEMA Fp — paddle", "type": "number", "default": "",
+     "step": 0.1, "min": 0, "advanced": True},
+    {"key": "cemaFo", "label": "CEMA Fo — overload", "type": "number", "default": 1.0,
+     "step": 0.1, "min": 1, "advanced": True},
+    {"key": "driveEff", "label": "Drive efficiency", "type": "number", "default": 0.88,
+     "step": 0.01, "min": 0.5, "max": 1, "advanced": True},
+]
+
+DILUTE_PHASE_FIELDS = [
+    {"key": "tph", "label": "Conveying rate", "type": "number", "unit": "TPH",
+     "default": 10, "step": 1, "min": 0.1},
+    {"key": "material", "label": "Material", "type": "select", "default": "meal",
+     "options": [(m[0], m[1]) for m in dilute_phase.MATERIALS],
+     "help": "Sets the particle size and density the saltation velocity turns on."},
+    {"key": "particleSize", "label": "Particle size", "type": "number", "unit": "in",
+     "default": 0.04, "step": 0.01, "min": 0.001},
+    {"key": "particleDensity", "label": "Particle density", "type": "number",
+     "unit": "lb/ft³", "default": 75, "step": 5, "min": 5,
+     "help": "The solid itself, not the bulk — a pellet is about 75, not 40."},
+    {"key": "bulkDensity", "label": "Bulk density", "type": "number", "unit": "lb/ft³",
+     "default": 35, "step": 1, "min": 1},
+    {"key": "loading", "label": "Maximum solids loading", "type": "number",
+     "default": 8, "step": 1, "min": 0.5, "max": 25,
+     "help": "Solids to air by mass. The smallest line that stays under this is the "
+             "one picked — a tighter ceiling buys a bigger, safer line."},
+    {"key": "horizontal", "label": "Horizontal run", "type": "number", "unit": "ft",
+     "default": 150, "step": 10, "min": 0},
+    {"key": "vertical", "label": "Vertical rise", "type": "number", "unit": "ft",
+     "default": 40, "step": 5, "min": 0},
+    {"key": "bends", "label": "Bends", "type": "number", "default": 4, "step": 1,
+     "min": 0},
+    {"key": "bendK", "label": "Bend type", "type": "select", "default": "4",
+     "options": list(dilute_phase.BEND_K_PRESETS)},
+    {"key": "blowerPressure", "label": "Blower rating", "type": "number", "unit": "psig",
+     "default": 8, "step": 1, "min": 1, "max": 20},
+    {"key": "velocityMargin", "label": "Velocity margin over saltation",
+     "type": "number", "default": dilute_phase.DEFAULT_VELOCITY_MARGIN, "step": 0.05,
+     "min": 1, "max": 2.5, "advanced": True,
+     "help": f"Published practice is 1.3–1.5. Below "
+             f"{dilute_phase.MIN_VELOCITY_MARGIN} a line plugs on any upset."},
+    {"key": "solidsFriction", "label": "Solids friction factor", "type": "number",
+     "default": dilute_phase.DEFAULT_SOLIDS_FRICTION, "step": 0.001, "min": 0.0005,
+     "max": 0.02, "advanced": True,
+     "help": "The number nobody derives — it is back-figured from running lines. "
+             f"{dilute_phase.SOLIDS_FRICTION_BAND[0]}–"
+             f"{dilute_phase.SOLIDS_FRICTION_BAND[1]} covers granular products."},
+    {"key": "bendReaccel", "label": "Bend re-acceleration", "type": "number",
+     "default": dilute_phase.DEFAULT_BEND_REACCEL, "step": 0.1, "min": 0, "max": 1.5,
+     "advanced": True,
+     "help": "Fraction of a full acceleration length each bend costs the solids. "
+             "0.5–1.0 in the literature; 1.0 is the conservative end."},
+    {"key": "slip", "label": "Particle-to-air velocity ratio", "type": "number",
+     "default": 0.8, "step": 0.05, "min": 0.3, "max": 1, "advanced": True},
+    {"key": "temp", "label": "Air temperature", "type": "number", "unit": "°F",
+     "default": 70, "step": 5, "min": -20, "max": 300, "advanced": True},
+    {"key": "elevation", "label": "Site elevation", "type": "number", "unit": "ft",
+     "default": 0, "step": 100, "min": 0, "max": 12000, "advanced": True},
+    {"key": "blowerEff", "label": "Blower efficiency", "type": "number", "default": 0.65,
+     "step": 0.05, "min": 0.3, "max": 0.9, "advanced": True},
+]
+
+DRYER_FIELDS = [
+    {"key": "tph", "label": "Wet feed rate", "type": "number", "unit": "TPH",
+     "default": 10, "step": 1, "min": 0.1},
+    {"key": "units", "label": "Parallel dryers", "type": "select", "default": "1",
+     "options": [("1", "One"), ("2", "Two"), ("3", "Three")]},
+    {"key": "mcin", "label": "Moisture in", "type": "number", "unit": "% wb",
+     "default": 45, "step": 1, "min": 1, "max": 90,
+     "help": "The number the whole machine scales off. A point here is a lot of "
+             "water and a lot of fuel."},
+    {"key": "mcout", "label": "Moisture out", "type": "number", "unit": "% wb",
+     "default": 12, "step": 0.5, "min": 0, "max": 60},
+    {"key": "tin", "label": "Feed temperature", "type": "number", "unit": "°F",
+     "default": 60, "step": 5, "min": -20},
+    {"key": "tout", "label": "Product outlet", "type": "number", "unit": "°F",
+     "default": 180, "step": 5, "min": 32},
+    {"key": "cp", "label": "Product specific heat", "type": "number",
+     "unit": "BTU/lb·°F", "default": 0.45, "step": 0.01, "min": 0.05},
+    {"key": "rho", "label": "Bulk density", "type": "number", "unit": "lb/ft³",
+     "default": 25, "step": 1, "min": 1},
+    {"key": "flow", "label": "Flow arrangement", "type": "select", "default": "counter",
+     "options": list(dryer.FLOW),
+     "help": "Counter-current is more efficient and scorches; co-current is the "
+             "safer machine for anything combustible."},
+    {"key": "gasIn", "label": "Gas inlet", "type": "number", "unit": "°F",
+     "default": 900, "step": 50, "min": 200, "max": 1600},
+    {"key": "gasOut", "label": "Exhaust", "type": "number", "unit": "°F",
+     "default": 250, "step": 10, "min": 100, "max": 600,
+     "help": "The main efficiency dial — and the thing that has to stay above the "
+             "exhaust's own dew point."},
+    {"key": "fuel", "label": "Fuel", "type": "select", "default": "ng",
+     "options": [(f[0], f[1]) for f in dryer.FUELS]},
+    {"key": "burnerEff", "label": "Burner efficiency", "type": "number",
+     "default": 0.92, "step": 0.01, "min": 0.5, "max": 1},
+    {"key": "shellLoss", "label": "Shell loss", "type": "number", "unit": "%",
+     "default": 5, "step": 1, "min": 0, "max": 30,
+     "help": "A lagged drum is 3–5%. Bare steel outdoors is much more."},
+    {"key": "amb", "label": "Ambient", "type": "number", "unit": "°F", "default": 60,
+     "step": 5, "min": -40, "max": 130, "advanced": True},
+    {"key": "ambRh", "label": "Ambient RH", "type": "number", "unit": "%",
+     "default": 60, "step": 5, "min": 1, "max": 100, "advanced": True},
+    {"key": "elev", "label": "Site elevation", "type": "number", "unit": "ft",
+     "default": 1000, "step": 100, "min": 0, "max": 12000, "advanced": True},
+    {"key": "kua", "label": "Volumetric coefficient K", "type": "number",
+     "default": 0.5, "step": 0.05, "min": 0.05, "advanced": True},
+    {"key": "rpm", "label": "Drum speed", "type": "number", "unit": "RPM",
+     "default": 4, "step": 0.5, "min": 0.5, "advanced": True},
+    {"key": "slope", "label": "Drum slope", "type": "number", "unit": "in/ft",
+     "default": 0.5, "step": 0.125, "min": 0.05, "advanced": True},
+    {"key": "holdMax", "label": "Max holdup", "type": "number", "unit": "%",
+     "default": 12, "step": 1, "min": 2, "max": 40, "advanced": True},
+    {"key": "dp", "label": "Particle size", "type": "number", "unit": "µm",
+     "default": 2000, "step": 100, "min": 1, "advanced": True},
+    {"key": "vmax", "label": "Max gas velocity", "type": "number", "unit": "FPM",
+     "default": 700, "step": 50, "min": 50, "advanced": True},
+]
+
 CALCULATORS = {
     "hammermill": {
         "key": "hammermill", "label": "Hammermill + Plenum",
@@ -536,6 +720,37 @@ CALCULATORS = {
         "fields": ROTARY_COOLER_FIELDS, "run": rotary_cooler.size, "prices": False,
         "tool": "rotary-cooler-sizing-calculator.html",
     },
+    "airlock": {
+        "key": "airlock", "label": "Rotary Airlock",
+        "blurb": "Material rate to the pocket displacement a valve actually needs, "
+                 "against the valves MCE has displacements for — plus the air the "
+                 "empty pockets carry back, which the filter has to handle.",
+        "fields": AIRLOCK_FIELDS, "run": airlock.size, "prices": True,
+    },
+    "live_bottom": {
+        "key": "live_bottom", "label": "Live Bottom Conveyance",
+        "blurb": "Screw feeders under a bin opening — capacity from flight geometry, "
+                 "whether the screw actually draws along the whole slot instead of "
+                 "filling at the back, and the Janssen bin load the drive has to "
+                 "shear.",
+        "fields": LIVE_BOTTOM_FIELDS, "run": live_bottom.size, "prices": False,
+    },
+    "dilute_phase": {
+        "key": "dilute_phase", "label": "Dilute Phase Conveying",
+        "blurb": "A line that carries product, not dust — saltation velocity, the "
+                 "smallest schedule 40 line that stays inside dilute phase, the four "
+                 "pressure-drop terms and the blower duty. Every correlation named on "
+                 "the result.",
+        "fields": DILUTE_PHASE_FIELDS, "run": dilute_phase.size, "prices": False,
+    },
+    "dryer": {
+        "key": "dryer", "label": "Rotary Dryer",
+        "blurb": "Direct-fired drum — mass balance, the five heat terms, gas flow "
+                 "and the exhaust's own dew point, fuel per pound of water, and the "
+                 "drum against MCE's grid. Refuses an exhaust that would rain in the "
+                 "ducting.",
+        "fields": DRYER_FIELDS, "run": dryer.size, "prices": False,
+    },
     "cyclone": {
         "key": "cyclone", "label": "Cyclone",
         "blurb": "Rated CFM — entered, or from the inlet and its velocity — to an "
@@ -568,14 +783,9 @@ CALCULATORS = {
 
 # Calculators MCE has said are coming. They show as greyed-out cards so the sales
 # team can see what is and is not available yet.
-PLANNED = [
-    ("Dryer", "Dryer sizing from moisture removal duty."),
-    ("Airlock", "Airflow and material to rotary airlock size and drive."),
-    ("Live bottom conveyance", "Live bottom bin discharge — screw count, drive and "
-                               "draw-down rate."),
-    ("Dilute phase conveying", "Pickup velocity, line size, air mover and system "
-                               "resistance for a dilute phase line."),
-]
+# Nothing is waiting on a calculator any more. What is waiting is PRICE data —
+# see _pricing.UNPRICED for the list and the one input each needs.
+PLANNED = []
 
 # Hosted calculators the quote builder cannot yet size with, because no Python
 # port exists. The tools page labels them so nobody goes looking for the field.

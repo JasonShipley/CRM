@@ -284,6 +284,23 @@ AIRLOCK_QUOTES = [
      "8-vane polyurethane flex-tip rotor, 2 HP at 30 RPM, 1.23 ft³ per rotation"),
 ]
 AIRLOCK_DEFAULT = "FT-12"
+
+# Pocket displacement, ft³ per rotation, where the quote actually states it. This
+# is what lets a valve be SIZED rather than just picked off a shelf: capacity is
+# displacement x rpm x fill. The FT-12 MCE quotes as standard does not state one,
+# so it cannot be checked against a duty until Airlanco gives the figure — which
+# is exactly what calculators/airlock.py says instead of guessing.
+AIRLOCK_DISPLACEMENT = {
+    "EMVDL-RVEX-HT37": {"ft3_per_rev": 0.70, "rpm": 30, "hp": 1,
+                        "source": "NEMO Feed 20260428"},
+    "EMVDL-RVEX-HT45": {"ft3_per_rev": 1.23, "rpm": 30, "hp": 2,
+                        "source": "NEMO Feed 20260428"},
+}
+AIRLOCK_NO_DISPLACEMENT = {
+    "FT-12": "Airlanco quote 024350 states 1.5 HP at 18 RPM but no pocket "
+             "displacement — ask Airlanco for ft³/rev and this valve sizes itself.",
+    "BAV 10": "Prater KT012025111600 states no pocket displacement.",
+}
 # The two certified valves above are the ones MCE has sell prices for. They are
 # DIFFERENT SIZES, so neither is a drop-in for the other or for the standard
 # FT-12 — they are carried as a range, and the size gets picked against the real
