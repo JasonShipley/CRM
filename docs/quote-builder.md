@@ -352,6 +352,81 @@ relying on the rep to remember. MCE fabricates the venturi and has no cost basis
 one, and the pan's $9,204 is explicitly refused as a stand-in — a pan is a larger
 assembly with its own structure.
 
+## One pricing basis
+
+MCE prices its own equipment off one model, which the calculator states on its own
+face: **Bliss Jan-2016 price book × a multiplier**, *"raise it as steel moves."* The
+Bliss base figures are engineering history and never change. The **escalation
+factors** are the only thing anyone edits.
+
+Those factors used to live in four places — the calculator's form defaults, the
+port's fallbacks, the registry's field defaults, and the price book on someone's
+desktop — and four copies drift. They had: the book's implied feeder factor was
+1.515 against the calculator's 2.00, a 32% gap on every feeder line.
+
+`calculators/_pricing.py` is now the only copy. Everything else reads it:
+
+```
+                     calculators/_pricing.py
+                    factors · escalation log
+                              │
+        ┌─────────────────────┼─────────────────────┐
+        ▼                     ▼                     ▼
+  the calculator         the price book          the CRM
+  (sync-tools writes     (book regenerates       (ports and the quote
+   the form defaults)     the workbook)           builder read the factors)
+```
+
+```
+python3 pricing_cli.py check                  what disagrees with the basis
+python3 pricing_cli.py apply plenum_rate --pct 6 --source "steel, Oct 2026"
+python3 pricing_cli.py sync-tools             write the factors into the tools
+python3 pricing_cli.py book out.xlsx          regenerate the price book
+```
+
+`apply` moves the factor **and appends to the escalation log**, so the next reader
+sees what moved, by how much, when, and who said so. Then `sync-tools` pushes it to
+the served calculator (re-run `tests/extract_data.py` and the differential test
+after) and `book` regenerates the workbook. `tests/test_intake.py` asserts the
+calculator's HTML, the registry, the ports and a built quote all carry the same
+figures, so they cannot drift again without a test failing.
+
+**Any chat can read it.** `GET /api/pricing` returns the live factors with their
+provenance, the derived mill and feeder price lists, the markup rules, the fitted
+models and the list of what is deliberately not priced. A quote built in one chat and
+a quote built in another agree because they read the same endpoint rather than
+someone's memory of a number.
+
+### Where the received book disagrees
+
+Nothing is quietly reconciled. `KNOWN_DIVERGENCE` records both figures and `check`
+prints them:
+
+| Scope | The book implies | The basis says | Evidence |
+|---|---|---|---|
+| Feeder | 1.515 | 2.00 | All 36 rows of the 10" tables, exact to the dollar (tight tolerance is 2.000 in both) |
+| Mill | ≈1.631 on 19"/22", ≈1.655 on 38"/44" | 1.73 | 32 models, no single factor fits; XM-1920 is an outlier at 1.4925 |
+
+The basis is seeded from the **calculator**, because that is what the formulas feed.
+Regenerating the book therefore raises it to the calculator's money rather than
+lowering the calculator to the book's. That is a pricing decision, not a technical
+one — one number in `_pricing.py` either way.
+
+### What is deliberately not priced
+
+`UNPRICED` names each gap and the one input that closes it, and `check` lists them:
+
+- **Ductwork** — needs Nolin's air-handling pages (43–45): duct per foot and segmented
+  elbows by size. Duct is bought, so it is never estimated from the steel. Fill
+  `DUCT_PRICES` and every duct line prices itself off its own bill of material.
+- **Venturi pickup** — needs a fabricated weight or a shop estimate. Set
+  `VENTURI_WEIGHT_LB` and it prices at the plenum's own structure rate.
+
+The fan is no longer one of them: the AirPro lineup's 12 distinct (motor, cost) pairs
+fit `cost = $2,453 + $146.90/HP`, mean error 8.3% and worst 17.0% across 5–40 HP —
+the same standing as the screw model, sold at the fan markup, and every line says it
+is modelled rather than quoted.
+
 ### The price book
 
 `19_Hammermill_Prices.xlsx` — JB's book — is MCE's own sell-price list: base price per

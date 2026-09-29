@@ -17,6 +17,8 @@ import interpret
 import quote_from_job
 import quotes_store as store
 import render_ctx
+from calculators._book_inputs import MILL_OPTIONS
+from calculators._data import FEEDER_PRICING, MILL_PRICING
 
 bp = Blueprint("builder", __name__)
 
@@ -154,6 +156,46 @@ def api_interpret():
     quote["sourceRequest"] = text
     return jsonify({"quote": quote, "openItems": quote["openItems"],
                     "job": job.model_dump()})
+
+
+@bp.route("/api/pricing")
+def api_pricing():
+    """The pricing basis, machine-readable — so every quote uses the same numbers.
+
+    A quote built in one chat and a quote built in another have to agree, and they
+    only agree if they read from one place. This is that place: the live escalation
+    factors, what they derive, what is NOT priced and why, and the vendor bases
+    behind the buy-out lines. Anything quoting MCE equipment should start here
+    rather than from a number someone remembered.
+    """
+    from calculators import _pricing, _vendor
+
+    return jsonify({
+        "basis": _pricing.BLISS_BASIS,
+        "factors": {k: dict(v) for k, v in _pricing.FACTORS.items()},
+        "escalations": _pricing.ESCALATIONS,
+        "known_divergence": _pricing.KNOWN_DIVERGENCE,
+        "unpriced": _pricing.UNPRICED,
+        "rules": {
+            "buy_out": f"vendor cost ÷ {_vendor.BUYOUT_DIVISOR:g}",
+            "fabrication": f"cost × {1 + _vendor.FAB_CONTINGENCY:g} ÷ "
+                           f"{1 - _vendor.FAB_MARGIN:g}",
+            "parts": f"cost ÷ {_vendor.PARTS_DIVISOR:g}",
+            "fan": f"modelled cost × {_vendor.FAN_MARKUP:g}",
+        },
+        "models": {
+            "screw": _vendor.SCREW_MODEL,
+            "fan": _vendor.FAN_MODEL,
+        },
+        "mill_price": {m: _pricing.mill_price(m) for m in sorted(MILL_PRICING)},
+        "mill_options": {m: {k: _pricing.mill_option(m, k)
+                             for k in sorted(MILL_OPTIONS.get(m, {}))}
+                         for m in sorted(MILL_OPTIONS)},
+        "feeder_price": {
+            f'{d}-{cup}-{rows}': _pricing.feeder_price(d, cup, rows)
+            for d in (10, 14) for cup in ("nylon", "ss", "tt")
+            for rows in FEEDER_PRICING["rows"]},
+    })
 
 
 @bp.route("/api/calc/<key>", methods=["POST"])

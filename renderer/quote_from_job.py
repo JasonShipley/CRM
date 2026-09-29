@@ -16,7 +16,7 @@ import re
 
 import calculators
 import render_ctx
-from calculators import _vendor, airsystem, nfpa
+from calculators import _pricing, _vendor, airsystem, nfpa
 from calculators.baghouse import MILL_CFM_PER_IN2
 from calculators._data import PRODUCTS
 from calculators._fmt import money
@@ -402,20 +402,28 @@ def build(job, today=None, delivery_weeks=None):
         if air_swept and getattr(job, "air_pickup", None) == "venturi":
             # A venturi pickup replaces the plenum outright: the product never lands on
             # a pan, it goes straight into the air stream and travels to the collector.
-            # MCE fabricates it and has no cost basis, so the line is honest about that
-            # rather than borrowing the drop-down pan's price.
-            lines.append({
-                "name": "Venturi Pickup Fitting with Air Adaptor", "quantity": qty,
-                "unitPrice": 0, "needsPrice": True,
-                "description": "\n".join(_vendor.VENTURI_PICKUP_SCOPE + [
-                    "Adaptor opens out to the duct diameter sized below",
-                    "Price from the fabrication estimate",
-                ])})
-            open_items.append(
-                "Venturi pickup fitting and air adaptor are unpriced: MCE fabricates "
-                "them and there is no cost basis for one yet. The drop-down air pan's "
-                "book price is NOT a stand-in — a pan is a larger assembly with its "
-                "own structure. Get a shop estimate before release.")
+            # It prices as soon as the basis has a fabricated weight for one.
+            v_notes = list(_vendor.VENTURI_PICKUP_SCOPE) + [
+                "Adaptor opens out to the duct diameter sized below"]
+            priced_v = _pricing.venturi_price()
+            if priced_v:
+                v_price, v_basis = priced_v
+                v_notes.append("Budgetary price — firm on the fabrication estimate")
+                lines.append({
+                    "name": "Venturi Pickup Fitting with Air Adaptor", "quantity": qty,
+                    "unitPrice": round(v_price, 2), "budgetPrice": True,
+                    "description": "\n".join(v_notes)})
+                open_items.append(f"Venturi pickup priced at {v_basis}.")
+            else:
+                gap = _pricing.UNPRICED["venturi_pickup"]
+                v_notes.append("Price from the fabrication estimate")
+                lines.append({
+                    "name": "Venturi Pickup Fitting with Air Adaptor", "quantity": qty,
+                    "unitPrice": 0, "needsPrice": True,
+                    "description": "\n".join(v_notes)})
+                open_items.append(
+                    f'Venturi pickup and air adaptor are unpriced: {gap["why"]}. '
+                    f'Needs {gap["needs"]}.')
         elif air_swept:
             pan = ["Drop-down air pan under the mill with structure and air pickup fitting"]
             if result and result.get("screen_area"):
@@ -602,9 +610,9 @@ def build(job, today=None, delivery_weeks=None):
                  if want_cyclone else
                  "Air system requested but no baghouse could be sized, so the quote shows "
                  "a cyclone instead — confirm that is what the customer wants.")
-                + " The fan is the gap: with no filter to select it against, it has to be "
-                  "picked against the cyclone's pressure drop and MCE has no fan "
-                  "calculator yet — take it to engineering or get a vendor selection.")
+                + " With no filter to select a fan against, MCE's own fan calculator "
+                  "sizes the duty and the price is modelled off the AirPro lineup — "
+                  "both are budget figures until the vendor's selection comes back.")
     else:
         by_others.insert(0, "Air-relief system for the mill — fans, dust filters, ducting, "
                             "airlocks and explosion protection")

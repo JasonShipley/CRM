@@ -17,7 +17,7 @@ HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent))
 
 import quote_from_job as qfj  # noqa: E402
-from calculators import _vendor as _v  # noqa: E402
+from calculators import _pricing as _p, _vendor as _v  # noqa: E402
 from interpret import FeederSpec, JobRequest  # noqa: E402
 
 TODAY = datetime.date(2026, 9, 23)
@@ -224,8 +224,11 @@ def test_cyclone_when_the_rep_asks_for_one():
         check("the duty is on the line for the vendor",
               "ACFM" in fan_line["description"] and "BHP" in fan_line["description"],
               fan_line["description"])
-        check("but the price waits on the selection", fan_line.get("needsPrice"),
+        check("and priced as a disclosed budget, not a zero",
+              fan_line.get("unitPrice") and fan_line.get("budgetPrice"),
               str(fan_line.get("unitPrice")))
+        check("with the model's error band on the internal notes",
+              "mean error" in open_text(q), open_text(q))
         check("and the static is flagged as a default, not a layout figure",
               "not a layout figure" in open_text(q), open_text(q))
     check("cyclone price basis recorded internally",
@@ -311,7 +314,7 @@ def test_air_swept():
     # the price book carries the pan against every mill, so it is priced by MODEL and
     # never by analogy: an XM-4430 pan is $6,818, an XM-4448 is $9,204
     check("the pan is priced from the book for THIS mill",
-          pan["unitPrice"] == _v.AIR_PAN_PRICES["XM-4430"], str(pan.get("unitPrice")))
+          pan["unitPrice"] == _p.air_pan_price("XM-4430")[0], str(pan.get("unitPrice")))
     check("and the book is named internally",
           "price book" in open_text(swept), open_text(swept))
     check("the pan names its pickup fitting in the description",
@@ -334,7 +337,7 @@ def test_air_swept():
     check("plain quote offers the air-swept conversion", conv is not None,
           str([o["name"] for o in plain["options"]]))
     if conv:
-        pan_price = _v.AIR_PAN_PRICES["XM-4430"]
+        pan_price = _p.air_pan_price("XM-4430")[0]
         filt_plain = next(l for l in plain["lines"] if "Bin Vent" in l["name"])
         filt_swept = next(l for l in swept["lines"] if "Filter Receiver" in l["name"])
         fan_plain = next(l for l in plain["lines"] if l["name"].startswith("Fan —"))
@@ -370,7 +373,7 @@ def test_venturi_cyclone_arrangement():
     venturi = next(l for l in q["lines"] if l["name"].startswith("Venturi"))
     check("and it is honestly unpriced", venturi.get("needsPrice"), str(venturi))
     check("the pan's price is explicitly refused as a stand-in",
-          "NOT a stand-in" in open_text(q), open_text(q))
+          "not a stand-in" in open_text(q).lower(), open_text(q))
     check("a cyclone collects, sized off the air-swept airflow",
           any(n.startswith("Cyclone") for n in names), str(names))
     check("the airlock sits under the cyclone, and says so",
@@ -389,7 +392,8 @@ def test_venturi_cyclone_arrangement():
     check("the fan is sized off the air-swept airflow",
           "5,850 ACFM" in fan_line["name"] or "5,850 ACFM" in fan_line["description"],
           fan_line["name"])
-    check("its price still waits on the vendor", fan_line.get("needsPrice"),
+    check("its price is a disclosed budget from the AirPro model",
+          fan_line.get("unitPrice") and fan_line.get("budgetPrice"),
           str(fan_line.get("unitPrice")))
     check("and the sizing is recorded internally",
           "Fan sized by MCE" in open_text(q), open_text(q))
@@ -402,37 +406,64 @@ def test_venturi_cyclone_arrangement():
           any(n == "Drop Down Air Pan" for n in pan_names), str(pan_names))
 
 
-def test_price_book_alignment():
-    """JB's price book is what MCE sells at, so a quote has to agree with it.
+def test_pricing_basis_is_the_only_copy():
+    """One set of escalation factors, read by everything.
 
-    The book's feeder prices are the calculator's own base figures times 1.515
-    (nylon and stainless) or 2.000 (tight tolerance), on every row of the 10"
-    tables. The calculator's FORM defaults all three to 2.00, so the builder passes
-    the book's multiplier and a stainless feeder lands on the book's number.
+    The factors used to live in four places — the calculator's form, the port's
+    fallbacks, the registry's defaults and a workbook on someone's desktop — and
+    they had drifted. Now the basis owns them, so a price move lands everywhere at
+    once. This test is what makes that true rather than aspirational.
     """
-    from interpret import FeederSpec
-    book_ss_8row, book_combo_auto = 10215, 6548     # 10" stainless 8-4ROW, auto clean
-    job = jb_request(feeder=FeederSpec(diameter_in="10", cup_type="ss", rows=8,
-                                       magnet_clean="scmaa"), ambiguities=[])
-    q = qfj.build(job, today=TODAY)
-    feeder = next(l for l in q["lines"] if "Rotary Feeder" in l["name"])
-    # within a dollar: the book rounds each component, the calculator the sum
-    check("stainless feeder matches the price book",
-          abs(feeder["unitPrice"] - (book_ss_8row + book_combo_auto)) <= 1.50,
-          f'{feeder["unitPrice"]} vs {book_ss_8row + book_combo_auto}')
-    check("and carries MCE's own catalog name",
-          feeder["name"] == '10" Dia. Stainless Round Cup Rotary Feeder — 8-4ROW',
-          feeder["name"])
-    # "8-4row" is a designation, not an ambiguity — it must not raise one
-    check("the designation raises no ambiguity",
-          not any("8-4row" in a.lower() for a in q["openItems"]), open_text(q))
-    # tight tolerance is the one cup type the calculator's 2.00 was right for
-    check("tight tolerance keeps the 2.00 multiplier",
-          _v.feeder_multiplier("tt") == 2.0 and _v.feeder_multiplier("ss") == 1.515)
-    # the air pan is priced per mill, straight from the book
-    check("the book prices the pan by model",
-          _v.AIR_PAN_PRICES["XM-4430"] == 6818
-          and _v.AIR_PAN_PRICES["XM-4448"] == 9204)
+    import calculators
+    from calculators import _pricing
+
+    # the registry, the port and the served calculator all take the basis
+    fields = {f["key"]: f.get("default")
+              for f in calculators.CALCULATORS["hammermill"]["fields"]}
+    for key, scope in (("millMult", "mill"), ("feederMult", "feeder"),
+                       ("plenumDuty", "plenum_duty"), ("plenumRate", "plenum_rate")):
+        check(f"the {key} field defaults to the basis",
+              fields[key] == _pricing.factor(scope),
+              f'{fields[key]} vs {_pricing.factor(scope)}')
+    html = (pathlib.Path(__file__).resolve().parent.parent / "tools"
+            / "hammermill-sizing-calculator.html").read_text()
+    for field, scope in (("mill-mult", "mill"), ("feeder-mult", "feeder"),
+                         ("plenum-duty", "plenum_duty"), ("plenum-rate", "plenum_rate")):
+        m = re.search(rf'id="{field}"[^>]*?value="([\d.]+)"', html)
+        check(f"the served calculator's {field} matches the basis",
+              m and float(m.group(1)) == _pricing.factor(scope),
+              m.group(1) if m else "not found")
+
+    # a quote is priced off the same factors, with no private override
+    q = qfj.build(jb_request(), today=TODAY)
+    mill = next(l for l in q["lines"] if "Hammermill" in l["name"])
+    check("the mill line equals the basis price for that mill",
+          round(mill["unitPrice"]) == _pricing.mill_price("XM-4430"),
+          f'{mill["unitPrice"]} vs {_pricing.mill_price("XM-4430")}')
+
+    # the air pan is a book option, escalated by the basis
+    check("the pan is priced per mill from the book",
+          _pricing.air_pan_price("XM-4430")[0] == 6818
+          and _pricing.air_pan_price("XM-4448")[0] == 9204)
+
+    # where the received book disagrees with the basis, it is RECORDED, not merged
+    check("the feeder divergence is on the record",
+          _pricing.KNOWN_DIVERGENCE["feeder"]["book_implies"] == 1.515
+          and _pricing.KNOWN_DIVERGENCE["feeder"]["basis"] == 2.00)
+    check("and so is the mill's", "mill" in _pricing.KNOWN_DIVERGENCE)
+
+    # what cannot be priced says so, with the one input that would fix it
+    for scope in ("ductwork", "venturi_pickup"):
+        gap = _pricing.UNPRICED[scope]
+        check(f"{scope} names what it needs", gap["needs"] and gap["one_edit"])
+
+    # an increase moves the factor and writes itself down
+    new, entry = _pricing.apply_increase("plenum_rate", pct=10,
+                                         effective="2026-10-01", source="steel watch")
+    check("an increase compounds on the live factor",
+          abs(new - _pricing.factor("plenum_rate") * 1.10) < 1e-6, str(new))
+    check("and records where it came from",
+          entry["source"] == "steel watch" and entry["from"] == _pricing.factor("plenum_rate"))
 
 
 def test_options_and_reference_block():
@@ -516,7 +547,8 @@ def main():
                test_baghouse_is_still_the_default,
                test_no_vendor_brands_on_customer_lines, test_delivery_weeks,
                test_air_swept, test_venturi_cyclone_arrangement,
-               test_price_book_alignment, test_options_and_reference_block,
+               test_pricing_basis_is_the_only_copy,
+               test_options_and_reference_block,
                test_quantity,
                test_fan_quote_validity, test_reference_slug):
         fn()

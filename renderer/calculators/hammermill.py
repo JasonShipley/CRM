@@ -17,7 +17,7 @@ Sizing chain:
 import datetime
 import math
 
-from . import _vendor
+from . import _pricing, _vendor
 from ._fmt import jsround, money, num
 from ._data import (FAMILY_SETS, FEEDER_10, FEEDER_14, FEEDER_PRICING,
                     MCE_XM_MILLS, MILL_PRICING, MOTOR_SIZES, PLENUM_V_IDX,
@@ -84,10 +84,12 @@ def size(f):
     cup_type = f.get("cupType") if f.get("cupType") in ("nylon", "ss", "tt") else "nylon"
     magnet_clean = f.get("magnetClean") if f.get("magnetClean") in ("sma", "scmam", "scmaa") else "sma"
     run_length = _num(f.get("runLength"), 0)
-    mill_mult = _num(f.get("millMult"), 1.73)
-    feeder_mult = _num(f.get("feederMult"), 2.00)
-    plenum_duty = _num(f.get("plenumDuty"), 1.35)
-    plenum_rate = _num(f.get("plenumRate"), 15.25)
+    # Defaults come from the pricing basis, not from four copies of the same
+    # numbers. A caller can still override any of them per quote.
+    mill_mult = _num(f.get("millMult"), _pricing.factor("mill"))
+    feeder_mult = _num(f.get("feederMult"), _pricing.factor("feeder"))
+    plenum_duty = _num(f.get("plenumDuty"), _pricing.factor("plenum_duty"))
+    plenum_rate = _num(f.get("plenumRate"), _pricing.factor("plenum_rate"))
 
     errors, warnings, outputs = [], [], []
     if pph <= 0:

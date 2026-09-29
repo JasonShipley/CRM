@@ -12,8 +12,8 @@ own JavaScript headless — run it after touching either side.
 This module is the registry: it declares each calculator's inputs so the form UI
 and the JSON API are generated from one description, and dispatches `run()`.
 """
-from . import (airsystem, baghouse, cooler, cyclone, duct, fan, hammer_pattern,
-               hammermill)
+from . import (_pricing, airsystem, baghouse, cooler, cyclone, duct, fan,
+               hammer_pattern, hammermill)
 from ._data import CL_CHECK_DEFS, CL_PELLETS, MCE_XM_MILLS, PRODUCTS, XM_CHART
 
 # --------------------------------------------------------------- input specs --
@@ -68,14 +68,17 @@ HAMMERMILL_FIELDS = [
     {"key": "runLength", "label": "Extra screw run", "type": "number", "unit": "ft",
      "default": 2, "step": 1, "min": 0,
      "help": "Beyond the plenum discharge flange, to the actual discharge point."},
-    {"key": "millMult", "label": "Mill multiplier", "type": "number", "default": 1.73,
+    {"key": "millMult", "label": "Mill multiplier", "type": "number",
+     "default": _pricing.factor("mill"),
      "step": 0.01, "min": 0.5, "advanced": True},
-    {"key": "feederMult", "label": "Feeder multiplier", "type": "number", "default": 2.00,
+    {"key": "feederMult", "label": "Feeder multiplier", "type": "number",
+     "default": _pricing.factor("feeder"),
      "step": 0.01, "min": 0.5, "advanced": True},
-    {"key": "plenumDuty", "label": "Plenum duty factor", "type": "number", "default": 1.35,
+    {"key": "plenumDuty", "label": "Plenum duty factor", "type": "number",
+     "default": _pricing.factor("plenum_duty"),
      "step": 0.05, "min": 1, "advanced": True},
     {"key": "plenumRate", "label": "Plenum rate", "type": "number", "unit": "$/lb",
-     "default": 15.25, "step": 0.25, "min": 1, "advanced": True},
+     "default": _pricing.factor("plenum_rate"), "step": 0.25, "min": 1, "advanced": True},
 ]
 
 COOLER_FIELDS = [
