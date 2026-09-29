@@ -472,10 +472,9 @@ DUCT_DEFAULT_MATERIAL = "carbon"
 # before the straight run goes, so it gets a removable back sweep elbow instead of
 # a segmented one, and the back is the part that gets changed.
 DUCT_SERVICE = [
-    ("fines", "Fines — mill or cooler air relief. 14 ga, segmented elbows."),
-    ("product", "Product — the line carries material. 14 ga with removable back "
-                "sweep elbows."),
-    ("abrasive", "Abrasive — heavier gauge and removable back sweep elbows."),
+    ("fines", "Fines — mill or cooler air relief"),
+    ("product", "Product — the line carries material"),
+    ("abrasive", "Abrasive — heavier gauge, and worth a look at sweep elbows"),
 ]
 DUCT_DEFAULT_SERVICE = "fines"
 DUCT_STANDARD_GAUGE = "14"
@@ -484,20 +483,27 @@ DUCT_STANDARD_GAUGE = "14"
 DUCT_ABRASIVE_GAUGE = "10"
 DUCT_SERVICE_GAUGE = {"fines": DUCT_STANDARD_GAUGE, "product": DUCT_STANDARD_GAUGE,
                       "abrasive": DUCT_ABRASIVE_GAUGE}
-DUCT_SWEEP_SERVICES = ("product", "abrasive")
 DUCT_DEFAULT_GAUGE = DUCT_STANDARD_GAUGE      # kept for callers that name it
+
+# Removable back sweep elbows are NEVER automatic. They are rare in MCE's
+# industry, they cost several times a segmented elbow, and a quote that carries
+# them without anybody deciding to is a quote that loses on price for no reason.
+# So they are an explicit opt-in, and the only thing the calculator does on its
+# own is ASK — and only when the service is abrasive, which is the one case where
+# the answer might be yes.
+DUCT_SWEEP_DEFAULT = False
 DUCT_GAUGE_NOTE = (
     f"Quoted in {DUCT_STANDARD_GAUGE} ga — MCE's standard for air-handling duct, "
     "which normally carries fines.")
 DUCT_ABRASIVE_NOTE = (
-    f"Abrasive service: quoted in {DUCT_ABRASIVE_GAUGE} ga with removable back sweep "
-    "elbows. MCE's rule is heavier than standard for abrasive material but has not "
-    f"named the gauge — confirm {DUCT_ABRASIVE_GAUGE} ga before this goes out, "
-    "because 7 ga is real money again.")
+    f"Abrasive service: quoted in {DUCT_ABRASIVE_GAUGE} ga. MCE's rule is heavier "
+    "than standard for abrasive material but has not named the gauge — confirm "
+    f"{DUCT_ABRASIVE_GAUGE} ga before this goes out, because 7 ga is real money "
+    "again.")
 DUCT_SWEEP_NOTE = (
-    "Carrying product, not fines, so the elbows are 10 ga removable back sweeps "
-    "rather than segmented. A segmented elbow wears through at the heel on a "
-    "product line; a sweep lets the back be replaced without cutting the duct out.")
+    "Removable back sweep elbows, as asked for. A segmented elbow wears through at "
+    "the heel on an abrasive line; a sweep lets the back be replaced without "
+    "cutting the duct out of the ceiling.")
 
 
 def _nolin_item(name, qty, unit_list, source):
@@ -507,9 +513,9 @@ def _nolin_item(name, qty, unit_list, source):
 
 def duct_package(diameter_in, run_ft=0, elbows=0, adaptors=0, *,
                  gauge=None, material=DUCT_DEFAULT_MATERIAL,
-                 service=DUCT_DEFAULT_SERVICE, elbow_angle="90",
-                 to_atmosphere=True, transition_from=None, spare_backs=0,
-                 quantity=1):
+                 service=DUCT_DEFAULT_SERVICE, sweep_elbows=DUCT_SWEEP_DEFAULT,
+                 elbow_angle="90", to_atmosphere=True, transition_from=None,
+                 spare_backs=0, quantity=1):
     """The catalog bill of material for a duct run, priced.
 
     Returns None when the diameter is off the end of Nolin's tables, which is the
@@ -525,13 +531,13 @@ def duct_package(diameter_in, run_ft=0, elbows=0, adaptors=0, *,
         service = DUCT_DEFAULT_SERVICE
     if gauge is None:
         gauge = DUCT_SERVICE_GAUGE[service]
-    sweeps = service in DUCT_SWEEP_SERVICES
+    sweeps = bool(sweep_elbows)
     # Nolin prints flanged primed gray duct in a fixed set of sizes, and its own
     # header sends everything from 3 in to 16 in to the spouting page instead. So a
     # size the duct table prints is bought as flanged duct; a small size it does not
     # is bought as plain-end spouting, primed, with clamp bands at the joints.
     spouted = dia not in _nolin.DUCT_STICK and dia <= 16
-    items, warnings = [], []
+    items, warnings, questions = [], [], []
 
     if spouted:
         sp_dia, sp_row = _nolin._nearest(_nolin.SPOUTING_PER_FT, dia)
@@ -659,24 +665,35 @@ def duct_package(diameter_in, run_ft=0, elbows=0, adaptors=0, *,
     basis = (f'{_nolin.SOURCE} ({_nolin.CATALOG_DATE}) list, '
              f'{adder["material"]}, at MCE\'s buy-out divisor {BUYOUT_DIVISOR:g}')
     notes = [DUCT_ABRASIVE_NOTE if service == "abrasive" else DUCT_GAUGE_NOTE]
+
+    # What the swap actually costs, either way round: quoted with sweeps, it is
+    # what they added; quoted without on an abrasive line, it is what the question
+    # is worth. Nobody should have to work it out on the phone.
+    seg = _nolin.elbow(actual_dia, elbow_angle, gauge) if elbows else None
+    sw = _nolin.sweep_elbow(actual_dia, elbow_angle) if elbows else None
+    delta = ((sw[0] - seg[0]) * elbows / BUYOUT_DIVISOR) if (seg and sw) else None
+
     if sweeps:
         notes.append(DUCT_SWEEP_NOTE)
-        # a sweep elbow is several times a segmented one, so the quote says by how
-        # much rather than leaving the rep to defend a number they cannot explain
-        seg = _nolin.elbow(actual_dia, elbow_angle, gauge) if elbows else None
-        sw = _nolin.sweep_elbow(actual_dia, elbow_angle) if elbows else None
-        if seg and sw:
-            delta = (sw[0] - seg[0]) * elbows
+        if delta:
             notes.append(
                 f'The {elbows} sweep elbow{"s" if elbows != 1 else ""} add '
-                f"${delta * (1 / BUYOUT_DIVISOR):,.0f} over segmented elbows at this "
-                f"size. That is the trade: a segmented elbow on a product line wears "
-                "through at the heel and comes out of the ceiling to be replaced.")
+                f"${delta:,.0f} over segmented elbows at this size.")
+    elif service == "abrasive" and elbows:
+        # the one question worth asking, and only here
+        questions.append(
+            "Is this line abrasive enough to want removable back sweep elbows? "
+            "It is quoted with segmented elbows, which is right nearly every time "
+            + (f"— sweeps would add about ${delta:,.0f}. " if delta else "— ")
+            + "Say yes only if the material is genuinely cutting elbows out, "
+            "because on that line the heel is what fails first.")
 
     return {"items": items, "listTotal": round(list_total, 2),
             "total": round(buyout_price(list_total) * quantity, 2),
             "diameter": actual_dia, "gauge": actual_gauge, "material": material,
             "service": service, "sweepElbows": sweeps, "notes": notes,
+            "questions": questions,
+            "sweepPremium": round(delta, 2) if delta else None,
             "lengths": lengths, "spouting": spouted, "basis": basis, "warnings": warnings,
             "terms": _nolin.TERMS}
 

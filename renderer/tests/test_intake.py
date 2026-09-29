@@ -397,6 +397,11 @@ def test_venturi_cyclone_arrangement():
           str(duct.get("unitPrice")))
     check("the gauge is MCE's standard, and says so",
           "14 ga — MCE's standard" in open_text(q), open_text(q))
+    # sweep elbows are rare, so an ordinary air-relief quote never mentions them
+    check("no sweep elbows on an ordinary duct line",
+          "sweep elbow" not in duct["description"], duct["description"])
+    check("and nothing to ask about them", "sweep elbow" not in open_text(q),
+          open_text(q))
     # the hood is MCE's scope now, so it is not also handed to the customer
     check("the discharge cap is no longer pushed to others",
           not any("weather cap" in b for b in q.get("byOthers", [])),

@@ -567,7 +567,9 @@ def build(job, today=None, delivery_weeks=None):
                                     or _vendor.DUCT_DEFAULT_SERVICE)
                     priced = _vendor.duct_package(
                         dk["diameter"], run_ft or 0, elbows,
-                        service=duct_service, to_atmosphere=True, quantity=qty)
+                        service=duct_service,
+                        sweep_elbows=bool(getattr(job, "duct_sweep_elbows", False)),
+                        to_atmosphere=True, quantity=qty)
             else:
                 desc.append("Straight run, elbows, transitions and supports to suit the "
                             "layout")
@@ -581,6 +583,9 @@ def build(job, today=None, delivery_weeks=None):
                     "name": f'Ductwork — {priced["diameter"]}" dia', "quantity": qty,
                     "unitPrice": round(priced["total"] / max(qty, 1), 2),
                     "budgetPrice": True, "description": "\n".join(desc)})
+                # a question the rep has to answer goes to the top, with the
+                # ambiguities, not buried among the pricing provenance
+                open_items[:0] = priced["questions"]
                 open_items.append(f'Ductwork priced from {priced["basis"]}.')
                 open_items += priced["notes"]
                 open_items += priced["warnings"]

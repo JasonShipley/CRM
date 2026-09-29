@@ -248,7 +248,9 @@ def size(f):
             elbow_count = int(_num(f.get("ductElbows")))
             service = str(f.get("ductService") or _vendor.DUCT_DEFAULT_SERVICE)
             pkg = (_vendor.duct_package(res["diameter"], run_ft, elbow_count,
-                                        service=service, to_atmosphere=True)
+                                        service=service,
+                                        sweep_elbows=_flag(f.get("ductSweepElbows")),
+                                        to_atmosphere=True)
                    if run_ft or elbow_count else None)
             if pkg:
                 desc = [head, _vendor.DUCT_STANDARD_PACKAGE]
@@ -257,6 +259,7 @@ def size(f):
                               "unitPrice": pkg["total"], "budgetPrice": True,
                               "description": "\n".join(desc)})
                 total += pkg["total"]
+                warnings[:0] = pkg["questions"]
                 warnings.append(f'Ductwork priced from {pkg["basis"]}.')
                 warnings += pkg["notes"]
                 warnings += pkg["warnings"]

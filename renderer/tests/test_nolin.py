@@ -174,46 +174,74 @@ if not any("clamp band" in i["name"] for i in small["items"]):
 if not any("under the flanged ductwork table" in w for w in small["warnings"]):
     bad("the quote has to say why a small run is spouting")
 
-# --- MCE's service rule: 14 ga on fines, sweeps on product, heavier on abrasive --
+# --- MCE's service rule: 14 ga, heavier only on abrasive, sweeps only on request --
 fines = _vendor.duct_package(20, run_ft=60, elbows=4, service="fines")
 product = _vendor.duct_package(20, run_ft=60, elbows=4, service="product")
 abrasive = _vendor.duct_package(20, run_ft=60, elbows=4, service="abrasive")
+asked = _vendor.duct_package(20, run_ft=60, elbows=4, service="abrasive",
+                             sweep_elbows=True)
 
-if fines["gauge"] != "14":
-    bad(f'air relief should be 14 ga, got {fines["gauge"]}')
-if fines["sweepElbows"]:
-    bad("a fines line takes segmented elbows, not sweeps")
-if not any("segmented elbow" in i["name"] for i in fines["items"]):
-    bad("a fines line has to carry segmented elbows")
-
-# carrying product keeps the standard gauge but changes the elbow — that is the
-# rule, and the elbow is where a product line actually wears out
-if product["gauge"] != "14":
-    bad(f'a product line stays 14 ga, got {product["gauge"]}')
-if not product["sweepElbows"]:
-    bad("a product line takes removable back sweep elbows")
-if not any("removable back sweep elbow" in i["name"] for i in product["items"]):
-    bad("a product line has to carry sweep elbows")
-if product["total"] <= fines["total"]:
-    bad("sweep elbows cost more than segmented")
-if not any("wears through at the heel" in n for n in product["notes"]):
-    bad("the quote has to say why the elbow changed")
-if not any("add $" in n for n in product["notes"]):
-    bad("the sweep elbow premium has to be quantified, not just asserted")
-
-# abrasive is the only case that moves the gauge
+for name, pkg in (("fines", fines), ("product", product)):
+    if pkg["gauge"] != _vendor.DUCT_STANDARD_GAUGE:
+        bad(f'{name} should be {_vendor.DUCT_STANDARD_GAUGE} ga, got {pkg["gauge"]}')
+if fines["total"] != product["total"]:
+    bad("fines and product price the same — only abrasive moves the gauge")
 if abrasive["gauge"] != _vendor.DUCT_ABRASIVE_GAUGE:
     bad(f'abrasive should be {_vendor.DUCT_ABRASIVE_GAUGE} ga, got {abrasive["gauge"]}')
-if not abrasive["sweepElbows"]:
-    bad("abrasive service takes sweep elbows too")
-if abrasive["total"] <= product["total"]:
+if abrasive["total"] <= fines["total"]:
     bad("a heavier gauge has to cost more")
 if not any("has not named the gauge" in n for n in abrasive["notes"]):
     bad("the one number MCE did not set has to stay flagged")
 
+# Sweep elbows are NEVER automatic. They are rare and expensive, and a quote that
+# carries them without anybody deciding to loses on price for no reason.
+for name, pkg in (("fines", fines), ("product", product), ("abrasive", abrasive)):
+    if pkg["sweepElbows"]:
+        bad(f"{name} quoted sweep elbows without being asked to")
+    if any("sweep elbow" in i["name"] for i in pkg["items"]):
+        bad(f"{name} has a sweep elbow on the bill of material")
+    if not any("segmented elbow" in i["name"] for i in pkg["items"]):
+        bad(f"{name} should carry segmented elbows")
+
+# The only thing the calculator does on its own is ASK — and only on abrasive,
+# which is the one service where the answer might be yes.
+if fines["questions"] or product["questions"]:
+    bad(f"nothing to ask on a fines or product line: "
+        f'{fines["questions"] + product["questions"]}')
+if len(abrasive["questions"]) != 1:
+    bad(f'abrasive should raise exactly one question: {abrasive["questions"]}')
+q = abrasive["questions"][0]
+if "?" not in q:
+    bad(f"it has to read as a question: {q}")
+for want in ("right nearly every time", "Say yes only"):
+    if want not in q:
+        bad(f'the question has to say sweeps are the rare answer: {q}')
+if f'${abrasive["sweepPremium"]:,.0f}' not in q:
+    bad(f"the question has to carry what the answer costs: {q}")
+if abrasive["sweepPremium"] is None or abrasive["sweepPremium"] <= 0:
+    bad(f'the premium has to be a real number: {abrasive["sweepPremium"]}')
+
+# asked for explicitly, they are quoted, priced and explained
+if not asked["sweepElbows"] or asked["questions"]:
+    bad("an explicit yes quotes them and stops asking")
+if not any("removable back sweep elbow" in i["name"] for i in asked["items"]):
+    bad("an explicit yes has to put sweeps on the bill of material")
+if asked["total"] <= abrasive["total"]:
+    bad("sweeps cost more than segmented")
+if not any("as asked for" in n for n in asked["notes"]):
+    bad("the quote should say the sweeps were asked for, not assumed")
+if abs((asked["total"] - abrasive["total"]) - abrasive["sweepPremium"]) > 1:
+    bad(f'the quoted premium has to be what the question said: '
+        f'{asked["total"] - abrasive["total"]} vs {abrasive["sweepPremium"]}')
+
+# a line with no elbows has nothing to ask about
+no_elbows = _vendor.duct_package(20, run_ft=60, elbows=0, service="abrasive")
+if no_elbows["questions"]:
+    bad(f'no elbows, nothing to ask: {no_elbows["questions"]}')
+
 # the replacement back is the wear part and is quotable as a spare
-spare = _vendor.duct_package(20, run_ft=60, elbows=4, service="product",
-                             spare_backs=2)
+spare = _vendor.duct_package(20, run_ft=60, elbows=4, service="abrasive",
+                             sweep_elbows=True, spare_backs=2)
 backs = [i for i in spare["items"] if "replacement back" in i["name"]]
 if len(backs) != 1 or backs[0]["quantity"] != 2:
     bad(f"spare backs should quote as one line of two: {backs}")

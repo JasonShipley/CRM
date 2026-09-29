@@ -228,9 +228,14 @@ AIRSYSTEM_FIELDS = [
      "step": 1, "min": 0},
     {"key": "ductService", "label": "Duct service", "type": "select",
      "default": _vendor.DUCT_DEFAULT_SERVICE, "options": list(_vendor.DUCT_SERVICE),
-     "help": "Air relief carries fines and takes the standard gauge. A line "
-             "carrying product gets removable back sweep elbows, which is where the "
-             "money goes."},
+     "help": "Sets the gauge. Fines and product both take MCE's standard "
+             f"{_vendor.DUCT_STANDARD_GAUGE} ga; only abrasive material goes heavier."},
+    {"key": "ductSweepElbows", "label": "Removable back sweep elbows",
+     "type": "select", "default": "", "advanced": True,
+     "options": [("", "No — segmented elbows"),
+                 ("1", "Yes — the material is cutting elbows out")],
+     "help": "Rare. Say yes only on a line that is genuinely destroying elbows — "
+             "they cost several times a segmented one."},
     {"key": "combustible", "label": "Combustible dust", "type": "select", "default": "",
      "options": [("", "Not stated — no protection offered"),
                  ("1", "Yes — offer NFPA isolation and venting")],
