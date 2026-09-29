@@ -40,6 +40,17 @@ substitute for it, and never created speculatively.
 See `README.md` for the full operator runbook and `docs/team-claude-crm-skill.md`
 for the API/object reference.
 
+## Planned change: standalone quote builder (in progress, another session)
+
+Jason is building a standalone, password-protected quote builder outside
+Twenty (planned at `quotes.usemce.com`), which will become the tool used to
+draft quotes; accepted quotes will then upload into Twenty as the system of
+record, which still feeds the QBO sync in step 6 above. **This is being built
+in a separate session — do not start building this site from this repo or
+duplicate that work.** Until it lands, follow the Twenty-based procedure
+above as-is. When it does land, update this file's steps 1-4 to point at the
+new tool instead of directly-authored Twenty quotes.
+
 ## Known gap: Twenty CRM access from this environment
 
 This container has no `TWENTY_EMAIL` / `TWENTY_PASSWORD` (or
