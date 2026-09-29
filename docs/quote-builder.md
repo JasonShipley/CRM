@@ -352,6 +352,38 @@ relying on the rep to remember. MCE fabricates the venturi and has no cost basis
 one, and the pan's $9,204 is explicitly refused as a stand-in — a pan is a larger
 assembly with its own structure.
 
+## Who can get in
+
+Two ways, and they are deliberately different.
+
+**People** sign in at `/login` (or through Caddy's basic auth in front of it) and get
+the whole app: the builder, the calculators, past quotes, PDFs.
+
+**Agents issue themselves a token**, against a work mailbox, with nobody minting
+credentials by hand:
+
+```
+POST /api/tokens/request   {"email": "jb@usemce.com", "label": "JB's assistant"}
+     → a six-digit code is emailed; good for 15 minutes, five attempts
+POST /api/tokens/confirm   {"email": ..., "code": "123456"}
+     → {"token": "mceq_..."}   shown ONCE
+```
+
+Then `Authorization: Bearer mceq_...` on every call. `ALLOWED_EMAIL_DOMAINS` (default
+`usemce.com`) decides who may ask, so it is self-service inside the company and closed
+outside it.
+
+What a token is allowed to do is narrower than what a person can do — it reaches the
+quote and calculator APIs and nothing else, and a browser page returns 403 with a
+message saying so. Tokens are stored **only as a SHA-256 hash**, so a copy of the data
+directory hands over nothing; each one records a last-used stamp; and a holder can
+list and revoke their own without being able to touch anyone else's. `tests/test_tokens.py`
+asserts each of those, including that no token ever appears in the token file.
+
+Caddy passes `/api/` straight through rather than putting basic auth in front of it —
+a bearer header cannot survive a basic-auth challenge — and the app is what refuses an
+invalid token.
+
 ## One pricing basis
 
 MCE prices its own equipment off one model, which the calculator states on its own

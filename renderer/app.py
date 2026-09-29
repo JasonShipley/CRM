@@ -20,24 +20,32 @@ Config (env):
                      where Caddy already enforces basic auth (deploy/Caddyfile).
   SECRET_KEY         Flask session key. Required if RENDERER_PASSWORD is set,
                      otherwise logins do not survive a restart.
-  RENDERER_DATA_DIR  where quotes are stored (default renderer/data)
+  RENDERER_DATA_DIR  where quotes and API tokens are stored (default renderer/data)
+  ALLOWED_EMAIL_DOMAINS  who may issue themselves an API token (default usemce.com)
+  SMTP_HOST / SMTP_PORT / SMTP_USER / SMTP_PASSWORD / SMTP_FROM
+                     mail for the one-time codes. Without SMTP_HOST the code is
+                     written to the service log instead, which is fine for a first
+                     token but not for self-service.
   CHROMIUM_PATH      default: auto-detect the playwright chromium
   TWENTY_URL / TWENTY_EMAIL / TWENTY_PASSWORD   only needed for /crm
 
 Security: this service exposes every quote and MCE's internal sizing and pricing
 data. It must not be published straight to the internet — in production it binds
-to localhost and is reached only through Caddy, which enforces basic auth.
+to localhost and is reached only through Caddy. Caddy enforces basic auth on
+everything a person uses; /api/ is passed through because it carries its own
+bearer tokens, and an invalid one is refused here (see _gate).
 """
 import hmac
 import os
 import pathlib
 
-from flask import (Flask, abort, redirect, render_template, request,
+from flask import (Flask, abort, g, jsonify, redirect, render_template, request,
                    send_from_directory, session, url_for)
 
 import calculators
 from builder import bp as builder_bp
 from crm import bp as crm_bp
+import tokens
 
 ROOT = pathlib.Path(__file__).resolve().parent
 TOOLS_DIR = ROOT / "tools"
@@ -62,6 +70,10 @@ TOOLS = {
     "fan": ("Fan Sizing", "fan-sizing-calculator.html",
             "Duty to fan selection — density factor, brake HP, motor, wheel and "
             "line size, with the RFQ block MCE sends to AirPro or IAP."),
+    "xf-fan": ("XF Fan Duty & Curve", "xf-fan-sizing-calculator.html",
+               "MCE's own XF / LS series: duct system resistance, the capacity "
+               "tables from Bulletin 251, RPM and BHP interpolated at the duty, "
+               "max safe speed, and the fan curve against the system curve."),
     "rotary-cooler": ("Rotary Cooler Sizing", "rotary-cooler-sizing-calculator.html",
                       "Direct air-swept drum — psychrometrics, drum selection, "
                       "drive and fan, with a summer sweep."),
@@ -74,15 +86,119 @@ app.register_blueprint(crm_bp)
 
 RENDERER_PASSWORD = os.environ.get("RENDERER_PASSWORD") or ""
 
+# Endpoints an API token may reach. A token is for building quotes and reading the
+# basis, not for the browser session's full run of the app.
+TOKEN_ENDPOINTS = {"builder.api_interpret", "builder.api_calc", "builder.api_pricing",
+                   "builder.api_create", "builder.api_update", "builder.quote_pdf",
+                   "builder.quote_view",
+                   # a holder manages their own tokens without asking anyone
+                   "api_token_list", "api_token_revoke"}
+# Endpoints anyone may reach — the token self-service flow has to work before you
+# hold a token.
+OPEN_ENDPOINTS = {"login", "static", "api_token_request", "api_token_confirm"}
+
 
 @app.before_request
 def _gate():
-    """Optional app-level password gate — see RENDERER_PASSWORD above."""
+    """Session password for people, bearer token for agents.
+
+    A salesperson signs in at /login. An agent presents `Authorization: Bearer
+    mceq_...`, which it issued itself against its work email — see tokens.py. The
+    token reaches the quote and calculator APIs only.
+    """
+    if request.endpoint in OPEN_ENDPOINTS:
+        return None
+
+    auth = request.headers.get("Authorization", "")
+    if auth.startswith("Bearer "):
+        who = tokens.identify(auth[7:].strip())
+        if not who:
+            return jsonify({"error": "That token is not valid or has been revoked."}), 401
+        if request.endpoint not in TOKEN_ENDPOINTS:
+            return jsonify({"error": "This token reaches the quote and calculator "
+                                     "APIs only.",
+                            "allowed": sorted(TOKEN_ENDPOINTS)}), 403
+        g.api_user = who
+        return None
+
     if not RENDERER_PASSWORD or session.get("ok"):
         return None
-    if request.endpoint in ("login", "static"):
-        return None
     return redirect(url_for("login", next=request.full_path))
+
+
+def _send_code(email, code):
+    """Email a one-time code. Falls back to the log when no SMTP is configured."""
+    host = os.environ.get("SMTP_HOST")
+    subject = "Your MCE quote builder code"
+    body = (f"Your code is {code}\n\nIt is good for 15 minutes. If you did not ask "
+            "for it, ignore this message and nothing happens.")
+    if not host:
+        app.logger.warning("No SMTP_HOST set — code for %s is %s", email, code)
+        return False
+    import smtplib
+    from email.message import EmailMessage
+
+    msg = EmailMessage()
+    msg["Subject"] = subject
+    msg["From"] = os.environ.get("SMTP_FROM", f"quotes@{tokens.ALLOWED_DOMAINS[0]}")
+    msg["To"] = email
+    msg.set_content(body)
+    port = int(os.environ.get("SMTP_PORT", "587"))
+    with smtplib.SMTP(host, port, timeout=20) as smtp:
+        smtp.starttls()
+        user = os.environ.get("SMTP_USER")
+        if user:
+            smtp.login(user, os.environ.get("SMTP_PASSWORD", ""))
+        smtp.send_message(msg)
+    return True
+
+
+@app.route("/api/tokens/request", methods=["POST"])
+def api_token_request():
+    """Ask for a one-time code. Work addresses only."""
+    payload = request.get_json(silent=True) or request.form.to_dict()
+    email = (payload.get("email") or "").strip()
+    code, error = tokens.request_code(email)
+    if error:
+        return jsonify({"error": error}), 400
+    sent = _send_code(email, code)
+    return jsonify({
+        "sent": sent, "email": email.lower(),
+        "message": ("A six-digit code is on its way — it is good for 15 minutes."
+                    if sent else
+                    "Mail is not configured on this server, so the code was written "
+                    "to the service log instead. Ask whoever runs the box for it, or "
+                    "set SMTP_HOST."),
+    })
+
+
+@app.route("/api/tokens/confirm", methods=["POST"])
+def api_token_confirm():
+    """Exchange the code for a token. Shown once — it is not recoverable."""
+    payload = request.get_json(silent=True) or request.form.to_dict()
+    token, error = tokens.confirm_code(payload.get("email"), payload.get("code"),
+                                       label=payload.get("label", ""))
+    if error:
+        return jsonify({"error": error}), 400
+    return jsonify({
+        "token": token,
+        "note": "Copy it now — it is stored only as a hash and cannot be shown again.",
+        "use": "Authorization: Bearer <token>",
+    })
+
+
+@app.route("/api/tokens")
+def api_token_list():
+    """Your own tokens, or everyone's from a browser session."""
+    who = getattr(g, "api_user", None)
+    return jsonify({"tokens": tokens.listing(who["email"] if who else None)})
+
+
+@app.route("/api/tokens/<token_id>/revoke", methods=["POST"])
+def api_token_revoke(token_id):
+    who = getattr(g, "api_user", None)
+    ok = tokens.revoke(token_id, who["email"] if who else None)
+    return jsonify({"revoked": ok}), (200 if ok else 404)
 
 
 @app.route("/login", methods=["GET", "POST"])

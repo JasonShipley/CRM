@@ -181,12 +181,9 @@ def api_pricing():
             "fabrication": f"cost × {1 + _vendor.FAB_CONTINGENCY:g} ÷ "
                            f"{1 - _vendor.FAB_MARGIN:g}",
             "parts": f"cost ÷ {_vendor.PARTS_DIVISOR:g}",
-            "fan": f"modelled cost × {_vendor.FAN_MARKUP:g}",
+            "fan_with_filter": f"AirPro cost × {_vendor.FAN_MARKUP:g}",
         },
-        "models": {
-            "screw": _vendor.SCREW_MODEL,
-            "fan": _vendor.FAN_MODEL,
-        },
+        "models": {"screw": _vendor.SCREW_MODEL},
         "mill_price": {m: _pricing.mill_price(m) for m in sorted(MILL_PRICING)},
         "mill_options": {m: {k: _pricing.mill_option(m, k)
                              for k in sorted(MILL_OPTIONS.get(m, {}))}

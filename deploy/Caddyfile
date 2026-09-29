@@ -1,14 +1,27 @@
 # MCE CRM — Caddy reverse proxy with automatic HTTPS (Let's Encrypt)
 # crm.usemce.com    -> Twenty CRM
-# quotes.usemce.com -> quote renderer (basic auth: user mce, same password as CRM login)
+# quotes.usemce.com -> quote renderer
 
 crm.usemce.com {
 	reverse_proxy server:3000
 }
 
 quotes.usemce.com {
-	basic_auth {
-		mce $2b$12$Hfa6PSeJiogxr6uibilZV.FRj41vK9tQpbko9x526knZ1IkyCsaHS
+	# The API authenticates itself: agents present `Authorization: Bearer mceq_...`,
+	# which they issue against their own work email (renderer/tokens.py), and the
+	# app checks it. Basic auth in front of that would reject the bearer header
+	# before the app ever saw it, so /api/ is routed straight through and the app
+	# is what refuses an invalid token.
+	@api path /api/*
+	handle @api {
+		reverse_proxy quote-renderer:8090
 	}
-	reverse_proxy quote-renderer:8090
+
+	# Everything a person uses stays behind basic auth.
+	handle {
+		basic_auth {
+			mce $2b$12$Hfa6PSeJiogxr6uibilZV.FRj41vK9tQpbko9x526knZ1IkyCsaHS
+		}
+		reverse_proxy quote-renderer:8090
+	}
 }
