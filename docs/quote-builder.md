@@ -104,6 +104,7 @@ input is free text.
 | Rep asks for air-swept | The filter becomes a **receiver**, because the product is carried over with the air and has to drop out of it — a bin vent cannot do that |
 | Air system, but not air-swept | Offers the air-swept conversion as one option with a real net adder: the pan, plus every step-up the extra airflow forces |
 | Rep asks for a venturi pickup | Drops the plenum from the scope — a venturi replaces it — and quotes the pickup and its adaptor unpriced, refusing the pan's price as a stand-in |
+| No filter to select a fan against | MCE's own fan calculator sizes the duty — BHP, motor, wheel, line size — and the line carries the RFQ; only the price waits on AirPro |
 | Rep gives a duct run and elbow count | The duct line becomes a bill of material a vendor can quote from, and prices itself the moment a price list is in `DUCT_PRICES` |
 | Rep says the dust is combustible | Adds NFPA isolation, an explosion vent and its burst switch as **options**, sizes none of them, and asks for the dust hazard analysis |
 | No calculator exists (fan, duct, airlock) | Lists the item unpriced rather than omitting or guessing it |
@@ -174,6 +175,13 @@ Air system:  ONE airflow drives the rest. It comes from whichever basis is to
              RECEIVER (the same filter with a hopper under it, so it collects and
              discharges on its own) and the CYCLONE.
 
+Fan:         density factor df = (530/(460+T)) x (1 - 6.87535e-6 x alt)^5.2559
+             BHP = ACFM x SP / (6356 x efficiency), efficiency by service
+             motor = first standard frame >= shaft load x 1.05
+             line  = smallest listed diameter whose velocity <= the band max
+             a SELECTION, not a price: it writes the RFQ block MCE sends to
+             AirPro or IAP, and the price comes back with their selection
+
 Cyclone:     rated CFM, or inlet ID area / 144 x inlet FPM
              <= 12,600 CFM -> HE series on its rated min/opt/max
              >  12,600 CFM -> H series on its rating at 2" / 3" / 4" WG
@@ -206,7 +214,9 @@ the hammermill just reported, and the two agree by construction.
 | Screw conveyor | SCC vendor quote x MCE markup | Budget figure; flags when the run length differs from the vendor basis |
 | Fan | AirPro OEM lineup cost x 2 | Selected against the baghouse model, not sized separately |
 | Bin vent / filter receiver | $40.20/ft² of cloth ÷ 0.70 | Budget figure; the basis says whether it is an upper bound (bin vent) or like-for-like (hopper-bottom receiver) |
-| Drop-down air pan with pickup fitting | **$9,204** | A price MCE has sold, not a shop estimate — NEMO Feed proposal 20260428 |
+| Drop Down Air Pan | **by mill model**, $2,201–$9,962 | JB's price book, which lists the pan as an option against every mill |
+| Rotary feeder | calculator base × **1.515** (nylon, SS) or **2.000** (TT) | The book's own multiplier — the calculator form's blanket 2.00 quotes nylon and SS ~32% high |
+| Fan | **not priced** | MCE's fan calculator sizes the duty and writes the RFQ; AirPro's selection brings the price |
 | Certified rotary valve | $6,053 cost ÷ 0.70 = **$8,647** | Est 7659; a 10" valve, so NOT a size-for-size swap for the standard airlock |
 | Explosion vent panel | **$1,960** (23"×36") or **$3,964** (36"×44") | Priced per panel from its own quote — price does not scale with area |
 | Burst indicator sensor | $378 cost ÷ 0.70 = **$540 per panel** | Optioned out, because it belongs to the plant's controls scope |
@@ -341,6 +351,42 @@ outright**, so `air_pickup="venturi"` drops the plenum from the scope rather tha
 relying on the rep to remember. MCE fabricates the venturi and has no cost basis for
 one, and the pan's $9,204 is explicitly refused as a stand-in — a pan is a larger
 assembly with its own structure.
+
+### The price book
+
+`19_Hammermill_Prices.xlsx` — JB's book — is MCE's own sell-price list: base price per
+mill, then Sanitary Design, AR Internal Wear Plates, Rubber Vibration Pads, Drop Down
+Air Pan, Magnet Adapter, Rock Trap and SF300 Magnet as options, plus the three 10"
+feeder tables. Two things come out of it and one goes to Jason.
+
+**The drop-down air pan is priced per mill**, $2,201 on an XM-1906 to $9,962 on an
+XM-4460, so it is never priced by analogy. (The $9,204 this project used as a
+precedent before the book arrived is the XM-3848/4448 price — the XM-4430 is $6,818,
+which is exactly the mismatch the precedent note warned about.)
+
+**The feeder multiplier is per cup type.** The book's feeder prices are the
+calculator's own base figures × 1.515 for nylon and stainless round cup, and × 2.000
+for tight tolerance — on all 36 rows of the 10" tables, to the dollar. The
+calculator's form defaults all three to 2.00, so a nylon or stainless feeder quotes
+about 32% above the book. The port keeps the original's 2.00 (a port that disagrees
+with its original is a broken port) and `quote_from_job` passes the book's multiplier,
+which is what MCE actually sells at.
+
+**The mill base price is an open question.** The book's mill prices are not a clean
+multiple of anything: they run ≈1.631 × the Bliss basis on the 19"/22" families and
+≈1.655 on the 38"/44", against the calculator's 1.73, with XM-1920 at 1.4925 — so the
+calculator quotes 4.5–6% above the book with no rule that reconciles them. Nothing was
+changed; it needs a ruling.
+
+### Names
+
+The book is also the naming authority, and `_vendor.feeder_description()` prints its
+column headings: `10" Dia. Stainless Round Cup Rotary Feeder — 8-4ROW`, not
+`10" Rotary Feeder — 7-row`. Which matters more than tidiness: **"8-4ROW" is a catalog
+designation, not an ambiguity.** The book lists 2-2ROW, 3-2ROW, 4-2ROW, 5-4ROW, 6-4ROW,
+7-4ROW, 8-4ROW, 9-6ROW, 10-6ROW, 11-6ROW, 12-6ROW and 14-8ROW for the stainless
+feeders — the first number is the row count. Reading "8-4row" as "8 rows or 4?" quoted
+a 7-row feeder off the screen width and raised an open item that never needed raising.
 
 ### Ductwork
 

@@ -1583,3 +1583,72 @@ RC_GRID = {'3': [12, 16, 20, 24, 30],
  '10': [50, 60, 70, 80, 100],
  '12': [60, 70, 80, 100, 120]}
 
+FN_EFF = {'radial': 0.6, 'hmAssist': 0.75, 'hmNeg': 0.75, 'convey': 0.6, 'rtip': 0.65, 'bi': 0.75}
+
+FN_WHEEL = {'radial': 'Straight radial (material handling)',
+ 'hmAssist': 'Backward inclined or radial (clean air, after filter)',
+ 'hmNeg': 'Backward inclined or radial (clean air, after filter)',
+ 'convey': 'Straight radial (material handling)',
+ 'rtip': 'Radial tipped',
+ 'bi': 'Backward inclined (clean air only)'}
+
+FN_SERVICE = {'radial': 'Cooler / cyclone exhaust',
+ 'hmAssist': 'Hammermill air assist (fan after filter)',
+ 'hmNeg': 'Hammermill negative air (fan after filter)',
+ 'convey': 'Material conveying',
+ 'rtip': 'Dust-laden air',
+ 'bi': 'Clean air after filter'}
+
+FN_VBAND = {'radial': [4500, 5700],
+ 'hmAssist': [3000, 4000],
+ 'hmNeg': [5000, 5500],
+ 'convey': [4500, 5700],
+ 'rtip': [4500, 5700],
+ 'bi': [4500, 5700]}
+
+FN_SPDEF = {'radial': 19, 'hmAssist': 12, 'hmNeg': 12}
+
+FN_MOTORS = [5, 7.5, 10, 15, 20, 25, 30, 40, 50, 60, 75, 100, 125, 150, 200, 250, 300, 350, 400]
+
+FN_DUCT_SIZES = [4,
+ 4.5,
+ 5,
+ 5.5,
+ 6,
+ 7,
+ 8,
+ 9,
+ 10,
+ 11,
+ 12,
+ 13,
+ 14,
+ 15,
+ 16,
+ 17,
+ 18,
+ 19,
+ 20,
+ 21,
+ 22,
+ 23,
+ 24,
+ 25,
+ 26,
+ 27,
+ 28,
+ 29,
+ 30,
+ 31,
+ 32,
+ 33,
+ 34,
+ 35,
+ 36,
+ 38,
+ 40,
+ 42,
+ 44,
+ 46,
+ 48]
+

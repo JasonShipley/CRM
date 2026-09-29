@@ -12,7 +12,7 @@ own JavaScript headless — run it after touching either side.
 This module is the registry: it declares each calculator's inputs so the form UI
 and the JSON API are generated from one description, and dispatches `run()`.
 """
-from . import (airsystem, baghouse, cooler, cyclone, duct, hammer_pattern,
+from . import (airsystem, baghouse, cooler, cyclone, duct, fan, hammer_pattern,
                hammermill)
 from ._data import CL_CHECK_DEFS, CL_PELLETS, MCE_XM_MILLS, PRODUCTS, XM_CHART
 
@@ -233,6 +233,31 @@ AIRSYSTEM_FIELDS = [
      "options": [("1", "Yes"), ("", "No")], "advanced": True},
 ]
 
+FAN_FIELDS = [
+    {"key": "service", "label": "Service", "type": "select", "default": "radial",
+     "options": list(fan.SERVICE_OPTIONS),
+     "help": "Sets the efficiency, the wheel type and the line velocity band."},
+    {"key": "cfm", "label": "Design airflow", "type": "number", "unit": "ACFM",
+     "default": 8400, "step": 100, "min": 100},
+    {"key": "sp", "label": "Design static", "type": "number", "unit": '" WC',
+     "default": 19, "step": 0.5, "min": 1, "max": 40},
+    {"key": "temp", "label": "Air temperature", "type": "number", "unit": "°F",
+     "default": 100, "step": 5, "min": -20, "max": 500},
+    {"key": "alt", "label": "Elevation", "type": "number", "unit": "ft",
+     "default": 1300, "step": 100, "min": 0, "max": 12000},
+    {"key": "margin", "label": "Design margin", "type": "number", "unit": "%",
+     "default": 0, "step": 5, "min": 0, "max": 50},
+    {"key": "drive", "label": "Drive", "type": "select", "default": "belt",
+     "options": [("belt", "V-belt (1.3 SF min, guards)"), ("direct", "Direct drive")]},
+    {"key": "material", "label": "Material", "type": "select", "default": "ms",
+     "options": [("ms", "Mild steel, enamel"), ("ss", "304 SS wetted parts")]},
+] + [
+    {"key": key, "label": label[0].upper() + label[1:], "type": "select",
+     "default": "1" if on else "", "advanced": True,
+     "options": [("1", "Yes"), ("", "No")]}
+    for key, label, on in fan.ACCESSORIES
+]
+
 CALCULATORS = {
     "hammermill": {
         "key": "hammermill", "label": "Hammermill + Plenum",
@@ -255,6 +280,14 @@ CALCULATORS = {
                  "model, a screen area, a CFM figure or a cooler. Combustible dust "
                  "adds NFPA isolation and venting as options.",
         "fields": AIRSYSTEM_FIELDS, "run": airsystem.size, "prices": True,
+    },
+    "fan": {
+        "key": "fan", "label": "Fan",
+        "blurb": "Duty to fan selection — density factor, brake HP, motor, wheel and "
+                 "line size, with the RFQ block MCE sends to AirPro or IAP. Sizes the "
+                 "fan; the price comes back with the vendor's selection.",
+        "fields": FAN_FIELDS, "run": fan.size, "prices": False,
+        "tool": "fan-sizing-calculator.html",
     },
     "cyclone": {
         "key": "cyclone", "label": "Cyclone",

@@ -249,6 +249,8 @@ def build(job, today=None, delivery_weeks=None):
             "plenumVelocity": FALLBACK_PLENUM_VELOCITY,
             "feederDia": feeder.diameter_in or "10",
             "cupType": feeder.cup_type or "nylon",
+            # the book's multiplier, not the calculator form's blanket 2.00
+            "feederMult": _vendor.feeder_multiplier(feeder.cup_type or "nylon"),
             "rowCount": rows if rows is not None else "",
             "magnetClean": feeder.magnet_clean or "sma",
             "trough": FALLBACK_TROUGH,
@@ -412,8 +414,8 @@ def build(job, today=None, delivery_weeks=None):
             open_items.append(
                 "Venturi pickup fitting and air adaptor are unpriced: MCE fabricates "
                 "them and there is no cost basis for one yet. The drop-down air pan's "
-                "$9,204 is NOT a stand-in — a pan is a larger assembly with its own "
-                "structure. Get a shop estimate before release.")
+                "book price is NOT a stand-in — a pan is a larger assembly with its "
+                "own structure. Get a shop estimate before release.")
         elif air_swept:
             pan = ["Drop-down air pan under the mill with structure and air pickup fitting"]
             if result and result.get("screen_area"):
@@ -423,17 +425,28 @@ def build(job, today=None, delivery_weeks=None):
             else:
                 pan.append(f"Sized on {AIR_SWEPT_FACTOR:g} × the mill screen area, once the "
                            "mill is fixed")
-            pan_price, pan_basis = _vendor.air_pan_price()
+            pan_model = (result or {}).get("model") or job.mill_model
+            priced_pan = _vendor.air_pan_price(pan_model)
             pan += ["Air pickup fitting on the pan takes the ground product out to the "
                     "filter",
-                    "Hinged for screen and hammer access without breaking the duct",
-                    "Budgetary price — firm on receipt of the fabrication estimate"]
-            lines.append({
-                "name": "Drop-Down Air Pan with Air Pickup Fitting", "quantity": qty,
-                "unitPrice": round(pan_price, 2), "budgetPrice": True,
-                "description": "\n".join(pan)})
-            open_items.append(
-                f"Drop-down air pan priced at a {pan_basis}.")
+                    "Hinged for screen and hammer access without breaking the duct"]
+            if priced_pan:
+                pan_price, pan_basis = priced_pan
+                pan.append("Priced as the listed option on this mill")
+                lines.append({
+                    "name": "Drop Down Air Pan", "quantity": qty,
+                    "unitPrice": round(pan_price, 2),
+                    "description": "\n".join(pan)})
+                open_items.append(f"Drop-down air pan priced from the book: {pan_basis}.")
+            else:
+                pan.append("Price from the fabrication estimate")
+                lines.append({
+                    "name": "Drop Down Air Pan", "quantity": qty, "unitPrice": 0,
+                    "needsPrice": True, "description": "\n".join(pan)})
+                open_items.append(
+                    f'No drop-down air pan price on file for {pan_model or "this mill"} '
+                    f"— the price book covers the XM-19/22/38/44 models. Get a shop "
+                    "estimate.")
         al = _vendor.airlock()
         if al:
             # Model number and specification only — the vendor's name is internal.
@@ -479,7 +492,34 @@ def build(job, today=None, delivery_weeks=None):
                     f'Cyclone sized {cyc["matchSize"]} from the mill\'s '
                     f'{cyc["cfm"]:,} CFM plenum airflow at 3" WG. Price basis: '
                     f'{cyc["priceBasis"]}.')
-            outstanding.insert(0, "Fan")
+            # With no filter there is no AirPro pairing to look the fan up from, so
+            # MCE's own fan calculator selects the duty: density factor, brake HP,
+            # motor, wheel and line size, plus the RFQ block that goes to AirPro.
+            # The PRICE still comes back with the vendor's selection.
+            fan_form = {"cfm": round(system_cfm), "sp": _vendor.FAN_STATIC_CYCLONE,
+                        "temp": 70, "alt": 0, "service": "radial", "drive": "belt",
+                        "material": "ms", "accDamper": "1", "accTrans": "1"}
+            fanr = (calculators.run("fan", fan_form) if system_cfm
+                    else {"error": "no system airflow"})
+            if fanr.get("error"):
+                outstanding.insert(0, "Fan")
+            else:
+                for line in fanr["lines"]:
+                    lines.append({**line, "quantity": qty})
+                sizing.append({"calculator": fanr["calculator"], "inputs": fan_form,
+                               "formula": fanr.get("formula", ""),
+                               "outputs": fanr.get("outputs", []),
+                               "warnings": fanr.get("warnings", [])})
+                open_items.extend(fanr.get("warnings", []))
+                open_items.append(
+                    f'Fan sized by MCE\'s own calculator at {fanr["cfm"]:,} ACFM and '
+                    f'{_vendor.FAN_STATIC_CYCLONE:g}" WC — {fanr["bhp"]:,.1f} BHP, '
+                    f'{fanr["motorHp"]:g} HP motor, {fanr["lineDiameter"]}" line. The '
+                    f'static is the calculator\'s own default for cyclone exhaust, not '
+                    "a layout figure: confirm it against the real duct run, the cyclone "
+                    "drop and the elbows before the RFQ goes out. The price comes back "
+                    "with AirPro's selection.")
+                rfq_text = fanr.get("rfq")
         # Ductwork is sized from the same system airflow as everything else, but the
         # run length, the fittings and whether it vents to atmosphere all come out
         # of the site layout, so it is quoted on request rather than guessed at.
@@ -604,14 +644,15 @@ def build(job, today=None, delivery_weeks=None):
                            if l["name"].startswith("Filter Receiver")), None)
         new_fan = next((l for l in swept.get("lines", []) if l["name"].startswith("Fan")),
                        None)
-        if new_filter:
-            pan_price, pan_basis = _vendor.air_pan_price()
+        priced_pan = _vendor.air_pan_price((result or {}).get("model") or job.mill_model)
+        if new_filter and priced_pan:
+            pan_price, pan_basis = priced_pan
             filter_delta = new_filter["unitPrice"] - filter_line["unitPrice"]
             fan_delta = ((new_fan["unitPrice"] - fan_line["unitPrice"])
                          if new_fan and fan_line else 0.0)
             adder = pan_price + filter_delta + fan_delta
             notes = [
-                f'Drop-down air pan with air pickup fitting under the mill, sized on '
+                f'Drop down air pan with air pickup fitting under the mill, sized on '
                 f'{screen_area:,} in² × {AIR_SWEPT_FACTOR:g} = '
                 f'{screen_area * AIR_SWEPT_FACTOR:,.0f} in² pan area — {money(pan_price)}',
                 f'{new_filter["name"]} in place of the {filter_line["name"]} in the scope '

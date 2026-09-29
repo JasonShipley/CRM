@@ -260,10 +260,13 @@ def size(f):
                 f"Feeder: (${base:,} + ${clean_add:,} magnet/cleanout) × {feeder_mult:.2f} "
                 f"= {money(feeder_price)}")
             lines.append({
-                "name": f'{feeder_dia}" Rotary Feeder — {feeder["rows"]}-row',
+                # MCE's own catalog name, from the price book, so the proposal and the
+                # book call the same feeder the same thing.
+                "name": _vendor.feeder_description(feeder_dia, cup_type, feeder["rows"]),
                 "quantity": 1, "unitPrice": round(feeder_price, 2),
                 "description": "\n".join([
-                    f'{feeder["rows"]}-row, {feeder["width"]} wide, {cup_type} cups',
+                    f'{_vendor.feeder_designation(cup_type, feeder["rows"])}, '
+                    f'{feeder["width"]} wide, {cup_type} cups',
                     (f"{num(feeder_rpm, 1)} RPM shaft speed at {num(pph)} PPH and "
                      f"{density:g} lb/ft³, figured at 90% pocket fill"
                      if feeder_rpm else "Shaft speed pending bulk density"),

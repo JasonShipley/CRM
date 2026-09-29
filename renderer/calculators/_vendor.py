@@ -370,6 +370,69 @@ def baghouse_budget(cloth_sqft, hopper=False):
             f"marked up at MCE's buy-out divisor {BUYOUT_DIVISOR:g}. {scale}")
 
 
+# ----------------------------------------- feeder multiplier, from the book -----
+# The price book's feeder prices are EXACTLY the calculator's own base figures
+# times a multiplier, on all 36 rows of the 10" tables, to the dollar:
+#
+#     nylon cup                 x 1.515
+#     stainless round cup       x 1.515
+#     tight-tolerance stainless x 2.000
+#
+# The calculator's form defaults every cup type to 2.00, so a nylon or stainless
+# feeder quotes about 32% above the book. The PORT keeps the original's 2.00 —
+# a port that disagrees with its original is a broken port — and the quote builder
+# passes the book's multiplier instead, because the book is what MCE sells at.
+#
+# (The book rounds each component before adding; the calculator multiplies the sum,
+# so a quoted feeder can land a dollar off the book. Not worth contorting either.)
+FEEDER_MULTIPLIER = {"nylon": 1.515, "ss": 1.515, "tt": 2.000}
+FEEDER_MULTIPLIER_SOURCE = "MCE hammermill price book (JB), received 2026-09-29"
+
+
+def feeder_multiplier(cup_type):
+    return FEEDER_MULTIPLIER.get(cup_type or "nylon", FEEDER_MULTIPLIER["nylon"])
+
+
+# ------------------------------------------- MCE's own names, from the book -----
+# The price book is also the naming authority. "8-4ROW" is not an ambiguity to be
+# resolved — it is MCE's catalog designation for the 8-row stainless round-cup
+# feeder, and the book lists one designation per row count. Reading it as "8 or 4
+# rows?" quoted the wrong feeder and raised an open item that never needed raising.
+FEEDER_CATALOG_NAME = {
+    "nylon": 'Dia. Nylon Cup Rotary Feeder',
+    "ss": 'Dia. Stainless Round Cup Rotary Feeder',
+    "tt": 'Dia. Tight Tolerance Stainless Round Cup Rotary Feeder',
+}
+# rows -> the designation the book prints, and the mill screen widths it serves
+FEEDER_ROW_DESIGNATION = {
+    "nylon": {2: "2-ROW", 3: "3-ROW", 4: "4-ROW", 5: "5-ROW", 6: "6-ROW", 7: "7-ROW",
+              8: "8-ROW", 9: "9-ROW", 10: "10-ROW", 11: "11-ROW", 12: "12-ROW",
+              14: "14-ROW"},
+    "round": {2: "2-2ROW", 3: "3-2ROW", 4: "4-2ROW", 5: "5-4ROW", 6: "6-4ROW",
+              7: "7-4ROW", 8: "8-4ROW", 9: "9-6ROW", 10: "10-6ROW", 11: "11-6ROW",
+              12: "12-6ROW", 14: "14-8ROW"},
+}
+FEEDER_ROW_WIDTHS = {2: '6" & 9"', 3: '11.5" & 12"', 4: '15"', 5: '20"', 6: '24"',
+                     7: '30"', 8: '30" & 36"', 9: '36"', 10: '36" & 40"', 11: '40"',
+                     12: '40"-48"', 14: '60"'}
+
+
+def feeder_designation(cup_type, rows):
+    """MCE's own row designation — "8-4ROW" for the 8-row stainless, "8-ROW" nylon."""
+    table = FEEDER_ROW_DESIGNATION["nylon" if cup_type == "nylon" else "round"]
+    return table.get(int(rows or 0), f"{int(rows or 0)}-ROW")
+
+
+def feeder_description(diameter_in, cup_type, rows):
+    """The line name exactly as the price book heads its column."""
+    kind = FEEDER_CATALOG_NAME.get(cup_type or "nylon", FEEDER_CATALOG_NAME["nylon"])
+    return f'{diameter_in}" {kind} — {feeder_designation(cup_type, rows)}'
+
+
+# The fan calculator's own default static for cyclone-exhaust duty. It is MCE's
+# number, not a layout calculation — every line built on it says so.
+FAN_STATIC_CYCLONE = 19
+
 # ----------------------------------------------------------- air-handling duct --
 # Duct is a BOUGHT item: Nolin Milling stocks primed gray air-handling duct,
 # segmented elbows and the round-to-round adaptors, and High Tech Duct Werks sells
@@ -406,25 +469,41 @@ def duct_price(diameter_in, run_ft=0, elbows=0, adaptors=0):
             f'{row.get("date", "")}), at MCE\'s buy-out divisor {BUYOUT_DIVISOR:g}')
 
 
-# ------------------------------------------------ air-swept pan, from a proposal --
-# An air-swept mill runs on a drop-down pan under the rotor instead of a plain
-# plenum: the pan is sized on 1.25 x the screen area, and the air pickup fitting on
-# it takes the ground product out to the filter. MCE has no calculator and no shop
-# estimate for one, but it has SOLD one — the NEMO Feed proposal carried a
-# drop-down air pan with structure at $9,204. That is a sold price, so it is used
-# as it stands, the way a sold cyclone price is, and every line built from it says
-# which job it came from.
-AIR_PAN_PRECEDENT = {
-    "price": 9204.00, "date": "2026-04-28", "source": "NEMO Feed proposal 20260428",
-    "desc": "drop-down air pan with structure and air pickup fitting",
+# ------------------------------------------------- air-swept pan, from the book --
+# JB's hammermill price book carries the drop-down air pan as a priced OPTION
+# against every mill, so there is no need to reason from a precedent any more.
+# These are MCE's own sell prices and are used as they stand.
+#
+# Worth knowing: the NEMO Feed proposal's $9,204 pan, which this project used as a
+# precedent before the book arrived, is the XM-3848/XM-4448 price. It was never the
+# 4430's — the 4430 is $6,818 — which is exactly the mismatch the precedent note
+# warned about.
+AIR_PAN_SOURCE = "MCE hammermill price book (JB), received 2026-09-29"
+AIR_PAN_PRICES = {
+    "XM-1906": 2201, "XM-1912": 3805, "XM-1915": 4813, "XM-1920": 5597,
+    "XM-1924": 6417,
+    "XM-2210": 3208, "XM-2212": 3843, "XM-2215": 4813, "XM-2220": 5597,
+    "XM-2224": 6417, "XM-2230": 6716, "XM-2236": 7761,
+    "XM-3810": 3371, "XM-3812": 4015, "XM-3815": 5037, "XM-3820": 5606,
+    "XM-3824": 6136, "XM-3830": 6818, "XM-3836": 7613, "XM-3840": 8598,
+    "XM-3848": 9204, "XM-3860": 9962,
+    "XM-4410": 3409, "XM-4412": 4128, "XM-4415": 5303, "XM-4420": 5606,
+    "XM-4424": 6121, "XM-4430": 6818, "XM-4436": 7613, "XM-4440": 8447,
+    "XM-4448": 9204, "XM-4460": 9962,
 }
+# The same book prices these options, which this project does not quote yet. They
+# are recorded so the next one to need them does not go looking for the file.
+PRICE_BOOK_OPTIONS_ON_FILE = [
+    "Sanitary Design", "AR Internal Wear Plates", "Rubber Vibration Pads",
+    "Magnet Adapter (manual clean / auto self clean)", "Rock Trap", "SF300 Magnet",
+]
 
 
 # A venturi pickup takes the mill discharge straight into the air stream: a venturi
 # throat under the mill and an adaptor that opens out to the duct diameter. It is
-# MCE fabrication and there is no cost basis for one — the drop-down pan's $9,204 is
-# NOT a stand-in, because a pan is a different (larger) assembly with its own
-# structure.
+# MCE fabrication and there is no cost basis for one — the drop-down pan's book
+# price is NOT a stand-in, because a pan is a different (larger) assembly with its
+# own structure.
 VENTURI_PICKUP_SCOPE = [
     "Venturi pickup fitting under the mill discharge, so the ground product is picked "
     "up into the air stream without a plenum",
@@ -434,14 +513,20 @@ VENTURI_PICKUP_SCOPE = [
 ]
 
 
-def air_pan_price():
-    """(price, basis) for a drop-down air pan with its pickup fitting."""
-    a = AIR_PAN_PRECEDENT
-    return (a["price"],
-            f'precedent price — MCE sold a {a["desc"]} at ${a["price"]:,.0f} on '
-            f'{a["source"]} ({a["date"]}). The pan is sized to the mill, and that one '
-            "was not sized to this mill, so it is a budget figure until the shop "
-            "estimates the actual pan")
+def air_pan_price(model=None):
+    """(price, basis) for the drop-down air pan on this mill, or None.
+
+    The pan is sized to the mill, so it is priced by model and never by analogy:
+    the book runs from $2,201 on an XM-1906 to $9,962 on an XM-4460.
+    """
+    want = str(model or "").strip().upper()
+    if want and not want.startswith("XM-"):
+        want = "XM-" + want.lstrip("XM").lstrip("-")
+    price = AIR_PAN_PRICES.get(want)
+    if price is None:
+        return None
+    return (float(price),
+            f"{want} drop-down air pan at ${price:,.0f} from {AIR_PAN_SOURCE}")
 
 
 # --------------------------------------------------------------- drive motors --

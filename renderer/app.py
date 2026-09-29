@@ -59,6 +59,9 @@ TOOLS = {
                        "the 38/44-40 reference pattern."),
     "duct": ("Duct Sizing", "duct-sizing-calculator.html",
              "Airflow to duct diameter at the conveying velocity, and back."),
+    "fan": ("Fan Sizing", "fan-sizing-calculator.html",
+            "Duty to fan selection — density factor, brake HP, motor, wheel and "
+            "line size, with the RFQ block MCE sends to AirPro or IAP."),
     "rotary-cooler": ("Rotary Cooler Sizing", "rotary-cooler-sizing-calculator.html",
                       "Direct air-swept drum — psychrometrics, drum selection, "
                       "drive and fan, with a summer sweep."),

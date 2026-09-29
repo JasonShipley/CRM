@@ -40,9 +40,12 @@ class FeederSpec(BaseModel):
         None, description='Cup type: "nylon" for nylon cup, "ss" for stainless round cup, '
                           '"tt" for tight-tolerance stainless. Only if stated.')
     rows: Optional[int] = Field(
-        None, description="Number of cup rows, only if unambiguously stated. If the text "
-                          'gives something unclear like "8-4row", leave this null and '
-                          "record the problem in ambiguities.")
+        None, description='Number of cup rows. MCE writes its stainless and '
+                          'tight-tolerance feeders with a catalog designation like '
+                          '"8-4ROW", "5-4ROW" or "14-8ROW" — the FIRST number is the row '
+                          'count, so "8-4row" is an 8-row feeder, not an ambiguity. A '
+                          'nylon feeder is written plainly, "8-ROW". Null only if no row '
+                          "count was given at all.")
     magnet_clean: Optional[Literal["sma", "scmam", "scmaa"]] = Field(
         None, description='Magnet cleanout: "sma" manual clean, "scmam" manual self-clean, '
                           '"scmaa" auto self-clean. Only if stated.')
@@ -155,8 +158,12 @@ Rules, in order of importance:
 screen size, a feeder detail or a quantity, leave that field null. A null field is correct \
 and useful; a guessed field is a wrong quote.
 2. Never resolve an ambiguity by picking the likelier option. Leave the field null and write \
-a line in `ambiguities` saying exactly what you need. For example, a feeder written as \
-"8-4row" could be 8 rows or 4 rows — that is an ambiguity, not an 8.
+a line in `ambiguities` saying exactly what you need. A product that could be two entries in \
+the table, or a capacity with no unit, is an ambiguity.
+2b. MCE's own shorthand is NOT an ambiguity. A feeder written "8-4row", "5-4row" or \
+"14-8row" is the catalog designation from MCE's price book, which lists 2-2ROW, 3-2ROW, \
+4-2ROW, 5-4ROW, 6-4ROW, 7-4ROW, 8-4ROW, 9-6ROW, 10-6ROW, 11-6ROW, 12-6ROW and 14-8ROW for \
+the stainless round-cup feeders: the FIRST number is the row count. Read it and move on.
 3. Do not do arithmetic beyond unit normalisation that the rep clearly implied \
 (tons per hour stays in capacity_tph; pounds per hour stays in capacity_pph; a screen \
 written as a fraction of an inch converts to 64ths).

@@ -213,9 +213,21 @@ def test_cyclone_when_the_rep_asks_for_one():
         check("no pricing provenance on the customer line",
               "NEMO" not in cyc["description"] and "$" not in cyc["description"],
               cyc["description"])
-    # the fan came with the baghouse; without one it is back to TBD
-    check("fan back to TBD", any(n.startswith("Fan — size and price TBD") for n in names),
-          str(names))
+    # the fan came with the baghouse; without one MCE's own fan calculator sizes it,
+    # and only the PRICE waits on the vendor's selection
+    fan_line = next((l for l in q["lines"] if l["name"].startswith("Fan —")), None)
+    check("a fan is still quoted without a filter", fan_line is not None, str(names))
+    if fan_line:
+        check("and it is sized, not TBD",
+              "TBD" not in fan_line["name"] and "HP" in fan_line["name"],
+              fan_line["name"])
+        check("the duty is on the line for the vendor",
+              "ACFM" in fan_line["description"] and "BHP" in fan_line["description"],
+              fan_line["description"])
+        check("but the price waits on the selection", fan_line.get("needsPrice"),
+              str(fan_line.get("unitPrice")))
+        check("and the static is flagged as a default, not a layout figure",
+              "not a layout figure" in open_text(q), open_text(q))
     check("cyclone price basis recorded internally",
           "cyclone" in open_text(q).lower(), open_text(q))
     # and the size itself is the calculator's, off the mill's own plenum airflow
@@ -294,14 +306,16 @@ def test_air_swept():
           cfm(swept)["notes"])
 
     names = [l["name"] for l in swept["lines"]]
-    check("air pan is a line", any(n.startswith("Drop-Down Air Pan") for n in names), str(names))
-    pan = next(l for l in swept["lines"] if l["name"].startswith("Drop-Down"))
-    check("the pan names its pickup fitting", "Pickup Fitting" in pan["name"], pan["name"])
-    check("the pan is priced from the precedent, and says so",
-          pan["unitPrice"] == _v.AIR_PAN_PRECEDENT["price"] and pan.get("budgetPrice"),
-          str(pan.get("unitPrice")))
-    check("and the precedent is named internally",
-          "NEMO Feed proposal" in open_text(swept), open_text(swept))
+    check("air pan is a line", any(n == "Drop Down Air Pan" for n in names), str(names))
+    pan = next(l for l in swept["lines"] if l["name"] == "Drop Down Air Pan")
+    # the price book carries the pan against every mill, so it is priced by MODEL and
+    # never by analogy: an XM-4430 pan is $6,818, an XM-4448 is $9,204
+    check("the pan is priced from the book for THIS mill",
+          pan["unitPrice"] == _v.AIR_PAN_PRICES["XM-4430"], str(pan.get("unitPrice")))
+    check("and the book is named internally",
+          "price book" in open_text(swept), open_text(swept))
+    check("the pan names its pickup fitting in the description",
+          "pickup fitting" in pan["description"], pan["description"])
     # an air-swept mill discharges through the air, so the filter needs a hopper
     check("air-swept quotes a receiver, not a bin vent",
           any(n.startswith("Filter Receiver") for n in names)
@@ -320,7 +334,7 @@ def test_air_swept():
     check("plain quote offers the air-swept conversion", conv is not None,
           str([o["name"] for o in plain["options"]]))
     if conv:
-        pan_price = _v.AIR_PAN_PRECEDENT["price"]
+        pan_price = _v.AIR_PAN_PRICES["XM-4430"]
         filt_plain = next(l for l in plain["lines"] if "Bin Vent" in l["name"])
         filt_swept = next(l for l in swept["lines"] if "Filter Receiver" in l["name"])
         fan_plain = next(l for l in plain["lines"] if l["name"].startswith("Fan —"))
@@ -370,18 +384,55 @@ def test_venturi_cyclone_arrangement():
     check("and it is unpriced while no price list is on file",
           duct.get("needsPrice") and "No duct price list" in open_text(q),
           open_text(q))
-    # the fan is the honest gap: nothing selects one against a cyclone
-    check("the fan is flagged, not invented",
-          any("Fan — size and price TBD" in n for n in names), str(names))
-    check("and the reason is recorded",
-          "no fan calculator" in open_text(q), open_text(q))
+    # the fan is sized by MCE's own calculator now that it is ported
+    fan_line = next(l for l in q["lines"] if l["name"].startswith("Fan —"))
+    check("the fan is sized off the air-swept airflow",
+          "5,850 ACFM" in fan_line["name"] or "5,850 ACFM" in fan_line["description"],
+          fan_line["name"])
+    check("its price still waits on the vendor", fan_line.get("needsPrice"),
+          str(fan_line.get("unitPrice")))
+    check("and the sizing is recorded internally",
+          "Fan sized by MCE" in open_text(q), open_text(q))
     # a plain air-swept job still keeps its plenum and its pan
     pan_job = qfj.build(jb_request(air_swept=True, air_pickup="pan"), today=TODAY)
     pan_names = [l["name"] for l in pan_job["lines"]]
     check("a pan job keeps the plenum", any("Plenum" in n for n in pan_names),
           str(pan_names))
     check("and quotes the pan, not a venturi",
-          any(n.startswith("Drop-Down Air Pan") for n in pan_names), str(pan_names))
+          any(n == "Drop Down Air Pan" for n in pan_names), str(pan_names))
+
+
+def test_price_book_alignment():
+    """JB's price book is what MCE sells at, so a quote has to agree with it.
+
+    The book's feeder prices are the calculator's own base figures times 1.515
+    (nylon and stainless) or 2.000 (tight tolerance), on every row of the 10"
+    tables. The calculator's FORM defaults all three to 2.00, so the builder passes
+    the book's multiplier and a stainless feeder lands on the book's number.
+    """
+    from interpret import FeederSpec
+    book_ss_8row, book_combo_auto = 10215, 6548     # 10" stainless 8-4ROW, auto clean
+    job = jb_request(feeder=FeederSpec(diameter_in="10", cup_type="ss", rows=8,
+                                       magnet_clean="scmaa"), ambiguities=[])
+    q = qfj.build(job, today=TODAY)
+    feeder = next(l for l in q["lines"] if "Rotary Feeder" in l["name"])
+    # within a dollar: the book rounds each component, the calculator the sum
+    check("stainless feeder matches the price book",
+          abs(feeder["unitPrice"] - (book_ss_8row + book_combo_auto)) <= 1.50,
+          f'{feeder["unitPrice"]} vs {book_ss_8row + book_combo_auto}')
+    check("and carries MCE's own catalog name",
+          feeder["name"] == '10" Dia. Stainless Round Cup Rotary Feeder — 8-4ROW',
+          feeder["name"])
+    # "8-4row" is a designation, not an ambiguity — it must not raise one
+    check("the designation raises no ambiguity",
+          not any("8-4row" in a.lower() for a in q["openItems"]), open_text(q))
+    # tight tolerance is the one cup type the calculator's 2.00 was right for
+    check("tight tolerance keeps the 2.00 multiplier",
+          _v.feeder_multiplier("tt") == 2.0 and _v.feeder_multiplier("ss") == 1.515)
+    # the air pan is priced per mill, straight from the book
+    check("the book prices the pan by model",
+          _v.AIR_PAN_PRICES["XM-4430"] == 6818
+          and _v.AIR_PAN_PRICES["XM-4448"] == 9204)
 
 
 def test_options_and_reference_block():
@@ -465,7 +516,8 @@ def main():
                test_baghouse_is_still_the_default,
                test_no_vendor_brands_on_customer_lines, test_delivery_weeks,
                test_air_swept, test_venturi_cyclone_arrangement,
-               test_options_and_reference_block, test_quantity,
+               test_price_book_alignment, test_options_and_reference_block,
+               test_quantity,
                test_fan_quote_validity, test_reference_slug):
         fn()
         print(f"  {fn.__name__}")

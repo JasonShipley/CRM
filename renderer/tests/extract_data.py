@@ -95,6 +95,7 @@ cl = (TOOLS / "counterflow-cooler-sizing-calculator.html").read_text()
 cy = (TOOLS / "cyclone-cfm-calculator.html").read_text()
 hp = (TOOLS / "hammer-pattern-calculator.html").read_text()
 rc = (TOOLS / "rotary-cooler-sizing-calculator.html").read_text()
+fn = (TOOLS / "fan-sizing-calculator.html").read_text()
 
 parts = ['"""Data tables extracted verbatim from MCE\'s calculators in renderer/tools/.\n\n'
          'Generated, do not hand-edit: change the calculator HTML and re-run the\n'
@@ -124,6 +125,9 @@ for name in ["COLLAR_W", "COLLARS_PER_PIN", "TOTAL_PINS"]:
 
 for name in ["STD_MOTORS", "PRESETS", "GRID"]:
     parts.append(dump("RC_" + name, to_python(js_body(rc, name))))
+
+for name in ["EFF", "WHEEL", "SERVICE", "VBAND", "SPDEF", "MOTORS", "DUCT_SIZES"]:
+    parts.append(dump("FN_" + name, to_python(js_body(fn, name))))
 
 pathlib.Path("/home/user/CRM/renderer/calculators/_data.py").write_text("".join(parts))
 print("wrote _data.py")

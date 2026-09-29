@@ -22,8 +22,8 @@ HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent))
 
 from calculators import (baghouse as bh, cooler as cl, cyclone as cy,  # noqa: E402
-                         duct as dc, hammer_pattern as hp, hammermill as hm)
-from calculators._data import CL_PELLETS, PRODUCTS  # noqa: E402
+                         duct as dc, fan as fn, hammer_pattern as hp, hammermill as hm)
+from calculators._data import CL_PELLETS, FN_EFF, PRODUCTS  # noqa: E402
 
 FAILS = []
 
@@ -303,10 +303,59 @@ def test_duct():
     return len(cases)
 
 
+def test_fan():
+    """The fan calculator selects a duty and writes MCE's RFQ block. Both are
+    diffed: a wrong motor is obvious, a wrong RFQ line goes out to AirPro."""
+    random.seed(23)
+    ACC = ["accDamper", "accTrans", "accSeal", "accIso", "accSpark", "accVfd"]
+    cases = [
+        # the calculator's own defaults
+        {"cfm": 8400, "sp": 19, "temp": 100, "alt": 1300, "service": "radial",
+         "acc": {"accDamper": True, "accTrans": True}},
+        # a hammermill fan after the filter, which is the duty this project needs
+        {"cfm": 5850, "sp": 12, "temp": 70, "alt": 0, "service": "hmNeg",
+         "acc": {"accDamper": True, "accTrans": True}},
+        # slow enough to trip the below-band warning
+        {"cfm": 400, "sp": 6, "temp": 70, "alt": 0, "service": "radial", "acc": {}},
+        # past the largest listed line size
+        {"cfm": 90000, "sp": 8, "temp": 70, "alt": 0, "service": "bi", "acc": {}},
+    ]
+    services = list(FN_EFF)
+    for _ in range(60):
+        c = {"cfm": random.choice([900, 2400, 4680, 5850, 8400, 12000, 20000, 43000]),
+             "sp": random.choice([4, 6, 8, 12, 15, 19, 22, 30]),
+             "temp": random.choice([-10, 32, 70, 100, 140, 212, 350]),
+             "alt": random.choice([0, 600, 1300, 3000, 5280, 9000]),
+             "margin": random.choice([0, 0, 5, 10, 25]),
+             "service": random.choice(services),
+             "drive": random.choice(["belt", "direct"]),
+             "material": random.choice(["ms", "ss"]),
+             "acc": {a: random.random() < 0.4 for a in ACC}}
+        cases.append(c)
+
+    ref = node("fan_ref.js", json.dumps(cases))
+    for c, r in zip(cases, ref):
+        form = {k: v for k, v in c.items() if k != "acc"}
+        form.update({a: ("1" if c.get("acc", {}).get(a) else "") for a in ACC})
+        got = fn.size(form)
+        if got.get("error"):
+            FAILS.append(f"fan errored: {got['error']}\n    case={c}")
+            continue
+        check("fan airflow", r["cfm"], out(got, "Design airflow"), c)
+        check("fan static", r["sp"], out(got, "Design static"), c)
+        check("fan std-air SP", r["spEq"], out(got, "Std-air equivalent SP"), c)
+        check("fan motor", r["hp"], out(got, "Estimated motor"), c)
+        for label, value in r["specs"]:
+            check(f"fan spec {label}", value, out(got, label), c)
+        check("fan RFQ", r["rfq"], got["rfq"], c)
+    return len(cases)
+
+
 def main():
     counts = {"hammermill": test_hammermill(), "baghouse": test_baghouse(),
               "cooler": test_cooler(), "cyclone": test_cyclone(),
-              "hammer pattern": test_hammer_pattern(), "duct": test_duct()}
+              "hammer pattern": test_hammer_pattern(), "duct": test_duct(),
+              "fan": test_fan()}
     for name, n in counts.items():
         print(f"  {name}: {n} cases")
     if FAILS:
