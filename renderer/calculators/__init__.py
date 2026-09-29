@@ -12,8 +12,8 @@ own JavaScript headless — run it after touching either side.
 This module is the registry: it declares each calculator's inputs so the form UI
 and the JSON API are generated from one description, and dispatches `run()`.
 """
-from . import (_pricing, airsystem, baghouse, cooler, cyclone, duct, fan,
-               hammer_pattern, hammermill)
+from . import (_pricing, airsystem, baghouse, cooler, cooler_heat, cyclone, duct,
+               fan, hammer_pattern, hammermill)
 from ._data import CL_CHECK_DEFS, CL_PELLETS, MCE_XM_MILLS, PRODUCTS, XM_CHART
 
 # --------------------------------------------------------------- input specs --
@@ -261,6 +261,79 @@ FAN_FIELDS = [
     for key, label, on in fan.ACCESSORIES
 ]
 
+COOLER_HEAT_FIELDS = [
+    {"key": "coolerType", "label": "Cooler type", "type": "select", "default": "bed",
+     "options": list(cooler_heat.TYPES),
+     "help": "Counterflow lets the exhaust climb toward the product inlet "
+             "temperature. Co-current only reaches a common temperature — that is "
+             "the whole argument, not a detail."},
+    {"key": "tph", "label": "Production rate", "type": "number", "unit": "TPH",
+     "default": 12.0, "step": 0.5, "min": 0.1},
+    {"key": "tProductIn", "label": "Product temperature at cooler inlet",
+     "type": "number", "unit": "°F", "default": 240, "step": 5, "min": 0,
+     "help": "Measure at the cooler, not at the press."},
+    {"key": "approach", "label": "Target approach above inlet air", "type": "number",
+     "unit": "°F", "default": 15, "step": 1, "min": 0,
+     "help": "MCE's performance basis: discharge within 15 °F of the cooling air."},
+    {"key": "cp", "label": "Product specific heat", "type": "number",
+     "unit": "BTU/lb·°F", "default": 0.50, "step": 0.01, "min": 0.1,
+     "help": "0.45–0.50 meal, cake and pellets."},
+    {"key": "bulkDensity", "label": "Bulk density", "type": "number", "unit": "lb/ft³",
+     "default": 35, "step": 1, "min": 5},
+    {"key": "moistIn", "label": "Moisture in", "type": "number", "unit": "% wb",
+     "default": 7.0, "step": 0.1, "min": 0, "max": 60},
+    {"key": "moistOut", "label": "Moisture out", "type": "number", "unit": "% wb",
+     "default": 5.0, "step": 0.1, "min": 0, "max": 60,
+     "help": "The points flashed off in the cooler are a heat sink — pellets "
+             "typically 2–3 points, cake about 2."},
+    {"key": "airDryBulb", "label": "Inlet air dry bulb", "type": "number", "unit": "°F",
+     "default": 70, "step": 5, "min": -20, "max": 130,
+     "help": "Run it twice: the annual average, then the summer design day."},
+    {"key": "airRh", "label": "Inlet relative humidity", "type": "number", "unit": "%",
+     "default": 50, "step": 5, "min": 1, "max": 100},
+    {"key": "elevation", "label": "Site elevation", "type": "number", "unit": "ft",
+     "default": 1150, "step": 50, "min": 0, "max": 12000},
+    {"key": "acfm", "label": "Design airflow", "type": "number", "unit": "ACFM",
+     "default": 8200, "step": 100, "min": 100,
+     "help": "At inlet conditions — this is the fan design point."},
+    {"key": "bedArea", "label": "Bed: floor area", "type": "number", "unit": "ft²",
+     "default": 67.8, "step": 0.1, "min": 1, "showWhen": {"coolerType": "bed"}},
+    {"key": "bedDepth", "label": "Bed: operating depth", "type": "number", "unit": "in",
+     "default": 30, "step": 1, "min": 4, "showWhen": {"coolerType": "bed"}},
+    {"key": "pieceSize", "label": "Bed: effective piece size", "type": "number",
+     "unit": "in", "default": 1.50, "step": 0.05, "min": 0.05,
+     "showWhen": {"coolerType": "bed"},
+     "help": "1.5 in for 2 in-minus cake, 0.25 in for pellets."},
+    {"key": "drumDia", "label": "Drum: diameter", "type": "number", "unit": "ft",
+     "default": 9.0, "step": 0.5, "min": 1,
+     "showWhen": {"coolerType": ["drum_counter", "drum_co"]}},
+    {"key": "drumLength", "label": "Drum: length", "type": "number", "unit": "ft",
+     "default": 30.0, "step": 1, "min": 1,
+     "showWhen": {"coolerType": ["drum_counter", "drum_co"]}},
+    {"key": "drumFill", "label": "Drum: material fill", "type": "number", "unit": "%",
+     "default": 15, "step": 1, "min": 1, "max": 60,
+     "showWhen": {"coolerType": ["drum_counter", "drum_co"]},
+     "help": "12–18 % is typical for flighted coolers."},
+    {"key": "effSizing", "label": "Effectiveness for minimum-air sizing",
+     "type": "number", "default": 0.92, "step": 0.01, "min": 0.5, "max": 1,
+     "advanced": True},
+    {"key": "hfg", "label": "Latent heat of moisture flashed", "type": "number",
+     "unit": "BTU/lb", "default": 1010, "step": 5, "min": 500, "advanced": True},
+    {"key": "uvOverride", "label": "Volumetric coefficient override", "type": "number",
+     "unit": "BTU/h·ft³·°F", "default": "", "step": 1, "min": 0.1, "advanced": True,
+     "help": "A measured value from a calibration run, in place of the correlation."},
+    {"key": "calFactor", "label": "Correlation calibration factor", "type": "number",
+     "default": 1.00, "step": 0.05, "min": 0.1, "advanced": True},
+    {"key": "airDensity", "label": "Air density override", "type": "number",
+     "unit": "lb/ft³", "default": "", "step": 0.0001, "min": 0.03,
+     "advanced": True},
+    {"key": "measuredDischarge", "label": "Measured discharge (calibration)",
+     "type": "number", "unit": "°F", "default": "", "step": 1, "min": 0,
+     "advanced": True,
+     "help": "Set every input above to a measured run, then enter what that cooler "
+             "actually discharged — the coefficient it implies comes back."},
+]
+
 CALCULATORS = {
     "hammermill": {
         "key": "hammermill", "label": "Hammermill + Plenum",
@@ -283,6 +356,14 @@ CALCULATORS = {
                  "model, a screen area, a CFM figure or a cooler. Combustible dust "
                  "adds NFPA isolation and venting as options.",
         "fields": AIRSYSTEM_FIELDS, "run": airsystem.size, "prices": True,
+    },
+    "cooler_heat": {
+        "key": "cooler_heat", "label": "Cooler Heat Balance",
+        "blurb": "Will the cooler actually make the temperature — energy balance, "
+                 "minimum airflow, and an ε-NTU transfer-rate model that predicts "
+                 "the discharge. Counterflow bed or rotary drum, with a field "
+                 "calibration step.",
+        "fields": COOLER_HEAT_FIELDS, "run": cooler_heat.size, "prices": False,
     },
     "fan": {
         "key": "fan", "label": "Fan",
@@ -326,14 +407,18 @@ CALCULATORS = {
 # team can see what is and is not available yet.
 PLANNED = [
     ("Dryer", "Dryer sizing from moisture removal duty."),
-    ("Fan", "CFM and static pressure to fan size, model and HP."),
     ("Airlock", "Airflow and material to rotary airlock size and drive."),
+    ("Live bottom conveyance", "Live bottom bin discharge — screw count, drive and "
+                               "draw-down rate."),
+    ("Dilute phase conveying", "Pickup velocity, line size, air mover and system "
+                               "resistance for a dilute phase line."),
 ]
 
 # Hosted calculators the quote builder cannot yet size with, because no Python
 # port exists. The tools page labels them so nobody goes looking for the field.
 NOT_PORTED = {
     "rotary-cooler": "Hosted only — no quote-builder port yet",
+    "xf-fan": "Hosted only — the port is what will price the fan",
 }
 
 PRODUCT_DEFAULTS = [

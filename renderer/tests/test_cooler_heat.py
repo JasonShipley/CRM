@@ -1,0 +1,174 @@
+#!/usr/bin/env python3
+"""The cooler heat balance port, against the workbook's own reference case.
+
+The other ports are diffed against their originals by running the original's own
+JavaScript (test_ports.py). This one has no JavaScript — the original is
+MCE_Cooler_Heat_Balance.xlsx — so the workbook's Ozark Organics case stands in
+for it: every cell the workbook computes for that case is asserted here to the
+precision the workbook displays.
+
+The one input that is pinned rather than computed is the air density. The
+workbook's air mass flow implies 0.0720346 lb/ft³ where the barometric formula
+gives 0.07182 at the same 1,150 ft and 70 °F — see cooler_heat.KNOWN_DIVERGENCE.
+Pinning it isolates the model from that one unexplained cell, so a failure here
+means the model moved, not the density.
+"""
+import sys, pathlib
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent))
+
+from decimal import ROUND_HALF_UP, Decimal
+
+from calculators import cooler_heat
+
+fails = []
+
+
+def _round(value, places):
+    """Excel rounds half away from zero; Python's round() rounds half to even."""
+    q = Decimal(str(value)).quantize(Decimal(1).scaleb(-places), rounding=ROUND_HALF_UP)
+    return float(q)
+
+
+def check(name, got, want, places=0):
+    """The workbook displays rounded; compare at the displayed precision."""
+    ok = _round(got, places) == _round(want, places)
+    if not ok:
+        fails.append(f"{name}: workbook {want}, port {got}")
+    return ok
+
+
+# The workbook's reference case: Ozark Organics soy cake, 2026-09.
+OZARK = {"tph": 12.0, "cp": 0.50, "bulkDensity": 35, "tProductIn": 240,
+         "approach": 15, "moistIn": 7.0, "moistOut": 5.0, "hfg": 1010,
+         "airDryBulb": 70, "airRh": 50, "elevation": 1150, "acfm": 8200,
+         "effSizing": 0.92, "coolerType": "bed", "bedArea": 67.8,
+         "bedDepth": 30, "pieceSize": 1.50, "calFactor": 1.00,
+         "airDensity": 0.0720346}
+
+r = cooler_heat.size(OZARK)
+assert not r.get("error"), r.get("error")
+b, t, psy = r["balance"], r["transfer"], r["psychrometrics"]
+
+# --- sections 1-2, the streams -------------------------------------------------
+check("product mass flow", b["productMassFlow"], 24000)
+check("dry solids", b["drySolids"], 22320)
+check("water in", b["waterIn"], 1680)
+check("water out", b["waterOut"], 1175)
+check("water flashed", b["waterFlashed"], 505)
+
+# --- section 4, the energy balance ---------------------------------------------
+check("target discharge", b["targetDischarge"], 85)
+check("sensible heat", b["qSensible"], 1_860_000)
+check("moisture flash heat", b["qLatent"], 510_316)
+check("heat the air carries", b["qAir"], 1_349_684)
+check("product capacity rate", b["cProduct"], 12_000)
+check("air mass flow", b["airMassFlow"], 35_441)
+check("air capacity rate", b["cAir"], 8_683)
+check("BTU/h per °F per CFM", b["btuPerCfmPerF"], 1.06, 2)
+check("CFM per ton", b["cfmPerTon"], 683)
+check("atmospheric pressure", b["atmosphericKpa"], 97.18, 2)
+check("air out at full load", b["airOutFullLoad"], 225)
+check("counterflow floor", b["floorCounterflow"], 74)
+check("co-current floor", b["floorCoCurrent"], 144)
+check("minimum airflow", b["minimumAcfm"], 8_150)
+
+# --- section 5, the transfer rate ----------------------------------------------
+check("contact volume", t["volume"], 170)
+check("holdup", t["holdup"], 5_933)
+check("retention", t["retentionMin"], 14.8, 1)
+check("air flow section", t["airSection"], 67.8, 1)
+check("mass velocity G", t["massVelocity"], 523)
+check("superficial velocity", t["velocity"], 121)
+check("Uv correlation", t["uvCorrelation"], 270.8, 1)
+check("Uv used", t["uvUsed"], 270.8, 1)
+check("UA", t["ua"], 45_894)
+check("Cmin", t["cMin"], 8_683)
+check("capacity ratio", t["cr"], 0.724, 3)
+check("NTU", t["ntu"], 5.29, 2)
+check("effectiveness", t["effectiveness"], 0.92, 2)
+check("PREDICTED DISCHARGE", t["discharge"], 84)
+check("discharge above inlet air", t["aboveAir"], 14)
+check("air outlet at effectiveness", t["airOut"], 227)
+assert t["meets"], "the workbook's verdict on this case is MEETS the target approach"
+
+# --- psychrometrics -------------------------------------------------------------
+check("inlet wet bulb", psy["wetBulb"], 58)
+check("inlet humidity ratio", psy["humidityIn"], 0.0081, 4)
+check("outlet humidity ratio", psy["humidityOut"], 0.0224, 4)
+check("saturation humidity at outlet", psy["saturationOut"], 9.0, 1)
+assert psy["exhaustOk"], "the workbook's exhaust moisture check on this case is OK"
+
+# --- the stream table -----------------------------------------------------------
+streams = {s["item"]: s for s in r["streams"]}
+assert streams["1"]["dry"] == "35,441", streams["1"]["dry"]
+assert streams["1"]["water"] == "288", streams["1"]["water"]
+assert streams["3"]["water"] == "793", streams["3"]["water"]
+assert streams["A"]["dry"] == "22,320", streams["A"]["dry"]
+assert streams["B"]["water"] == "1,175", streams["B"]["water"]
+assert streams["C"]["water"] == "505", streams["C"]["water"]
+
+# --- the drum, against the method sheet's own 9 x 30 figure ---------------------
+# "9 x 30 drum at 22,300 CFM (350 ft/min): predicted ~90 degF with the
+#  uncalibrated dryer correlation (Uv ~ 7.7)".
+drum = dict(OZARK, coolerType="drum_counter", acfm=22300, drumDia=9.0,
+            drumLength=30.0, drumFill=15)
+d = cooler_heat.size(drum)
+assert not d.get("error"), d.get("error")
+dt = d["transfer"]
+check("drum superficial velocity", dt["velocity"], 350, -1)
+if not 7.0 <= dt["uvCorrelation"] <= 8.0:
+    fails.append(f"drum Uv: method sheet ~7.7, port {dt['uvCorrelation']}")
+if not 88 <= dt["discharge"] <= 95:
+    fails.append(f"drum discharge: method sheet ~90 °F, port {dt['discharge']}")
+# The coefficient acts on the whole drum, not the filled fraction — the holdup is
+# what the fill sets. Taking the filled volume puts this drum at ~171 °F.
+check("drum contact volume", dt["volume"], 1908.5, 1)
+check("drum material volume", dt["materialVolume"], 286.3, 1)
+
+# --- co-current cannot beat the common temperature ------------------------------
+co = cooler_heat.size(dict(OZARK, coolerType="drum_co", acfm=22300, drumDia=9.0,
+                           drumLength=30.0, drumFill=15))
+assert co["transfer"]["discharge"] >= co["balance"]["floorCoCurrent"] - 0.5, (
+    "co-current discharge cannot go below the common temperature")
+assert any("common temperature" in w for w in co["warnings"]), \
+    "a co-current run has to say why it cannot reach a counterflow approach"
+
+# --- calibration round-trips ----------------------------------------------------
+# Feed the port its own prediction back as a measurement: it must return the
+# coefficient it used and a calibration factor of 1.
+back = cooler_heat.size(dict(OZARK, measuredDischarge=t["discharge"]))["calibration"]
+assert back is not None, "a measured discharge has to produce a calibration block"
+check("calibration returns the coefficient", back["uv"], t["uvUsed"], 0)
+check("calibration factor round-trips to 1", back["factor"], 1.0, 2)
+
+# A measured discharge that no effectiveness explains is refused, not fitted.
+bad = cooler_heat.size(dict(OZARK, measuredDischarge=40))["calibration"]
+assert bad["uv"] is None and "outside" in bad["note"], bad
+
+# --- guards ----------------------------------------------------------------------
+assert "error" in cooler_heat.size(dict(OZARK, tph=0)), "zero rate has to be refused"
+assert "error" in cooler_heat.size(dict(OZARK, tProductIn=60)), \
+    "product below the air has to be refused"
+assert "error" in cooler_heat.size(dict(OZARK, moistOut=9)), \
+    "a cooler does not add water"
+
+# A short airflow is called out rather than quietly sized around.
+short = cooler_heat.size(dict(OZARK, acfm=5000))
+assert any("below the" in w for w in short["warnings"]), short["warnings"]
+assert "short" in short["outputs"][-1]["value"], short["outputs"][-1]
+
+# Over the bed velocity cap.
+fast = cooler_heat.size(dict(OZARK, acfm=12000))
+assert any("bed cap" in w for w in fast["warnings"]), fast["warnings"]
+
+# A blank override is a blank, not a zero.
+assert cooler_heat.size(dict(OZARK, uvOverride="", calFactor=""))["transfer"]["uvUsed"] \
+    == t["uvUsed"], "blank override and blank calibration must fall back, not zero"
+
+if fails:
+    print("cooler heat balance: %d disagreements with the workbook" % len(fails))
+    for f in fails:
+        print("  " + f)
+    sys.exit(1)
+print("cooler heat balance: reference case matches the workbook on %d cells, "
+      "drum and calibration behave" % 37)
