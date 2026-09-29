@@ -21,6 +21,19 @@
 
 ## Customer-Facing Quote/Proposal Rules (apply to every quote, every item)
 
+- **MANDATORY final check, every time any customer-facing document (proposal, quote PDF) is edited, not
+  just when an item you touched might be affected:** before treating the edit as done or sending the file,
+  run a literal search of the *entire* document for this exact term list and confirm zero hits. Do not
+  rely on memory of what you meant to remove — grep the whole file:
+  `MAC|Nolin|Airlanco|AirPro|Kice|AVS|TECO|IDEC|Nix Forest|Zoho|Eaton|Baldor|Dodge|Coperion|Cincinnati Fan|
+  modeled from|data sheet|catalog sheet|source catalog|sourced from|per MCE's own|vendor quote|outside
+  vendor|comparable quote|budgetary|scaled by|midpoint|divide by|cost/0\.7|non-stock|isn't a stocked|needs?
+  to be engineered|confirm .* once|pending (fabrication|final)|the next smaller|the next size`.
+  This list will grow — add every vendor/manufacturer name and every methodology phrase you ever catch
+  yourself writing to it, in this file, the same day you catch it, so the next pass actually finds it.
+  A partial fix (removing one flagged sentence from an item but leaving a second one in the same bullet
+  list, or fixing one item but not sweeping the rest of the document) is the same failure as no fix. Read
+  and re-verify the *entire* item block you touched, not just the sentence you were told about.
 - **Always check the real Zoho CRM `Products` module first, for every item, before writing a description
   or price.** MCE has actual catalog records (name, full description, current `Unit_Price`) for most of
   its standard equipment — cyclones, cooler control panels, ductwork allowances, coolers, fans, dryers,
