@@ -283,6 +283,13 @@ AIRLOCK_QUOTES = [
      "ATEX EN 15089 and NFPA 69 certified rotary valve to 40 in WG, cast iron, "
      "8-vane polyurethane flex-tip rotor, 2 HP at 30 RPM, 1.23 ft³ per rotation"),
 ]
+AIRLOCK_QUOTES.append(
+    ("Prater", "PAV-10", 6810.91, None, "2026-08-03",
+     "Prater KT063026130300 rev 1 via Prairie States (Jeff Mahurin)",
+     "10\" PAV series drop-through rotary valve. Bought for a saw dust duty; the "
+     "4\" line adapter on that order was $1,038 and the blow-through adapter was "
+     "cancelled 2026-08-25"))
+
 AIRLOCK_DEFAULT = "FT-12"
 
 # Pocket displacement, ft³ per rotation, where the quote actually states it. This
@@ -300,7 +307,16 @@ AIRLOCK_NO_DISPLACEMENT = {
     "FT-12": "Airlanco quote 024350 states 1.5 HP at 18 RPM but no pocket "
              "displacement — ask Airlanco for ft³/rev and this valve sizes itself.",
     "BAV 10": "Prater KT012025111600 states no pocket displacement.",
+    "PAV-10": "Prater KT063026130300 rev 1 gives the price and the bore but no "
+              "ft³/rev — the figure is in the quote PDF, not the email body. Prairie "
+              "States can send the PAV series capacity table, and then the whole "
+              "series sizes itself.",
 }
+
+# The cheapest drop-through MCE has a real price for. It is NOT selectable until
+# somebody supplies a displacement — see AIRLOCK_NO_DISPLACEMENT — but its price
+# is what makes chasing that number worth the email.
+AIRLOCK_CHEAPEST_UNSIZED = "PAV-10"
 # The two certified valves above are the ones MCE has sell prices for. They are
 # DIFFERENT SIZES, so neither is a drop-in for the other or for the standard
 # FT-12 — they are carried as a range, and the size gets picked against the real
