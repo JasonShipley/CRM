@@ -117,4 +117,21 @@ function runCalc(htmlPath, seed, exportNames) {
   return { exports: sandbox.__exports, get, sandbox };
 }
 
-module.exports = { runCalc, makeEl };
+// The value="" a page ships its number inputs with. runCalc does NOT apply these
+// on its own — a case that states nothing would then silently inherit whatever
+// MCE last typed into the HTML. A ref script that wants a freshly-loaded page
+// merges them into its seed deliberately.
+function pageDefaults(htmlPath) {
+  const html = fs.readFileSync(htmlPath, "utf8");
+  const out = {};
+  const re = /<input\b([^>]*)>/g;
+  let m;
+  while ((m = re.exec(html)) !== null) {
+    const id = /\bid="([^"]+)"/.exec(m[1]);
+    const value = /\bvalue="([^"]*)"/.exec(m[1]);
+    if (id && value) out[id[1]] = value[1];
+  }
+  return out;
+}
+
+module.exports = { runCalc, makeEl, pageDefaults };

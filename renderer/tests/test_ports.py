@@ -24,7 +24,7 @@ sys.path.insert(0, str(HERE.parent))
 
 from calculators import (baghouse as bh, cooler as cl, cyclone as cy,  # noqa: E402
                          duct as dc, fan as fn, hammer_pattern as hp, hammermill as hm)
-from calculators import _fmt, xf_fan as xf  # noqa: E402
+from calculators import _fmt, rotary_cooler as rc, xf_fan as xf  # noqa: E402
 from calculators._data import CL_PELLETS, FN_EFF, PRODUCTS  # noqa: E402
 
 FAILS = []
@@ -47,6 +47,17 @@ def check(name, want, have, case=None):
         FAILS.append(f"{name}: original={want!r} port={have!r}"
                      + (f"\n    case={case}" if case else ""))
     return ok
+
+
+def node_defaults(tool):
+    """The value="" the page ships its inputs with, so a case that states nothing
+    is diffed against a freshly loaded page rather than against empty fields."""
+    src = ('const {pageDefaults} = require("./domshim.js");'
+           'console.log(JSON.stringify(pageDefaults('
+           f'require("path").join(__dirname,"..","tools","{tool}"))));')
+    return json.loads(subprocess.run(["node", "-e", src], cwd=str(HERE),
+                                     capture_output=True, text=True,
+                                     check=True).stdout)
 
 
 def out(result, label, section="outputs"):
@@ -450,11 +461,82 @@ def test_xf_fan():
     return len(cases)
 
 
+def test_rotary_cooler():
+    """The rotary cooler is the one MCE builds for biochar, torrefied material and
+    minerals, where a bed cooler will not hold the product. Every rendered block is
+    diffed — psychrometrics, drum selection, drive, fan — plus the banners, because
+    the banner that says the target outlet is below the achievable floor is the one
+    that stops a promise nobody can keep."""
+    random.seed(59)
+    presets = [p["id"] for p in rc.PRESETS if p["id"] != "custom"]
+    cases = [{}]                                    # the page as it loads
+    for pid in presets:
+        cases.append({"preset": pid})
+        cases.append({"preset": pid, "tph": 30, "units": "2"})
+    for _ in range(55):
+        cases.append({
+            "preset": random.choice(presets),
+            "tph": random.choice([2, 5, 10, 20, 40, 80]),
+            "units": random.choice(["1", "1", "2", "3"]),
+            "elev": random.choice([0, 1000, 3000, 5280]),
+            "tmax": random.choice([85, 95, 105]),
+            "tavg": random.choice([70, 80, 85]),
+            "tlow": random.choice([40, 55, 70]),
+            "humMode": random.choice(["wb", "rh"]),
+            "humVal": random.choice([55, 65, 76, 85]),
+            "sweepMode": random.choice(["w", "rh"]),
+            "apHot": random.choice([20, 30, 40, 60]),
+            "apCold": random.choice([5, 10, 15, 25]),
+            "margin": random.choice([0, 10, 15, 25]),
+            "minCfmTon": random.choice([100, 250, 400]),
+            "rhMax": random.choice([50, 60, 85]),
+            "kua": random.choice([0.3, 0.5, 0.8]),
+            "rpm": random.choice([2, 4, 6, 8]),
+            "slope": random.choice([0.25, 0.375, 0.5, 0.75]),
+            "holdMax": random.choice([8, 12, 18]),
+            "fanLoc": random.choice(["id", "fd"]),
+            "eta": random.choice([0.5, 0.6, 0.7]),
+            "tcold": random.choice([-20, 0, 20, 40]),
+        })
+
+    ref = node("rc_ref.js", json.dumps(cases))
+    defaults = node_defaults("rotary-cooler-sizing-calculator.html")
+    for c, r in zip(cases, ref):
+        form = dict(defaults)
+        form.update({"preset": "feed", "units": "1", "humMode": "wb",
+                     "sweepMode": "w", "fanLoc": "id"})
+        form.update(c)
+        got = rc.size(form)
+        if got.get("error"):
+            FAILS.append(f"rotary cooler errored: {got['error']}\n    case={c}")
+            continue
+        model = got["model"] or "No standard drum fits"
+        if got["model"] and got["units"] > 1:
+            model = f'{model} × {got["units"]}'
+        check("rc model", r["model"], model, c)
+        check("rc chips", r["chips"], " ".join(got["chips"]), c)
+        for label, want in (("Sensible to air", r["qair"]),
+                            ("Design airflow", r["scfm"]),
+                            ("Fan duty", r["fan"])):
+            check(f"rc stat {label}", want, out(got, label), c)
+        for block_key, section in (("drum", "drum"), ("thermal", "thermal"),
+                                   ("psy", "psychrometrics"), ("fanSpecs", "fan")):
+            for label, value in r[block_key]:
+                check(f"rc {block_key} {label}", value, out(got, label, section), c)
+        # banners: the severity matters as much as the text
+        want = [[lvl, msg] for lvl, msg in r["banners"]]
+        mine = ([["bad", w] for w in got["warnings"]]
+                + [["warn", n] for n in got["notes"]])
+        check("rc banners", sorted(want), sorted(mine), c)
+    return len(cases)
+
+
 def main():
     counts = {"hammermill": test_hammermill(), "baghouse": test_baghouse(),
               "cooler": test_cooler(), "cyclone": test_cyclone(),
               "hammer pattern": test_hammer_pattern(), "duct": test_duct(),
-              "fan": test_fan(), "xf fan": test_xf_fan()}
+              "fan": test_fan(), "xf fan": test_xf_fan(),
+              "rotary cooler": test_rotary_cooler()}
     for name, n in counts.items():
         print(f"  {name}: {n} cases")
     if FAILS:

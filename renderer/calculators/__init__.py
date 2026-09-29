@@ -13,7 +13,7 @@ This module is the registry: it declares each calculator's inputs so the form UI
 and the JSON API are generated from one description, and dispatches `run()`.
 """
 from . import (_pricing, airsystem, baghouse, cooler, cooler_heat, cyclone, duct,
-               fan, hammer_pattern, hammermill, xf_fan)
+               fan, hammer_pattern, hammermill, rotary_cooler, xf_fan)
 from ._data import CL_CHECK_DEFS, CL_PELLETS, MCE_XM_MILLS, PRODUCTS, XM_CHART
 
 # --------------------------------------------------------------- input specs --
@@ -403,6 +403,82 @@ XF_FAN_FIELDS = [
      "help": "Leave blank to hold the wheel and solve for speed alone."},
 ]
 
+ROTARY_COOLER_FIELDS = [
+    {"key": "preset", "label": "Product", "type": "select", "default": "feed",
+     "options": [(p["id"], p["label"]) for p in rotary_cooler.PRESETS],
+     "help": "Sets specific heat, density, temperatures, moisture, particle size "
+             "and the velocity limit — all of which stay editable."},
+    {"key": "tph", "label": "Production rate", "type": "number", "unit": "TPH",
+     "default": 10, "step": 1, "min": 0.1},
+    {"key": "units", "label": "Parallel coolers", "type": "select", "default": "1",
+     "options": [("1", "One"), ("2", "Two"), ("3", "Three")],
+     "help": "Splits the rate — the way past the end of the standard drum grid."},
+    {"key": "tin", "label": "Product inlet", "type": "number", "unit": "°F",
+     "default": 180, "step": 5, "min": 0},
+    {"key": "tout", "label": "Target outlet", "type": "number", "unit": "°F",
+     "default": 105, "step": 5, "min": 0},
+    {"key": "cp", "label": "Specific heat", "type": "number", "unit": "BTU/lb·°F",
+     "default": 0.45, "step": 0.01, "min": 0.05},
+    {"key": "rho", "label": "Bulk density", "type": "number", "unit": "lb/ft³",
+     "default": 40, "step": 1, "min": 1},
+    {"key": "mcin", "label": "Moisture in", "type": "number", "unit": "% wb",
+     "default": 15, "step": 0.5, "min": 0, "max": 60},
+    {"key": "mcout", "label": "Moisture out", "type": "number", "unit": "% wb",
+     "default": 12.5, "step": 0.5, "min": 0, "max": 60},
+    {"key": "dp", "label": "Particle size", "type": "number", "unit": "µm",
+     "default": 4000, "step": 100, "min": 1,
+     "help": "Feeds the Friedman–Marshall holdup term."},
+    {"key": "vmax", "label": "Max superficial velocity", "type": "number",
+     "unit": "FPM", "default": 800, "step": 50, "min": 50,
+     "help": "Above this the drum carries product to the cyclone."},
+    {"key": "elev", "label": "Site elevation", "type": "number", "unit": "ft",
+     "default": 1000, "step": 100, "min": 0, "max": 12000},
+    {"key": "tmax", "label": "Design ambient", "type": "number", "unit": "°F",
+     "default": 95, "step": 5, "min": -20, "max": 130},
+    {"key": "humMode", "label": "Humidity given as", "type": "select",
+     "default": "wb", "options": list(rotary_cooler.HUM_MODES)},
+    {"key": "humVal", "label": "Humidity value", "type": "number", "default": 76,
+     "step": 1, "min": 1},
+    {"key": "tavg", "label": "Average summer", "type": "number", "unit": "°F",
+     "default": 85, "step": 5, "min": -20, "max": 130},
+    {"key": "tlow", "label": "Sweep low", "type": "number", "unit": "°F",
+     "default": 70, "step": 5, "min": -20, "max": 130},
+    {"key": "sweepMode", "label": "Sweep holds", "type": "select", "default": "w",
+     "options": list(rotary_cooler.SWEEP_MODES), "advanced": True},
+    {"key": "apHot", "label": "Hot-end approach", "type": "number", "unit": "°F",
+     "default": 40, "step": 5, "min": 3, "advanced": True},
+    {"key": "apCold", "label": "Cold-end approach", "type": "number", "unit": "°F",
+     "default": 15, "step": 5, "min": 0, "advanced": True},
+    {"key": "margin", "label": "Design margin", "type": "number", "unit": "%",
+     "default": 15, "step": 5, "min": 0, "max": 50, "advanced": True},
+    {"key": "minCfmTon", "label": "Sweep-air minimum", "type": "number",
+     "unit": "CFM/ton", "default": 250, "step": 25, "min": 0, "advanced": True},
+    {"key": "rhMax", "label": "Max exhaust RH", "type": "number", "unit": "%",
+     "default": 60, "step": 5, "min": 10, "max": 100, "advanced": True},
+    {"key": "kua", "label": "Volumetric coefficient K", "type": "number",
+     "default": 0.5, "step": 0.05, "min": 0.05, "advanced": True,
+     "help": "Ua = K·G^0.67/D. Calibrate it against a running drum."},
+    {"key": "rpm", "label": "Drum speed", "type": "number", "unit": "RPM",
+     "default": 4, "step": 0.5, "min": 0.5, "advanced": True},
+    {"key": "slope", "label": "Drum slope", "type": "number", "unit": "in/ft",
+     "default": 0.375, "step": 0.125, "min": 0.05, "advanced": True},
+    {"key": "holdMax", "label": "Max holdup", "type": "number", "unit": "%",
+     "default": 12, "step": 1, "min": 2, "max": 40, "advanced": True},
+    {"key": "fanLoc", "label": "Fan location", "type": "select", "default": "id",
+     "options": list(rotary_cooler.FAN_LOCATIONS)},
+    {"key": "spDrum", "label": "Drum static", "type": "number", "unit": '" WC',
+     "default": 1.5, "step": 0.5, "min": 0, "advanced": True},
+    {"key": "spCyc", "label": "Cyclone static", "type": "number", "unit": '" WC',
+     "default": 4, "step": 0.5, "min": 0, "advanced": True},
+    {"key": "spDuct", "label": "Duct static", "type": "number", "unit": '" WC',
+     "default": 2, "step": 0.5, "min": 0, "advanced": True},
+    {"key": "eta", "label": "Fan efficiency", "type": "number", "default": 0.60,
+     "step": 0.05, "min": 0.2, "max": 0.9, "advanced": True},
+    {"key": "tcold", "label": "Cold-start ambient", "type": "number", "unit": "°F",
+     "default": 20, "step": 5, "min": -40, "max": 100, "advanced": True,
+     "help": "Dense winter air is what actually sizes the fan motor."},
+]
+
 CALCULATORS = {
     "hammermill": {
         "key": "hammermill", "label": "Hammermill + Plenum",
@@ -451,6 +527,15 @@ CALCULATORS = {
         "fields": XF_FAN_FIELDS, "run": xf_fan.size, "prices": False,
         "tool": "xf-fan-sizing-calculator.html",
     },
+    "rotary_cooler": {
+        "key": "rotary_cooler", "label": "Rotary Cooler",
+        "blurb": "Direct air-swept counter-current drum — psychrometrics, heat and "
+                 "moisture balance, drum selection against thermal, velocity and "
+                 "holdup limits, drive and fan, and a summer sweep. For biochar, "
+                 "torrefied material, DDGS and minerals a bed cooler cannot hold.",
+        "fields": ROTARY_COOLER_FIELDS, "run": rotary_cooler.size, "prices": False,
+        "tool": "rotary-cooler-sizing-calculator.html",
+    },
     "cyclone": {
         "key": "cyclone", "label": "Cyclone",
         "blurb": "Rated CFM — entered, or from the inlet and its velocity — to an "
@@ -494,9 +579,7 @@ PLANNED = [
 
 # Hosted calculators the quote builder cannot yet size with, because no Python
 # port exists. The tools page labels them so nobody goes looking for the field.
-NOT_PORTED = {
-    "rotary-cooler": "Hosted only — no quote-builder port yet",
-}
+NOT_PORTED = {}
 
 PRODUCT_DEFAULTS = [
     {"index": p["index"], "sqInHp": p["sqInHp"], "bulkDensity": p["bulkDensity"],
