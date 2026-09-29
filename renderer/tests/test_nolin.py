@@ -190,8 +190,24 @@ if abrasive["gauge"] != _vendor.DUCT_ABRASIVE_GAUGE:
     bad(f'abrasive should be {_vendor.DUCT_ABRASIVE_GAUGE} ga, got {abrasive["gauge"]}')
 if abrasive["total"] <= fines["total"]:
     bad("a heavier gauge has to cost more")
-if not any("has not named the gauge" in n for n in abrasive["notes"]):
-    bad("the one number MCE did not set has to stay flagged")
+if not any("MCE's default for abrasive" in n for n in abrasive["notes"]):
+    bad("abrasive should quote MCE's default and say it is the default")
+if not any("application driven" in n for n in abrasive["notes"]):
+    bad("the abrasive gauge is a starting point, not a rule, and has to say so")
+
+# gauge is application driven, so it overrides — and an override is never silent
+heavier = _vendor.duct_package(20, run_ft=60, elbows=4, service="abrasive", gauge="7")
+if heavier["gauge"] != "7":
+    bad(f'an explicit gauge has to win: got {heavier["gauge"]}')
+if heavier["total"] <= abrasive["total"]:
+    bad("7 ga has to cost more than 10 ga")
+if not any("set on this quote" in n for n in heavier["notes"]):
+    bad("an overridden gauge has to say it was set, not defaulted")
+if any("application driven" in n for n in heavier["notes"]):
+    bad("once somebody has set the gauge, stop explaining the default")
+same = _vendor.duct_package(20, run_ft=60, elbows=4, service="abrasive", gauge="10")
+if any("set on this quote" in n for n in same["notes"]):
+    bad("naming the gauge the service would have picked is not an override")
 
 # Sweep elbows are NEVER automatic. They are rare and expensive, and a quote that
 # carries them without anybody deciding to loses on price for no reason.

@@ -568,6 +568,7 @@ def build(job, today=None, delivery_weeks=None):
                     priced = _vendor.duct_package(
                         dk["diameter"], run_ft or 0, elbows,
                         service=duct_service,
+                        gauge=getattr(job, "duct_gauge", None) or None,
                         sweep_elbows=bool(getattr(job, "duct_sweep_elbows", False)),
                         to_atmosphere=True, quantity=qty)
             else:

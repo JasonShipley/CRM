@@ -249,6 +249,7 @@ def size(f):
             service = str(f.get("ductService") or _vendor.DUCT_DEFAULT_SERVICE)
             pkg = (_vendor.duct_package(res["diameter"], run_ft, elbow_count,
                                         service=service,
+                                        gauge=str(f.get("ductGauge") or "") or None,
                                         sweep_elbows=_flag(f.get("ductSweepElbows")),
                                         to_atmosphere=True)
                    if run_ft or elbow_count else None)

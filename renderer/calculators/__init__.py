@@ -230,6 +230,11 @@ AIRSYSTEM_FIELDS = [
      "default": _vendor.DUCT_DEFAULT_SERVICE, "options": list(_vendor.DUCT_SERVICE),
      "help": "Sets the gauge. Fines and product both take MCE's standard "
              f"{_vendor.DUCT_STANDARD_GAUGE} ga; only abrasive material goes heavier."},
+    {"key": "ductGauge", "label": "Duct gauge", "type": "select", "default": "",
+     "options": list(_vendor.DUCT_GAUGES), "advanced": True,
+     "help": "Abrasive gauge is application driven — material, velocity and the "
+             "life the plant wants. Override the default when the application "
+             "calls for it."},
     {"key": "ductSweepElbows", "label": "Removable back sweep elbows",
      "type": "select", "default": "", "advanced": True,
      "options": [("", "No — segmented elbows"),

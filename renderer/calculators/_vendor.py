@@ -478,8 +478,12 @@ DUCT_SERVICE = [
 ]
 DUCT_DEFAULT_SERVICE = "fines"
 DUCT_STANDARD_GAUGE = "14"
-# The one number in the rule Jason did not name. 10 ga is the port's step-up and
-# it is flagged on every abrasive quote — one edit here changes it everywhere.
+# 10 ga on abrasive service (Jason, 2026-09-29). It is a DEFAULT, not a rule —
+# gauge on an abrasive line is application driven, and the things that move it are
+# the material, the velocity and how long the plant wants the duct to last. A
+# severely abrasive line at high velocity may want 7 ga; a mildly abrasive one at
+# low velocity may be fine on the standard. So the service picks a starting point
+# and `gauge` overrides it, rather than the quote pretending there is one answer.
 DUCT_ABRASIVE_GAUGE = "10"
 DUCT_SERVICE_GAUGE = {"fines": DUCT_STANDARD_GAUGE, "product": DUCT_STANDARD_GAUGE,
                       "abrasive": DUCT_ABRASIVE_GAUGE}
@@ -496,10 +500,16 @@ DUCT_GAUGE_NOTE = (
     f"Quoted in {DUCT_STANDARD_GAUGE} ga — MCE's standard for air-handling duct, "
     "which normally carries fines.")
 DUCT_ABRASIVE_NOTE = (
-    f"Abrasive service: quoted in {DUCT_ABRASIVE_GAUGE} ga. MCE's rule is heavier "
-    "than standard for abrasive material but has not named the gauge — confirm "
-    f"{DUCT_ABRASIVE_GAUGE} ga before this goes out, because 7 ga is real money "
-    "again.")
+    f"Abrasive service: quoted in {DUCT_ABRASIVE_GAUGE} ga, MCE's default for "
+    "abrasive material. Gauge here is application driven — the material, the "
+    "velocity and the life the plant wants all move it, and 7 ga is the answer on "
+    "a genuinely severe line.")
+DUCT_GAUGE_OVERRIDE_NOTE = (
+    "Gauge set on this quote rather than taken from the service — "
+    "{gauge} ga in place of the {standard} ga default.")
+DUCT_GAUGES = [("", "By service — 14 ga standard, "
+                    f"{DUCT_ABRASIVE_GAUGE} ga abrasive")] + [
+    (g, f"{g} ga" if g != "1/4" else '1/4" wall') for g in ("14", "12", "10", "7", "1/4")]
 DUCT_SWEEP_NOTE = (
     "Removable back sweep elbows, as asked for. A segmented elbow wears through at "
     "the heel on an abrasive line; a sweep lets the back be replaced without "
@@ -529,7 +539,8 @@ def duct_package(diameter_in, run_ft=0, elbows=0, adaptors=0, *,
         return None
     if service not in DUCT_SERVICE_GAUGE:
         service = DUCT_DEFAULT_SERVICE
-    if gauge is None:
+    overridden = bool(gauge) and gauge != DUCT_SERVICE_GAUGE[service]
+    if not gauge:
         gauge = DUCT_SERVICE_GAUGE[service]
     sweeps = bool(sweep_elbows)
     # Nolin prints flanged primed gray duct in a fixed set of sizes, and its own
@@ -664,7 +675,11 @@ def duct_package(diameter_in, run_ft=0, elbows=0, adaptors=0, *,
 
     basis = (f'{_nolin.SOURCE} ({_nolin.CATALOG_DATE}) list, '
              f'{adder["material"]}, at MCE\'s buy-out divisor {BUYOUT_DIVISOR:g}')
-    notes = [DUCT_ABRASIVE_NOTE if service == "abrasive" else DUCT_GAUGE_NOTE]
+    if overridden:
+        notes = [DUCT_GAUGE_OVERRIDE_NOTE.format(
+            gauge=actual_gauge, standard=DUCT_SERVICE_GAUGE[service])]
+    else:
+        notes = [DUCT_ABRASIVE_NOTE if service == "abrasive" else DUCT_GAUGE_NOTE]
 
     # What the swap actually costs, either way round: quoted with sweeps, it is
     # what they added; quoted without on an abrasive line, it is what the question
