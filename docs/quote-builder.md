@@ -419,13 +419,14 @@ one — one number in `_pricing.py` either way.
 - **Ductwork** — needs Nolin's air-handling pages (43–45): duct per foot and segmented
   elbows by size. Duct is bought, so it is never estimated from the steel. Fill
   `DUCT_PRICES` and every duct line prices itself off its own bill of material.
-- **Venturi pickup** — needs a fabricated weight or a shop estimate. Set
-  `VENTURI_WEIGHT_LB` and it prices at the plenum's own structure rate.
+- **Fan** — needs MCE's **XF fan sizing calculator** and the XF price list behind it.
+  MCE builds its own fans, so a price regressed off another maker's catalogue is not
+  MCE's price whatever its error band. The fan is *sized* (`calculators/fan.py` gives
+  the duty, the wheel, the motor, the line size and the RFQ block) and left unpriced.
 
-The fan is no longer one of them: the AirPro lineup's 12 distinct (motor, cost) pairs
-fit `cost = $2,453 + $146.90/HP`, mean error 8.3% and worst 17.0% across 5–40 HP —
-the same standing as the screw model, sold at the fan markup, and every line says it
-is modelled rather than quoted.
+The venturi pickup is no longer one of them: it **is** the drop down air pan — same
+item, different wording — so it prices off that mill's pan line in the book and the
+quote carries the book's name for it.
 
 ### The price book
 

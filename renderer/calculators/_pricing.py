@@ -97,31 +97,25 @@ UNPRICED = {
                       "over the download limit — the pages are needed as images or a "
                       "trimmed PDF",
     },
-    "venturi_pickup": {
-        "needs": "either a fabricated weight for the venturi and its adaptor, or a "
-                 "shop estimate",
-        "why": "MCE fabricates it and has never costed one; the drop-down air pan is "
-               "a larger assembly with its own structure, so its book price is not a "
-               "stand-in",
-        "one_edit": "set VENTURI_WEIGHT_LB below and it prices at the plenum rate, "
-                    "the same $/lb MCE fabricates the plenum at",
+    "fan": {
+        "needs": "MCE's XF fan sizing calculator, and the XF price list behind it",
+        "why": "MCE builds its own XF fans — a fan price regressed off another "
+               "maker's catalogue is not MCE's price, whatever its error band",
+        "one_edit": "vendor the XF calculator into tools/ the way the other six "
+                    "were, port it, and the fan line prices itself",
     },
 }
 
-# Set this and the venturi line prices itself; leave it None and the line says
-# honestly that there is no basis for one.
-VENTURI_WEIGHT_LB = None
-
-
-def venturi_price(weight_lb=None):
-    """(price, basis) for a venturi pickup and its adaptor, or None."""
-    weight = weight_lb or VENTURI_WEIGHT_LB
-    if not weight:
+# A venturi pickup IS the drop down air pan — same item, different wording
+# (Jason, 2026-09-29). So it prices off the book's air pan line for that mill,
+# and the quote calls it what the book calls it.
+def venturi_price(model=None):
+    """(price, basis) for a venturi pickup: the mill's drop down air pan."""
+    found = air_pan_price(model)
+    if not found:
         return None
-    rate = factor("plenum_rate")
-    return (round(weight * rate),
-            f"{weight:,.0f} lb fabricated at ${rate:.2f}/lb, the same structure rate "
-            "MCE prices the plenum at")
+    price, basis = found
+    return price, basis + " — the book's drop down air pan is this same item"
 
 
 def factor(scope):

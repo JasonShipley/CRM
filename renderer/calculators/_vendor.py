@@ -69,35 +69,11 @@ AIRPRO_FANS_BY_MODEL = {f[0] for f in AIRPRO_FANS.values()}
 AIRPRO_ASSUMED = {"9-4"}
 
 
-# ------------------------------------------------------------- AirPro fan model --
-# MCE's OEM lineup pairs one fan with each FILTER model, so a fan behind a filter
-# is looked up. A fan behind a cyclone has no filter to look it up from, and until
-# there was a fan calculator there was nothing to price it off either.
-#
-# There is now: the calculator returns a motor size, and the OEM lineup carries 12
-# distinct (motor, cost) pairs. Fitted least-squares, cost = BASE + PER_HP × HP,
-# mean absolute error 8.3% and worst 17.0% across 5–40 HP — the same standing as
-# the screw model, and every line built from it says it is modelled, not quoted.
-FAN_MODEL = {"base": 2453.0, "per_hp": 146.90,
-             "hp_min": 5, "hp_max": 40, "mae_pct": 8.3, "worst_pct": 17.0,
-             "source": "AirPro OEM lineup, 12 distinct fans"}
-
-
-def fan_cost_modelled(motor_hp):
-    """(cost, basis, outside_envelope) for a fan of this motor size."""
-    hp = float(motor_hp or 0)
-    if hp <= 0:
-        return None
-    m = FAN_MODEL
-    cost = m["base"] + m["per_hp"] * hp
-    outside = not (m["hp_min"] <= hp <= m["hp_max"])
-    basis = (f'modelled from the {m["source"]}: ${m["base"]:,.0f} + '
-             f'${m["per_hp"]:.2f}/HP × {hp:g} HP = ${cost:,.0f} cost, '
-             f'±{m["mae_pct"]:.1f}% mean error (worst {m["worst_pct"]:.1f}%)')
-    if outside:
-        basis += (f' — and {hp:g} HP is outside the {m["hp_min"]}–{m["hp_max"]} HP '
-                  "envelope the model was fitted over, so it extrapolates")
-    return cost, basis, outside
+# The fan used to be priced here by fitting the AirPro lineup's (motor, cost)
+# pairs against horsepower. That is gone: MCE builds its own XF fans and has an XF
+# sizing calculator, so the price comes from MCE's own line, not from a regression
+# over somebody else's catalogue. Until the XF calculator is vendored the fan is
+# SIZED (calculators/fan.py) and left unpriced, and _pricing.UNPRICED says so.
 
 
 # ------------------------------------------------------------ SCC screw conveyor --
@@ -494,9 +470,8 @@ def duct_price(diameter_in, run_ft=0, elbows=0, adaptors=0):
 
 # A venturi pickup takes the mill discharge straight into the air stream: a venturi
 # throat under the mill and an adaptor that opens out to the duct diameter. It is
-# MCE fabrication and there is no cost basis for one — the drop-down pan's book
-# price is NOT a stand-in, because a pan is a different (larger) assembly with its
-# own structure.
+# the same item the price book calls a DROP DOWN AIR PAN — different wording, one
+# product (Jason, 2026-09-29) — so it prices off that mill's pan line.
 VENTURI_PICKUP_SCOPE = [
     "Venturi pickup fitting under the mill discharge, so the ground product is picked "
     "up into the air stream without a plenum",

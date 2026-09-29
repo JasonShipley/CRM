@@ -400,30 +400,29 @@ def build(job, today=None, delivery_weeks=None):
         # standard mill-scale unit is the Airlanco FT-12; price it at MCE's own
         # buy-out divisor rather than listing it TBD.
         if air_swept and getattr(job, "air_pickup", None) == "venturi":
-            # A venturi pickup replaces the plenum outright: the product never lands on
-            # a pan, it goes straight into the air stream and travels to the collector.
-            # It prices as soon as the basis has a fabricated weight for one.
+            # A venturi pickup and a drop down air pan are the same item in MCE's
+            # book, so it prices off that mill's pan line and carries the book's name.
+            v_model = (result or {}).get("model") or job.mill_model
             v_notes = list(_vendor.VENTURI_PICKUP_SCOPE) + [
                 "Adaptor opens out to the duct diameter sized below"]
-            priced_v = _pricing.venturi_price()
+            priced_v = _pricing.venturi_price(v_model)
             if priced_v:
                 v_price, v_basis = priced_v
-                v_notes.append("Budgetary price — firm on the fabrication estimate")
+                v_notes.append("Priced as the listed option on this mill")
                 lines.append({
-                    "name": "Venturi Pickup Fitting with Air Adaptor", "quantity": qty,
-                    "unitPrice": round(v_price, 2), "budgetPrice": True,
+                    "name": "Drop Down Air Pan — venturi pickup arrangement",
+                    "quantity": qty, "unitPrice": round(v_price, 2),
                     "description": "\n".join(v_notes)})
-                open_items.append(f"Venturi pickup priced at {v_basis}.")
+                open_items.append(f"Venturi pickup priced from the book: {v_basis}.")
             else:
-                gap = _pricing.UNPRICED["venturi_pickup"]
                 v_notes.append("Price from the fabrication estimate")
                 lines.append({
-                    "name": "Venturi Pickup Fitting with Air Adaptor", "quantity": qty,
-                    "unitPrice": 0, "needsPrice": True,
+                    "name": "Drop Down Air Pan — venturi pickup arrangement",
+                    "quantity": qty, "unitPrice": 0, "needsPrice": True,
                     "description": "\n".join(v_notes)})
                 open_items.append(
-                    f'Venturi pickup and air adaptor are unpriced: {gap["why"]}. '
-                    f'Needs {gap["needs"]}.')
+                    f'No drop down air pan price on file for {v_model or "this mill"} '
+                    "— the book covers the XM-19/22/38/44 models. Get a shop estimate.")
         elif air_swept:
             pan = ["Drop-down air pan under the mill with structure and air pickup fitting"]
             if result and result.get("screen_area"):
@@ -611,8 +610,8 @@ def build(job, today=None, delivery_weeks=None):
                  "Air system requested but no baghouse could be sized, so the quote shows "
                  "a cyclone instead — confirm that is what the customer wants.")
                 + " With no filter to select a fan against, MCE's own fan calculator "
-                  "sizes the duty and the price is modelled off the AirPro lineup — "
-                  "both are budget figures until the vendor's selection comes back.")
+                  "sizes the duty and the line carries the RFQ; the price comes from "
+                  "MCE's XF fan line once that calculator is in.")
     else:
         by_others.insert(0, "Air-relief system for the mill — fans, dust filters, ducting, "
                             "airlocks and explosion protection")

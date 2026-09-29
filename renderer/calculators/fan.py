@@ -171,38 +171,23 @@ def size(f):
         "Selection: verify BHP, RPM & class on curve in IAP / AirPro software",
     ])
 
-    # The fan is a buy-out the vendor selects off this duty. MCE's OEM lineup pairs
-    # fans with FILTER models, so there is nothing to look up from an airflow alone —
-    # but the lineup's own (motor, cost) pairs fit a model, so the line carries a
-    # budget price instead of a zero, and says plainly that it is modelled.
-    modelled = _vendor.fan_cost_modelled(motor)
+    # SIZED here, priced elsewhere. MCE builds its own XF fans and has an XF sizing
+    # calculator; until that is vendored the line carries the full duty and no
+    # number, rather than a figure regressed off somebody else's catalogue.
     fan_notes = [
-            f"{FN_SERVICE[svc]} fan, {FN_WHEEL[svc].lower()}",
-            f'{num(jsround(cfm), 0)} ACFM at {num(sp, 1)}" WC, {_js(temp)} °F and '
-            f"{num(alt, 0)} ft elevation (≈{num(jsround(scfm), 0)} SCFM)",
-            f"{num(bhp, 1)} BHP estimated → {_js(motor)} HP TEFC premium efficiency, "
-            "460 V/3/60",
-            f'{"V-belt drive with guards" if belt else "Direct drive"}; '
-            + ", ".join(chosen),
-            (f'{_js(duct["d"])}" dia slip-fit inlet and outlet connections' if duct
-             else "Connection size per layout"),
+        f"{FN_SERVICE[svc]} fan, {FN_WHEEL[svc].lower()}",
+        f'{num(jsround(cfm), 0)} ACFM at {num(sp, 1)}" WC, {_js(temp)} °F and '
+        f"{num(alt, 0)} ft elevation (≈{num(jsround(scfm), 0)} SCFM)",
+        f"{num(bhp, 1)} BHP estimated → {_js(motor)} HP TEFC premium efficiency, "
+        "460 V/3/60",
+        f'{"V-belt drive with guards" if belt else "Direct drive"}; ' + ", ".join(chosen),
+        (f'{_js(duct["d"])}" dia slip-fit inlet and outlet connections' if duct
+         else "Connection size per layout"),
+        "Price on selection — the duty above is the RFQ",
     ]
-    if modelled:
-        cost, basis, outside = modelled
-        # the vendor's name stays internal, like every other buy-out line
-        fan_notes.append("Budgetary price — firm on the fan selection against the duty "
-                         "above")
-        warnings.append(f"Fan price is a budget figure: {basis}. Get the vendor's "
-                        "selection before release.")
-        line = {"name": f"Fan — {_js(motor)} HP, {num(jsround(cfm), 0)} ACFM",
-                "quantity": 1, "unitPrice": round(cost * _vendor.FAN_MARKUP, 2),
-                "budgetPrice": True, "description": "\n".join(fan_notes)}
-    else:
-        fan_notes.append("Price on vendor selection — the duty above is the RFQ")
-        line = {"name": f"Fan — {_js(motor)} HP, {num(jsround(cfm), 0)} ACFM",
-                "quantity": 1, "unitPrice": 0, "needsPrice": True,
-                "description": "\n".join(fan_notes)}
-    lines = [line]
+    lines = [{"name": f"Fan — {_js(motor)} HP, {num(jsround(cfm), 0)} ACFM",
+              "quantity": 1, "unitPrice": 0, "needsPrice": True,
+              "description": "\n".join(fan_notes)}]
 
     return {"calculator": "Fan Sizing", "outputs": outputs, "warnings": warnings,
             "lines": lines, "total": 0.0, "rfq": rfq,

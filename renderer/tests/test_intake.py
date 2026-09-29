@@ -224,11 +224,9 @@ def test_cyclone_when_the_rep_asks_for_one():
         check("the duty is on the line for the vendor",
               "ACFM" in fan_line["description"] and "BHP" in fan_line["description"],
               fan_line["description"])
-        check("and priced as a disclosed budget, not a zero",
-              fan_line.get("unitPrice") and fan_line.get("budgetPrice"),
+        check("and the price waits on MCE's own XF line, not a regression",
+              fan_line.get("needsPrice") and not fan_line.get("unitPrice"),
               str(fan_line.get("unitPrice")))
-        check("with the model's error band on the internal notes",
-              "mean error" in open_text(q), open_text(q))
         check("and the static is flagged as a default, not a layout figure",
               "not a layout figure" in open_text(q), open_text(q))
     check("cyclone price basis recorded internally",
@@ -368,12 +366,15 @@ def test_venturi_cyclone_arrangement():
     check("no plenum with a venturi pickup",
           not any("Plenum" in n for n in names), str(names))
     check("no screw either", not any("Screw" in n for n in names), str(names))
-    check("the venturi pickup is a line",
-          any(n.startswith("Venturi Pickup") for n in names), str(names))
-    venturi = next(l for l in q["lines"] if l["name"].startswith("Venturi"))
-    check("and it is honestly unpriced", venturi.get("needsPrice"), str(venturi))
-    check("the pan's price is explicitly refused as a stand-in",
-          "not a stand-in" in open_text(q).lower(), open_text(q))
+    # the venturi IS the drop down air pan, so it carries the book's name and price
+    venturi = next((l for l in q["lines"] if "Drop Down Air Pan" in l["name"]), None)
+    check("the venturi pickup is a line", venturi is not None, str(names))
+    check("named the way the book names it",
+          "venturi pickup arrangement" in (venturi or {}).get("name", ""),
+          str((venturi or {}).get("name")))
+    check("and priced off that mill's pan line",
+          venturi and venturi["unitPrice"] == _p.air_pan_price("XM-4430")[0],
+          str((venturi or {}).get("unitPrice")))
     check("a cyclone collects, sized off the air-swept airflow",
           any(n.startswith("Cyclone") for n in names), str(names))
     check("the airlock sits under the cyclone, and says so",
@@ -392,9 +393,8 @@ def test_venturi_cyclone_arrangement():
     check("the fan is sized off the air-swept airflow",
           "5,850 ACFM" in fan_line["name"] or "5,850 ACFM" in fan_line["description"],
           fan_line["name"])
-    check("its price is a disclosed budget from the AirPro model",
-          fan_line.get("unitPrice") and fan_line.get("budgetPrice"),
-          str(fan_line.get("unitPrice")))
+    check("its price waits on MCE's own XF fan line",
+          fan_line.get("needsPrice"), str(fan_line.get("unitPrice")))
     check("and the sizing is recorded internally",
           "Fan sized by MCE" in open_text(q), open_text(q))
     # a plain air-swept job still keeps its plenum and its pan
@@ -453,7 +453,7 @@ def test_pricing_basis_is_the_only_copy():
     check("and so is the mill's", "mill" in _pricing.KNOWN_DIVERGENCE)
 
     # what cannot be priced says so, with the one input that would fix it
-    for scope in ("ductwork", "venturi_pickup"):
+    for scope in ("ductwork", "fan"):
         gap = _pricing.UNPRICED[scope]
         check(f"{scope} names what it needs", gap["needs"] and gap["one_edit"])
 
