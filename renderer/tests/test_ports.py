@@ -15,6 +15,7 @@ import json
 import math
 import pathlib
 import random
+import re
 import subprocess
 import sys
 
@@ -23,6 +24,7 @@ sys.path.insert(0, str(HERE.parent))
 
 from calculators import (baghouse as bh, cooler as cl, cyclone as cy,  # noqa: E402
                          duct as dc, fan as fn, hammer_pattern as hp, hammermill as hm)
+from calculators import _fmt, xf_fan as xf  # noqa: E402
 from calculators._data import CL_PELLETS, FN_EFF, PRODUCTS  # noqa: E402
 
 FAILS = []
@@ -47,8 +49,8 @@ def check(name, want, have, case=None):
     return ok
 
 
-def out(result, label):
-    return next((o["value"] for o in result["outputs"] if o["label"] == label), None)
+def out(result, label, section="outputs"):
+    return next((o["value"] for o in result[section] if o["label"] == label), None)
 
 
 def test_hammermill():
@@ -351,11 +353,108 @@ def test_fan():
     return len(cases)
 
 
+def test_xf_fan():
+    """The XF calculator is the one that picks MCE's own iron, so the diff covers
+    the duct arithmetic, the LS capacity-table interpolation, the shortlist the
+    table renders and the tags it puts on each row. A wrong row here sends the
+    shop building the wrong wheel."""
+    random.seed(41)
+    cases = [
+        # the calculator's own defaults
+        {"elev": 0, "temp": 70, "cfm1": 5000, "dia1": 18, "len1": 60, "elbows": 2,
+         "equip1": 2.0, "cfm2": 5000, "sp2": 4.0, "margin": 15},
+        # a hammermill filter exhaust at altitude
+        {"elev": 1300, "temp": 100, "cfm1": 5850, "dia1": 14, "len1": 80, "elbows": 4,
+         "equip1": 6.0, "cfm2": 5850, "sp2": 12.0, "margin": 15},
+        # hot air off a dryer, where the Chart IV correction bites
+        {"elev": 0, "temp": 600, "cfm1": 12000, "dia1": 24, "len1": 120, "elbows": 6,
+         "equip1": 4.0, "cfm2": 12000, "sp2": 10.0, "margin": 10},
+        # small and slow — under the bottom of every capacity table
+        {"elev": 0, "temp": 70, "cfm1": 300, "dia1": 6, "len1": 20, "elbows": 1,
+         "equip1": 1.0, "cfm2": 300, "sp2": 2.0, "margin": 15},
+        # big and high — off the top of them
+        {"elev": 0, "temp": 70, "cfm1": 60000, "dia1": 42, "len1": 200, "elbows": 8,
+         "equip1": 8.0, "cfm2": 60000, "sp2": 24.0, "margin": 15},
+        # the non-catalog classes, sized off an assumed efficiency
+        {"elev": 0, "temp": 70, "cfm1": 9000, "dia1": 20, "len1": 60, "elbows": 2,
+         "equip1": 3.0, "cfm2": 9000, "sp2": 6.0, "margin": 15, "fanClass": "AF",
+         "assumedDia": 30},
+        {"elev": 2000, "temp": 150, "cfm1": 4000, "dia1": 14, "len1": 40, "elbows": 3,
+         "equip1": 2.5, "cfm2": 4000, "sp2": 5.0, "margin": 20, "fanClass": "FC"},
+        # scaled off a reference fan, with and without a known wheel diameter
+        {"elev": 0, "temp": 70, "cfm1": 8000, "dia1": 20, "len1": 60, "elbows": 2,
+         "equip1": 3.0, "cfm2": 8000, "sp2": 7.0, "margin": 15, "fanClass": "AX",
+         "useRef": True, "refQ": 6000, "refSP": 5.0, "refRPM": 1750, "refBHP": 8.0,
+         "refDia": 27},
+        {"elev": 0, "temp": 70, "cfm1": 8000, "dia1": 20, "len1": 60, "elbows": 2,
+         "equip1": 3.0, "cfm2": 8000, "sp2": 7.0, "margin": 15, "fanClass": "AF",
+         "useRef": True, "refQ": 6000, "refSP": 5.0, "refRPM": 1750, "refBHP": 8.0},
+    ]
+    classes = ["RAD", "RAD", "RAD", "AF", "FC", "AX"]
+    for _ in range(60):
+        cases.append({
+            "elev": random.choice([0, 600, 1150, 1300, 3000, 5280]),
+            "temp": random.choice([40, 70, 100, 150, 250, 400, 600, 800]),
+            "cfm1": random.choice([800, 2400, 4680, 5850, 8400, 15000, 30000]),
+            "dia1": random.choice([6, 8, 10, 14, 18, 24, 30, 36]),
+            "len1": random.choice([20, 40, 60, 100, 150, 250]),
+            "elbows": random.choice([0, 1, 2, 4, 6, 10]),
+            "entry": random.choice(["0.5", "0.05", "0"]),
+            "exit": random.choice(["1.0", "0"]),
+            "equip1": random.choice([0, 1.0, 2.0, 4.0, 8.0, 15.0]),
+            "cfm2": random.choice([800, 2400, 4680, 5850, 8400, 15000, 30000]),
+            "sp2": random.choice([1.5, 3.0, 4.0, 8.0, 12.0, 18.0, 22.0, 28.0]),
+            "margin": random.choice([0, 10, 15, 25]),
+            "fanClass": random.choice(classes),
+        })
+
+    ref = node("xf_ref.js", json.dumps(cases))
+    for c, r in zip(cases, ref):
+        got = xf.size(c)
+        if got.get("error"):
+            FAILS.append(f"xf errored: {got['error']}\n    case={c}")
+            continue
+        check("xf density", r["density"], _fmt.fixed(got["densityFactor"], 3), c)
+        check("xf duct velocity", r["vel"], out(got, "Duct velocity", "system"), c)
+        check("xf friction", r["fric"], out(got, "Friction loss", "system"), c)
+        check("xf fitting", r["fit"], out(got, "Fitting loss", "system"), c)
+        check("xf equipment", r["equip"], out(got, "Equipment loss", "system"), c)
+        check("xf total", r["total"], out(got, "Total system resistance", "system"), c)
+        check("xf total std", r["totalStd"],
+              out(got, "Standard-air equivalent", "system"), c)
+        check("xf fan std SP", r["spStd"],
+              out(got, "Standard-air equivalent static"), c)
+        check("xf BHP", r["bhp"], out(got, "Brake horsepower"), c)
+        check("xf motor", r["motor"], out(got, "Motor"), c)
+        check("xf tip speed", r["tip"], out(got, "Tip speed"), c)
+        check("xf tip flag", r["tipFlag"],
+              next(o.get("note", "") for o in got["outputs"]
+                   if o["label"] == "Tip speed"), c)
+        # the solve block: whichever of the four paths this case took
+        check("xf solve rows", [list(x) for x in r["solve"]],
+              [[x["label"], x["value"]] for x in got["solve"]], c)
+        # the catalog shortlist, row for row, tag for tag
+        rows = [[f'{cd["xf"]} ({cd["lsName"]})',
+                 _fmt.fixed(cd["wheelDiaIn"], 2) + '"',
+                 _fmt.fixed(cd["rpm"], 0), _fmt.fixed(cd["bhp"], 2),
+                 _fmt.fixed(cd["ov"], 0),
+                 " ".join(filter(None, [
+                     "recommended" if cd["recommended"] else "",
+                     "most efficient" if cd["mostEfficient"] and not cd["recommended"] else "",
+                     "over max safe speed" if cd["overSpeed"] else "",
+                     "extrapolated" if cd["extrap"] else ""]))]
+                for cd in got["candidates"]]
+        ref_rows = [[re.sub(r"^(?:&#9679;|●)\s*", "", cells[0]).strip()] + cells[1:]
+                    for cells in r["rows"]]
+        check("xf catalog table", ref_rows, rows, c)
+    return len(cases)
+
+
 def main():
     counts = {"hammermill": test_hammermill(), "baghouse": test_baghouse(),
               "cooler": test_cooler(), "cyclone": test_cyclone(),
               "hammer pattern": test_hammer_pattern(), "duct": test_duct(),
-              "fan": test_fan()}
+              "fan": test_fan(), "xf fan": test_xf_fan()}
     for name, n in counts.items():
         print(f"  {name}: {n} cases")
     if FAILS:

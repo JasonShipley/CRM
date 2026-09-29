@@ -9,7 +9,9 @@ are covered here.
     cd renderer && python3 tests/test_airsystem.py
 """
 import datetime
+import math
 import pathlib
+import re
 import sys
 
 HERE = pathlib.Path(__file__).resolve().parent
@@ -62,16 +64,39 @@ def main():
           next(l["name"] for l in swept["lines"] if "Bin Vent" in l["name"])
           != next(l["name"] for l in by_model["lines"] if "Bin Vent" in l["name"]))
 
-    # 4. a cyclone means no filter, and the fan cannot be selected from one
+    # 4. a cyclone means no filter, so the fan is selected against the real system
+    #    — the cyclone's own rated drop plus the duct — off MCE's own XF line
     cyc = airsystem.size({"mode": "millModel", "millModel": "XM-4430",
-                          "cleaner": "cyclone"})
+                          "cleaner": "cyclone", "ductRunFt": 60, "ductElbows": 4})
     names = [l["name"] for l in cyc["lines"]]
     check("cyclone path has no filter", not any("Bin Vent" in n for n in names), str(names))
     check("cyclone path has a cyclone", any(n.startswith("Cyclone") for n in names), str(names))
-    check("cyclone path is honest about the fan",
-          any("Fan — size and price TBD" in n for n in names)
-          and any("no standalone fan calculator" in w for w in cyc["warnings"]),
-          str(names))
+    check("cyclone path selects an MCE XF fan",
+          any(n.startswith("Fan — MCE XF-") for n in names), str(names))
+    check("and says what static it was selected against",
+          any("rated drop plus 60 ft" in w for w in cyc["warnings"]),
+          str(cyc["warnings"]))
+    check("the fan is sized, not priced — the XF price list is not on file",
+          next(l for l in cyc["lines"] if l["name"].startswith("Fan"))["needsPrice"])
+    # the fan has to see the duct it actually pushes through, so the duct is sized
+    # first even though its line prints last: the duty has to come out above the
+    # cyclone's own 3" drop, and match the velocity through the sized duct
+    fan_note = next(w for w in cyc["warnings"] if w.startswith("Fan selected"))
+    duty = float(re.search(r"at ([\d.]+) in\.wg", fan_note).group(1))
+    check("the fan duty is the cyclone drop plus the duct, not the drop alone",
+          duty > 3.0, fan_note)
+    sized_dia = int(re.search(r"(\d+)", next(
+        o["value"] for o in cyc["outputs"] if o["label"] == "Duct")).group(1))
+    stated_fpm = float(re.search(r"of ([\d,]+) FPM", fan_note).group(1).replace(",", ""))
+    expected = cyc["cfm"] / (math.pi * (sized_dia / 12) ** 2 / 4)
+    check("and the velocity is through the duct the chain sized",
+          abs(stated_fpm - expected) < 1, f"{stated_fpm} vs {expected:.0f}")
+    # with no duct run stated the selection says so rather than inventing a layout
+    bare_fan = airsystem.size({"mode": "millModel", "millModel": "XM-4430",
+                               "cleaner": "cyclone"})
+    check("no run stated is called out, not guessed",
+          any("no duct run stated" in w for w in bare_fan["warnings"]),
+          str(bare_fan["warnings"]))
 
     # 5. opting items out actually removes them
     bare = airsystem.size({"mode": "millModel", "millModel": "XM-4430",

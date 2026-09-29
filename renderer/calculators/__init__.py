@@ -13,7 +13,7 @@ This module is the registry: it declares each calculator's inputs so the form UI
 and the JSON API are generated from one description, and dispatches `run()`.
 """
 from . import (_pricing, airsystem, baghouse, cooler, cooler_heat, cyclone, duct,
-               fan, hammer_pattern, hammermill)
+               fan, hammer_pattern, hammermill, xf_fan)
 from ._data import CL_CHECK_DEFS, CL_PELLETS, MCE_XM_MILLS, PRODUCTS, XM_CHART
 
 # --------------------------------------------------------------- input specs --
@@ -340,6 +340,69 @@ COOLER_HEAT_FIELDS = [
              "actually discharged — the coefficient it implies comes back."},
 ]
 
+XF_FAN_FIELDS = [
+    {"key": "elev", "label": "Site elevation", "type": "number", "unit": "ft",
+     "default": 0, "step": 50, "min": 0, "max": 12000},
+    {"key": "temp", "label": "Air temperature", "type": "number", "unit": "°F",
+     "default": 70, "step": 5, "min": -20, "max": 1000,
+     "help": "Sets the density correction, and above 300 °F the max safe speed too."},
+    {"key": "cfm1", "label": "Duct airflow", "type": "number", "unit": "CFM",
+     "default": 5000, "step": 100, "min": 1},
+    {"key": "dia1", "label": "Duct diameter", "type": "number", "unit": "in",
+     "default": 18, "step": 1, "min": 1},
+    {"key": "len1", "label": "Straight run", "type": "number", "unit": "ft",
+     "default": 60, "step": 5, "min": 0},
+    {"key": "elbows", "label": "90° elbows", "type": "number", "default": 2,
+     "step": 1, "min": 0, "help": f"K = {xf_fan.ELBOW_K} each."},
+    {"key": "entry", "label": "Entry loss", "type": "select", "default": "0.5",
+     "options": list(xf_fan.ENTRY_LOSSES)},
+    {"key": "exit", "label": "Exit loss", "type": "select", "default": "1.0",
+     "options": list(xf_fan.EXIT_LOSSES)},
+    {"key": "equip1", "label": "Equipment loss", "type": "number", "unit": '" WC',
+     "default": 2.0, "step": 0.1, "min": 0,
+     "help": "The filter, cyclone or cooler the air goes through — dirty-side value."},
+    {"key": "cfm2", "label": "Fan design airflow", "type": "number", "unit": "CFM",
+     "default": 5000, "step": 100, "min": 1},
+    {"key": "sp2", "label": "Fan design static", "type": "number", "unit": '" WC',
+     "default": 4.0, "step": 0.1, "min": 0.1},
+    {"key": "useSystem", "label": "Use the duct result as the duty", "type": "select",
+     "default": "", "options": [("", "No — use the figures above"),
+                                ("1", "Yes — take the system total")]},
+    {"key": "fanClass", "label": "Fan class", "type": "select", "default": "RAD",
+     "options": [(k, l) for k, l, _e, _kk in xf_fan.FAN_CLASSES],
+     "help": "Only the radial line selects off MCE's own capacity tables. The rest "
+             "are estimates off an assumed static efficiency."},
+    {"key": "lsSize", "label": "Catalog size", "type": "select", "default": "",
+     "options": [("", "Auto — smallest wheel inside its max safe speed")]
+                + [(k, f"{k} LS") for k in xf_fan.LS_DATA],
+     "showWhen": {"fanClass": "RAD"}},
+    {"key": "margin", "label": "Motor margin", "type": "number", "unit": "%",
+     "default": 15, "step": 5, "min": 0, "max": 50},
+    {"key": "assumedDia", "label": "Wheel diameter", "type": "number", "unit": "in",
+     "default": "", "step": 1, "min": 1,
+     "showWhen": {"fanClass": ["AF", "FC", "AX"]},
+     "help": "Only needed for the tip-speed check on a non-catalog class."},
+    {"key": "useRef", "label": "Scale from a known fan", "type": "select", "default": "",
+     "options": [("", "No"), ("1", "Yes — affinity laws off a reference selection")],
+     "showWhen": {"fanClass": ["AF", "FC", "AX"]}, "advanced": True},
+    {"key": "refQ", "label": "Reference airflow", "type": "number", "unit": "CFM",
+     "default": "", "step": 100, "min": 0, "showWhen": {"useRef": "1"},
+     "advanced": True},
+    {"key": "refSP", "label": "Reference static", "type": "number", "unit": '" WC',
+     "default": "", "step": 0.1, "min": 0, "showWhen": {"useRef": "1"},
+     "advanced": True},
+    {"key": "refRPM", "label": "Reference speed", "type": "number", "unit": "RPM",
+     "default": "", "step": 10, "min": 0, "showWhen": {"useRef": "1"},
+     "advanced": True},
+    {"key": "refBHP", "label": "Reference BHP", "type": "number", "unit": "BHP",
+     "default": "", "step": 0.1, "min": 0, "showWhen": {"useRef": "1"},
+     "advanced": True},
+    {"key": "refDia", "label": "Reference wheel", "type": "number", "unit": "in",
+     "default": "", "step": 1, "min": 0, "showWhen": {"useRef": "1"},
+     "advanced": True,
+     "help": "Leave blank to hold the wheel and solve for speed alone."},
+]
+
 CALCULATORS = {
     "hammermill": {
         "key": "hammermill", "label": "Hammermill + Plenum",
@@ -378,6 +441,15 @@ CALCULATORS = {
                  "fan; the price comes back with the vendor's selection.",
         "fields": FAN_FIELDS, "run": fan.size, "prices": False,
         "tool": "fan-sizing-calculator.html",
+    },
+    "xf_fan": {
+        "key": "xf_fan", "label": "XF Fan Duty & Curve",
+        "blurb": "Duct system resistance, then MCE's own XF line against it — wheel, "
+                 "speed and brake horsepower interpolated off the NYB LS capacity "
+                 "tables, with each size's max safe speed. Sizes MCE's own iron; the "
+                 "price waits on the XF price list.",
+        "fields": XF_FAN_FIELDS, "run": xf_fan.size, "prices": False,
+        "tool": "xf-fan-sizing-calculator.html",
     },
     "cyclone": {
         "key": "cyclone", "label": "Cyclone",
@@ -424,7 +496,6 @@ PLANNED = [
 # port exists. The tools page labels them so nobody goes looking for the field.
 NOT_PORTED = {
     "rotary-cooler": "Hosted only — no quote-builder port yet",
-    "xf-fan": "Hosted only — the port is what will price the fan",
 }
 
 PRODUCT_DEFAULTS = [

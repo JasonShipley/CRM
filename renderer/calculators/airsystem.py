@@ -33,7 +33,7 @@ deflagration venting as an unpriced option with the burst switches separated out
 (calculators/nfpa.py). It sizes neither — the vent area comes from a dust hazard
 analysis, not from here.
 """
-from . import _vendor, baghouse, cooler, cyclone, duct, nfpa
+from . import _vendor, baghouse, cooler, cyclone, duct, nfpa, xf_fan
 from ._data import MCE_XM_MILLS
 
 AIR_SWEPT_FACTOR = 1.25            # a drop-down pan is sized on 1.25 x screen area
@@ -173,19 +173,50 @@ def size(f):
             if o["label"] not in ("System airflow",):
                 outputs.append(o)
 
+    # The duct is sized before the fan, because the fan has to be selected against
+    # the duct it actually pushes through. Its line is still added further down, so
+    # the quote reads cleaner -> fan -> airlock -> duct.
+    duct_res = None
+    if "duct" in want:
+        duct_res = duct.size({"mode": "dia", "cfm": cfm, "velocity": velocity})
+        if duct_res.get("error"):
+            duct_res = None
+
     # --- a fan with no filter in front of it -----------------------------------
+    # A cyclone has no matched fan the way MCE's filters do, so the fan is selected
+    # against the actual system: the cyclone's own rated pressure drop plus the duct
+    # it pushes through. That is what MCE's XF calculator does, and it picks off
+    # MCE's own line rather than writing somebody else an RFQ.
     if "fan" in want and not fan_from_filter:
-        warnings.append(
-            "Fan not sized: MCE's fan selection comes with a filter model, and there is "
-            "no standalone fan calculator yet. With a cyclone the fan has to be picked "
-            "against the cyclone's pressure drop — take it to engineering, or add the "
-            "fan calculator from Drive and this will size it.")
-        lines.append({"name": "Fan — size and price TBD", "quantity": 1, "unitPrice": 0,
-                      "needsPrice": True, "description": "\n".join([
-                          f"Fan for {cfm:,.0f} CFM of mill or cooler air",
-                          "No MCE fan calculator yet — engineering to select against the "
-                          "actual system static",
-                      ])})
+        duct_dia = duct_res["diameter"] if duct_res else 0
+        cyc_static = _num(f.get("wg"), _num(DEFAULT_WG))
+        res = xf_fan.size({
+            "elev": _num(f.get("elevation")), "temp": _num(f.get("airTemp"), 70),
+            "cfm1": cfm, "dia1": duct_dia or 12,
+            "len1": _num(f.get("ductRunFt")), "elbows": _num(f.get("ductElbows")),
+            "equip1": cyc_static, "cfm2": cfm, "fanClass": "RAD",
+            "sp2": None, "useSystem": "1"})
+        if res.get("error"):
+            warnings.append(f'Fan not sized: {res["error"]}')
+        else:
+            sizing.append(res)
+            fan_line = res["lines"][0]
+            lines.append(fan_line)
+            warnings += res["warnings"]
+            for label in ("MCE model", "Brake horsepower", "Motor"):
+                val = next((o["value"] for o in res["outputs"]
+                            if o["label"] == label), None)
+                if val:
+                    outputs.append({"label": f"Fan — {label.lower()}", "value": val})
+            run_ft = _num(f.get("ductRunFt"))
+            warnings.append(
+                f'Fan selected against {res["outputs"][0]["value"]} — the cyclone\'s '
+                f'{cyc_static:g}" WG rated drop'
+                + (f' plus {run_ft:g} ft of {res["duct"]["velocity"]:,.0f} FPM duct.'
+                   if run_ft else
+                   ", with no duct run stated. Give the run and the elbows and the "
+                   "static comes off the layout instead of the cyclone alone.")
+                + " MCE builds this fan; the price waits on the XF price list.")
 
     # --- airlock ---------------------------------------------------------------
     if "airlock" in want:
@@ -205,9 +236,9 @@ def size(f):
                 "drop-through, not sized against this duty.")
 
     # --- duct ------------------------------------------------------------------
-    if "duct" in want:
-        res = duct.size({"mode": "dia", "cfm": cfm, "velocity": velocity})
-        if not res.get("error"):
+    if duct_res:
+        res = duct_res
+        if True:
             sizing.append(res)
             outputs.append({"label": "Duct", "value": f'{res["diameter"]}" dia at '
                                                       f"{velocity:,.0f} FPM"})
