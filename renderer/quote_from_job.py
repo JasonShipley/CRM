@@ -454,8 +454,82 @@ def build(job, today=None, delivery_weeks=None):
                     f'No drop-down air pan price on file for {pan_model or "this mill"} '
                     f"— the price book covers the XM-19/22/38/44 models. Get a shop "
                     "estimate.")
+        # On a VENTURI arrangement the product never lands on a pan or a screw: it
+        # goes into the air at the mill and every pound of it comes back out
+        # through this valve. So the airlock is sized on volume, not dropped in as
+        # the standard drop-through. Under a bin vent it only passes collected
+        # dust, and sizing it on the mill's throughput would be wrong.
+        carries_product = venturi
+        sized = None
+        if carries_product and pph:
+            density = (product or {}).get("bulkDensity")
+            if density:
+                sized = calculators.run("airlock", {
+                    "rate": pph, "bulkDensity": density,
+                    "fill": getattr(job, "airlock_fill", None) or "",
+                    "service": "gravity",
+                })
+                if sized.get("error"):
+                    sized = None
+
         al = _vendor.airlock()
-        if al:
+        if sized and sized.get("selected"):
+            pick = next(c for c in sized["candidates"]
+                        if c["number"] == sized["selected"])
+            req = sized["required"]
+            lines.append({
+                "name": f'Rotary Airlock — {pick["number"]}', "quantity": qty,
+                "unitPrice": round(pick["sell"] or 0, 2), "sku": pick["number"],
+                "needsPrice": not pick["sell"],
+                "description": "\n".join([
+                    f'Drop-through rotary valve, {pick["ft3PerRev"]:g} ft³ per '
+                    f'revolution at {req["rpm"]:g} RPM',
+                    f'Sized to pass {req["volumeFt3H"]:,.0f} ft³/h — '
+                    f'{pph:,.0f} lb/h at {density:g} lb/ft³ and '
+                    f'{req["fill"] * 100:.0f}% pocket fill',
+                    "Mounts under the cyclone hopper" if want_cyclone
+                    else "Mounts under the filter receiver hopper",
+                    "Budgetary price — firm on receipt of a current vendor quote",
+                ])})
+            open_items.append(
+                f'Airlock SIZED, not assumed: the venturi puts the whole '
+                f'{pph:,.0f} lb/h through this valve, which at {density:g} lb/ft³ and '
+                f'{req["fill"] * 100:.0f}% pocket fill needs '
+                f'{req["ft3PerRev"]:.3f} ft³/rev at {req["rpm"]:g} RPM. '
+                f'{pick["number"]} displaces {pick["ft3PerRev"]:g} ft³/rev '
+                f'({(pick["headroom"] - 1) * 100:.0f}% headroom).')
+            open_items += [n for n in sized.get("notes", []) if "carries" in n]
+            # What the missing displacement is COSTING, in money, on this quote.
+            standard = _vendor.airlock()
+            if (standard and pick["number"] in _vendor.CERTIFIED_VALVES
+                    and pick["sell"] and standard[1] < pick["sell"]):
+                open_items.append(
+                    f'That valve is ${pick["sell"] - standard[1]:,.0f} above the '
+                    f"{standard[1] and standard[0]} MCE normally quotes, and it is only "
+                    "in the scope because it is the one valve with a PUBLISHED "
+                    f"displacement big enough. The standard {standard[0]} may well pass "
+                    f'{req["volumeFt3H"]:,.0f} ft³/h — nobody can say, because the quote '
+                    "on file gives its speed and motor but no ft³/rev. One question to "
+                    "the vendor settles it, and if it fits, this line drops by that "
+                    "much.")
+            open_items += sized.get("warnings", [])
+        elif sized:
+            req = sized["required"]
+            lines.append({
+                "name": "Rotary Airlock — size and price TBD", "quantity": qty,
+                "unitPrice": 0, "needsPrice": True,
+                "description": "\n".join([
+                    f'Drop-through rotary valve passing {req["volumeFt3H"]:,.0f} ft³/h',
+                    f'{pph:,.0f} lb/h at {density:g} lb/ft³ and '
+                    f'{req["fill"] * 100:.0f}% pocket fill',
+                    "Mounts under the filter receiver hopper"])})
+            open_items.append(
+                f'Airlock not selected: the venturi puts {pph:,.0f} lb/h through it, '
+                f'needing {req["ft3PerRev"]:.3f} ft³/rev at {req["rpm"]:g} RPM and '
+                f'{req["fill"] * 100:.0f}% fill. No valve MCE has a published '
+                "displacement for covers that — the vendor sizes it.")
+            open_items += sized.get("warnings", [])
+        elif al:
             # Model number and specification only — the vendor's name is internal.
             al_number, al_price, al_date, al_brand, al_source, al_desc = al
             lines.append({
@@ -609,15 +683,21 @@ def build(job, today=None, delivery_weeks=None):
                 "description": (
                     f"{item} for the mill air-relief system. MCE has no calculator for this "
                     "item yet — engineering to size and price, or quote it by others.")})
-        if have_baghouse and not have_duct_hood:
-            by_others.insert(0, "Stack and weather cap at the fan discharge")
+        if have_baghouse:
+            # Two separate questions, and conflating them once made a quote WITH a
+            # filter receiver announce that a cyclone had been substituted: whether
+            # MCE supplies the discharge furniture, and which air system was built.
+            if not have_duct_hood:
+                by_others.insert(0, "Stack and weather cap at the fan discharge")
             open_items.append(
                 f'Air system requested: {"filter receiver" if want_receiver else "bin vent"} '
                 "sized from the mill screen area with its "
                 "matched AirPro fan, discharging to atmosphere after the filter — no cyclone. "
-                "Ductwork is sized from the same airflow but priced on request — the run, "
-                "the fittings and whether it vents to atmosphere all come out of the site "
-                "layout.")
+                + ("Ductwork is priced from the duct catalog off that same airflow."
+                   if have_duct_hood else
+                   "Ductwork is sized from the same airflow but priced on request — the "
+                   "run, the fittings and whether it vents to atmosphere all come out of "
+                   "the site layout."))
         else:
             open_items.append(
                 ("Air system requested with a cyclone rather than a filter, as the rep "
@@ -720,6 +800,17 @@ def build(job, today=None, delivery_weeks=None):
             options, quantity=qty, material=job.product_as_written, vessel=vessel,
             replacing=replacing, indoors=getattr(job, "indoor_install", None))
         open_items.extend(dust_notes)
+    elif airlock_line and replacing in _vendor.CERTIFIED_VALVES:
+        # The valve already IN the scope is a certified one — offering a certified
+        # valve as an alternative to itself reads as nonsense on a proposal, and
+        # the only one MCE has a price for is SMALLER than this duty needs.
+        open_items.append(
+            f"The airlock in the scope ({replacing}) is already an ATEX EN 15089 / "
+            "NFPA 69 certified valve, so no separate isolation option is offered. It "
+            "was selected on displacement, not on certification — it is simply the "
+            "only valve MCE has a published ft³/rev for that covers this duty. If the "
+            "dust hazard analysis does call for isolation, this valve already answers "
+            "it; if it does not, see the note about the standard valve's displacement.")
     elif airlock_line:
         # Nobody said combustible, but the certified valve is still the alternative a
         # dust hazard assessment would call for, and MCE has real prices for two of

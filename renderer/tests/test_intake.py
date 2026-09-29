@@ -496,6 +496,57 @@ def test_pricing_basis_is_the_only_copy():
           entry["source"] == "steel watch" and entry["from"] == _pricing.factor("plenum_rate"))
 
 
+
+def test_venturi_filter_receiver():
+    """Fairview as Dennis is actually being quoted: a venturi pickup into a filter
+    receiver, with the airlock SIZED on volume rather than dropped in.
+
+    On a venturi the product never lands on a pan or a screw — it goes into the air
+    at the mill and every pound comes back out through the airlock. That is why the
+    valve is sized on cubic feet, and why doing it on a bin vent's airlock (which
+    only passes collected dust) would be wrong."""
+    q = qfj.build(jb_request(include_plenum=False, include_screw=False, air_swept=True,
+                             air_pickup="venturi", dust_collection="filter_receiver",
+                             airlock_fill=0.90, duct_run_ft=60, duct_elbows=4),
+                  today=TODAY, delivery_weeks="10–12")
+    names = [l["name"] for l in q["lines"]]
+    check("a filter receiver, not a cyclone",
+          any(n.startswith("Filter Receiver") for n in names)
+          and not any(n.startswith("Cyclone") for n in names), str(names))
+
+    # THE regression: a quote with a filter receiver once announced that a cyclone
+    # had been substituted, because the discharge-hood check got tangled with the
+    # air-system message.
+    air = next(o for o in q["openItems"] if o.startswith("Air system"))
+    check("and the quote says so", "filter receiver" in air, air)
+    check("it never claims a cyclone was substituted",
+          "cyclone instead" not in air, air)
+
+    # the airlock is sized, and the sizing is on the record
+    al = next(l for l in q["lines"] if l["name"].startswith("Rotary Airlock"))
+    check("the airlock carries its duty", "ft³/h" in al["description"], al["description"])
+    check("at the fill the rep asked for", "90% pocket fill" in al["description"],
+          al["description"])
+    sized = next((o for o in q["openItems"] if "SIZED, not assumed" in o), None)
+    check("and says it was sized, not assumed", sized, str(q["openItems"][:3]))
+    check("naming the displacement it needs", sized and "ft³/rev" in sized, str(sized))
+
+    # a bin vent's airlock passes dust, NOT the mill's throughput, so it is not
+    # sized this way
+    vent = qfj.build(jb_request(), today=TODAY)
+    check("a bin vent airlock is not volume-sized on the mill rate",
+          not any("SIZED, not assumed" in o for o in vent["openItems"]),
+          str([o for o in vent["openItems"] if "irlock" in o]))
+
+    # offering a certified valve as an alternative to a certified valve is nonsense
+    if al["name"].split("— ")[-1] in _v.CERTIFIED_VALVES:
+        check("no isolation option against an already-certified valve",
+              not any("isolation" in o["name"].lower() for o in q["options"]),
+              str([o["name"] for o in q["options"]]))
+        check("and the quote explains why",
+              any("already an ATEX" in o for o in q["openItems"]), "")
+
+
 def test_options_and_reference_block():
     """MCE's proposal format carries an Options and Adders section, a basis line and
     a design-basis attribution. Options only appear where there is a real price or a
@@ -577,6 +628,7 @@ def main():
                test_baghouse_is_still_the_default,
                test_no_vendor_brands_on_customer_lines, test_delivery_weeks,
                test_air_swept, test_venturi_cyclone_arrangement,
+               test_venturi_filter_receiver,
                test_pricing_basis_is_the_only_copy,
                test_options_and_reference_block,
                test_quantity,

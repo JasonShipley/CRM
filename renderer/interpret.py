@@ -130,6 +130,10 @@ class JobRequest(BaseModel):
     duct_elbows: Optional[int] = Field(
         None, description="Number of 90 degree elbows in the duct run, if the rep gave "
                           "one — e.g. \"4 90s\". Only if they stated it.")
+    airlock_fill: Optional[float] = Field(
+        None, description="Pocket fill fraction to size the rotary airlock on, if the "
+                          "rep stated one — e.g. \"90% pocket fill\" is 0.9. Only if "
+                          "they said it.")
     air_swept: bool = Field(
         False, description="Rep asked for an air-swept mill, a drop-down air pan, or a drop "
                            "down airpan. These go together and change how the air is sized.")
