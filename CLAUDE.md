@@ -31,10 +31,22 @@
   no catalog record exists for that item or size.
 - **Standard cooler-system ductwork allowance**: price as 100 ft of duct at the size the air system
   calculator recommends, plus a transition from the equipment's exhaust to round duct, fan inlet and
-  outlet transitions, and a weatherproof rain hood at the fan discharge — same scope every time. MCE's
-  real "Est Ductwork" catalog SKU ($9,995) covers 17" dia/50 ft straight duct + 4 elbows; scale to the
-  actual job's diameter and 100 ft length by duct surface area ratio (circumference × length) since no
-  catalog SKU exists at every diameter.
+  outlet transitions, and a weatherproof rain hood at the fan discharge — same scope every time.
+  Price it from the real **Nolin Milling 2026 catalog** (MCE's preferred ductwork/transitions/elbows
+  vendor), not by estimating: two reference transcriptions live in the same Drive folder as the MAC
+  cyclone catalog — "Nolin Milling 2026 Price List — Ductwork, Elbows, Transitions (reference)" and
+  "Nolin Milling 2026 Ductwork & Elbow Price List (reference)" — plus the full "Nolin Milling 2026 Online
+  Catalog.pdf". These give real $/10-ft-length duct pricing by diameter and gauge, elbow pricing by
+  diameter/gore/gauge, square-to-round and round-to-round transition pricing, and 150# flange adapter
+  plates (use these for fan inlet/outlet connections — the catalog says they're made for exactly that).
+  Build cost from these real prices (100 ft = ten 10-ft lengths at the job's diameter/14ga; transitions
+  and flange adapters at the nearest listed size when the exact custom size isn't tabulated, same as
+  Nolin's own worked examples do), then apply `cost / 0.7` per the screw-conveyor-style margin rule below.
+  The catalog has no rain hood/weather cap listing (it says that comes with the fan or is MCE-fabricated)
+  — estimate that one piece separately and fold it into the same cost-basis before dividing by 0.7.
+  Add roughly $1,500–$2,000 for freight on top of the whole ductwork line's sell price (baked into the
+  total, never called out as freight on the customer document, consistent with never stating an item
+  includes freight).
 - **Never disclose internal pricing methodology or sourcing in a customer-facing document.** Item
   descriptions must read like a normal, confident vendor/catalog spec sheet — a feature and construction
   list — never a note explaining how MCE arrived at the number. Specifically, never write into an item
