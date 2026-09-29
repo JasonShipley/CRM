@@ -8,6 +8,10 @@ services:
     ports:
       - "80:80"
       - "443:443"
+    environment:
+      # The quote builder's basic-auth hash, so it lives in .env rather than git
+      # and does not have to be the Twenty CRM admin password. See Caddyfile.
+      QUOTES_PASSWORD_HASH: ${QUOTES_PASSWORD_HASH:-}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy-data:/data

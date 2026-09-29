@@ -52,6 +52,18 @@ COMPOSE=(-f docker-compose.yml -f docker-compose.renderer.yml)
 [ -f docker-compose.caddy.yml ] && COMPOSE+=(-f docker-compose.caddy.yml)
 docker compose "${COMPOSE[@]}" up -d --build quote-renderer
 
+if ! grep -qE '^QUOTES_PASSWORD_HASH=.+' .env 2>/dev/null; then
+  echo
+  echo "    NOTE: QUOTES_PASSWORD_HASH is not set in deploy/.env, so"
+  echo "          quotes.usemce.com still uses the Twenty CRM admin password."
+  echo "          Anyone you give the quote builder to also gets CRM admin."
+  echo "          To split them:"
+  echo "            docker run --rm caddy:2 caddy hash-password --plaintext 'new-password'"
+  echo "            echo \"QUOTES_PASSWORD_HASH='<the hash>'\" >> deploy/.env"
+  echo "            sudo $0 ${BRANCH}"
+  echo
+fi
+
 echo "==> [4/5] Reloading the proxy"
 # Caddy mounts deploy/Caddyfile read-only and does not notice it changing, so a
 # routing change (for instance /api/ bypassing basic auth so bearer tokens
@@ -70,7 +82,10 @@ else
 fi
 
 echo "==> [5/5] Checking it came up"
-pass=$(grep -i '^password' credentials.local | cut -d: -f2- | tr -d ' ')
+# credentials.local holds the password the installer set. Once
+# QUOTES_PASSWORD_HASH is set in .env the quote builder's password is that one
+# instead, and this check just reports 401 — which is not a failure of the deploy.
+pass=$(grep -i '^password' credentials.local 2>/dev/null | cut -d: -f2- | tr -d ' ' || true)
 for i in $(seq 1 12); do
   code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 \
     -u "mce:$pass" https://quotes.usemce.com/ || true)
@@ -88,11 +103,16 @@ echo "Quote builder: https://quotes.usemce.com  -> HTTP $code"
 echo "Calculators:   https://quotes.usemce.com/tools"
 echo "Login:         mce / (the password in deploy/credentials.local)"
 echo "API, no token: HTTP $api (401 is correct — it means the API is locked)"
-[ "$code" = "200" ] || {
+if [ "$code" != "200" ] && [ "$code" != "401" ]; then
   echo
-  echo "Not answering yet. Check:  docker compose ${COMPOSE[*]} logs --tail 50 quote-renderer"
+  echo "Not answering. Check:  docker compose ${COMPOSE[*]} logs --tail 50 quote-renderer"
   exit 1
-}
+fi
+if [ "$code" = "401" ]; then
+  echo
+  echo "    (401 means the page is up and asking for a password. Expected if you"
+  echo "     have set QUOTES_PASSWORD_HASH — sign in with the new password.)"
+fi
 [ "$api" = "401" ] || {
   echo
   echo "STOP. /api/pricing answered $api without a token; it must answer 401."

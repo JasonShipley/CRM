@@ -18,9 +18,16 @@ quotes.usemce.com {
 	}
 
 	# Everything a person uses stays behind basic auth.
+	#
+	# The hash comes from QUOTES_PASSWORD_HASH in deploy/.env, which is gitignored,
+	# so the quote builder's password can be changed without a commit and need not
+	# be the same as the Twenty CRM admin password. Generate one with:
+	#   docker run --rm caddy:2 caddy hash-password --plaintext 'the-password'
+	# The fallback is the old shared hash, so an install that has not set it yet
+	# keeps working — update.sh says so on every run until it is set.
 	handle {
 		basic_auth {
-			mce $2b$12$Hfa6PSeJiogxr6uibilZV.FRj41vK9tQpbko9x526knZ1IkyCsaHS
+			mce {$QUOTES_PASSWORD_HASH:$2b$12$Hfa6PSeJiogxr6uibilZV.FRj41vK9tQpbko9x526knZ1IkyCsaHS}
 		}
 		reverse_proxy quote-renderer:8090
 	}
