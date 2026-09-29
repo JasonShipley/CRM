@@ -43,9 +43,10 @@
   and flange adapters at the nearest listed size when the exact custom size isn't tabulated, same as
   Nolin's own worked examples do), then apply `cost / 0.7` per the screw-conveyor-style margin rule below.
   The catalog has no rain hood/weather cap listing (it says that comes with the fan or is MCE-fabricated)
-  — estimate that one piece separately and fold it into the same cost-basis before dividing by 0.7.
-  Add roughly $1,500–$2,000 for freight on top of the whole ductwork line's sell price (baked into the
-  total, never called out as freight on the customer document, consistent with never stating an item
+  — use **$350 cost** as the baseline for this small fan (XF-29, 25 HP class); it scales up with fan size,
+  so bump it for a larger exhaust fan on a bigger job. Fold it into the same cost basis before dividing
+  by 0.7. Add roughly $1,500–$2,000 for freight on top of the whole ductwork line's sell price (baked into
+  the total, never called out as freight on the customer document, consistent with never stating an item
   includes freight).
 - **Never disclose internal pricing methodology or sourcing in a customer-facing document.** Item
   descriptions must read like a normal, confident vendor/catalog spec sheet — a feature and construction
