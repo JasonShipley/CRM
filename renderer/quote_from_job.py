@@ -563,9 +563,11 @@ def build(job, today=None, delivery_weeks=None):
                 desc.append("Bill of material: " + ", ".join(bom)
                             + (", plus hangers, supports and the bolted flange joints"))
                 if not dk.get("error"):
+                    duct_service = (getattr(job, "duct_service", None)
+                                    or _vendor.DUCT_DEFAULT_SERVICE)
                     priced = _vendor.duct_package(
                         dk["diameter"], run_ft or 0, elbows,
-                        to_atmosphere=True, quantity=qty)
+                        service=duct_service, to_atmosphere=True, quantity=qty)
             else:
                 desc.append("Straight run, elbows, transitions and supports to suit the "
                             "layout")
@@ -580,7 +582,7 @@ def build(job, today=None, delivery_weeks=None):
                     "unitPrice": round(priced["total"] / max(qty, 1), 2),
                     "budgetPrice": True, "description": "\n".join(desc)})
                 open_items.append(f'Ductwork priced from {priced["basis"]}.')
-                open_items.append(_vendor.DUCT_GAUGE_NOTE)
+                open_items += priced["notes"]
                 open_items += priced["warnings"]
                 have_duct_hood = True
             else:

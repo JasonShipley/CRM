@@ -392,6 +392,26 @@ SWEEP_ELBOW = _table("""
    24   48   4089.00   3669.00   3269.00   3059.00
 """, ["cl", "90", "60", "45", "30"])
 
+# Page 45: replacement backs for the sweep elbows. The back is the wear part — on
+# an abrasive line it is what gets changed, not the elbow. Two grades.
+#   size band          90        60        45        30
+SWEEP_BACK_10GA = _bands("""
+    3-8:      259.00    249.00    199.00    189.00
+    10-14:    289.00    279.00    249.00    219.00
+    16-18:    469.00    449.00    419.00    389.00
+    20:       639.00    609.00    589.00    579.00
+    24:       779.00    769.00    739.00    729.00
+""")
+SWEEP_BACK_7GA_AR = _bands("""
+    3-8:      389.00    379.00    349.00    339.00
+    10-14:    469.00    449.00    419.00    389.00
+    16-18:    769.00    729.00    719.00    679.00
+    20:       869.00    849.00    839.00    809.00
+    24:       979.00    939.00    929.00    909.00
+""")
+SWEEP_ANGLE_COLUMN = {"90": 0, "60": 1, "45": 2, "30": 3}
+
+
 # --- page 3: spouting, plain end, per foot --------------------------------------
 # What the catalog sends you to for duct under 9 in. Plain end, so it needs flange
 # rings or clamp bands, and it is bare steel until primed.
@@ -567,6 +587,28 @@ def transition(square_in, round_in, gauge="14"):
         if g in exact:
             return exact[g], (sq, rd), g
     return None
+
+
+def sweep_elbow(diameter_in, angle="90"):
+    """(price, actual_diameter, centerline_in) for a removable back sweep elbow.
+
+    10 ga with a 10 ga removable back — the elbow for a line carrying product
+    rather than fines, where a segmented elbow wears through at the heel.
+    """
+    dia, row = _nearest(SWEEP_ELBOW, int(diameter_in))
+    if not row or str(angle) not in row:
+        return None
+    return row[str(angle)], dia, int(row["cl"])
+
+
+def sweep_back(diameter_in, angle="90", grade="10ga"):
+    """(price, actual_diameter, grade) for a replacement back — the wear part."""
+    table = SWEEP_BACK_7GA_AR if grade == "7ga" else SWEEP_BACK_10GA
+    dia, row = _nearest(table, int(diameter_in))
+    if not row:
+        return None
+    col = SWEEP_ANGLE_COLUMN.get(str(angle), 0)
+    return (row[col] if col < len(row) else row[-1]), dia, grade
 
 
 def band(table, size, column=0):

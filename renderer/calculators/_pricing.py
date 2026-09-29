@@ -71,14 +71,33 @@ ESCALATIONS = [
 # What the price book SHOULD say if it were regenerated from the factors above.
 # Where the received book disagrees, `pricing_cli.py check` prints the delta and
 # nothing is quietly reconciled — see docs/quote-builder.md.
+# Where JB's received price book implies a different multiplier from the one the
+# calculator carries. Both were proved before anyone was asked to choose, and both
+# are now DECIDED: Jason took the calculator's basis on 2026-09-29. The evidence
+# stays on the record so the question is never re-opened from scratch, and so the
+# next person can see it was a decision rather than an oversight.
 KNOWN_DIVERGENCE = {
     "feeder": {"book_implies": 1.515, "basis": 2.00,
                "evidence": "all 36 rows of the 10\" tables, exact to the dollar "
-                           "(tight tolerance is 2.000 in both)"},
+                           "(tight tolerance is 2.000 in both)",
+               "decided": "2026-09-29", "decided_by": "Jason",
+               "decision": "keep the 2.00 basis",
+               "rationale": "MCE is well under CPM on every feeder, so the book's "
+                            "1.515 is leaving margin on the table rather than "
+                            "winning work"},
     "mill": {"book_implies": "≈1.631 on 19\"/22\", ≈1.655 on 38\"/44\"", "basis": 1.73,
              "evidence": "32 models, no single factor fits; XM-1920 is an outlier "
-                         "at 1.4925"},
+                         "at 1.4925",
+             "decided": "2026-09-29", "decided_by": "Jason",
+             "decision": "keep the 1.73 basis",
+             "rationale": "no single factor fits the book anyway, so the calculator's "
+                          "1.73 is the one number rather than one of thirty-two"},
 }
+
+
+def undecided():
+    """Divergences still waiting on somebody. Empty is the goal."""
+    return {k: v for k, v in KNOWN_DIVERGENCE.items() if not v.get("decided")}
 
 
 # ------------------------------------------------------- what is NOT priced --

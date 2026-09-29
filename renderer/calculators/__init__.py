@@ -15,6 +15,7 @@ and the JSON API are generated from one description, and dispatches `run()`.
 from . import (_pricing, airlock, airsystem, baghouse, cooler, cooler_heat,
                cyclone, dilute_phase, dryer, duct, fan, hammer_pattern,
                hammermill, live_bottom, rotary_cooler, xf_fan)
+from . import _vendor  # noqa: E402
 from ._data import CL_CHECK_DEFS, CL_PELLETS, MCE_XM_MILLS, PRODUCTS, XM_CHART
 
 # --------------------------------------------------------------- input specs --
@@ -225,6 +226,11 @@ AIRSYSTEM_FIELDS = [
              "lengths, hangers, elbows, bird screen and rain hood."},
     {"key": "ductElbows", "label": "90° elbows", "type": "number", "default": "",
      "step": 1, "min": 0},
+    {"key": "ductService", "label": "Duct service", "type": "select",
+     "default": _vendor.DUCT_DEFAULT_SERVICE, "options": list(_vendor.DUCT_SERVICE),
+     "help": "Air relief carries fines and takes the standard gauge. A line "
+             "carrying product gets removable back sweep elbows, which is where the "
+             "money goes."},
     {"key": "combustible", "label": "Combustible dust", "type": "select", "default": "",
      "options": [("", "Not stated — no protection offered"),
                  ("1", "Yes — offer NFPA isolation and venting")],

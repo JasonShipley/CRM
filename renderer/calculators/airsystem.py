@@ -246,8 +246,9 @@ def size(f):
                     f'({res["minDiameter"]:.2f}" minimum, rounded up to the next even inch)')
             run_ft = _num(f.get("ductRunFt"))
             elbow_count = int(_num(f.get("ductElbows")))
+            service = str(f.get("ductService") or _vendor.DUCT_DEFAULT_SERVICE)
             pkg = (_vendor.duct_package(res["diameter"], run_ft, elbow_count,
-                                        to_atmosphere=cleaner != "cyclone" or True)
+                                        service=service, to_atmosphere=True)
                    if run_ft or elbow_count else None)
             if pkg:
                 desc = [head, _vendor.DUCT_STANDARD_PACKAGE]
@@ -257,7 +258,7 @@ def size(f):
                               "description": "\n".join(desc)})
                 total += pkg["total"]
                 warnings.append(f'Ductwork priced from {pkg["basis"]}.')
-                warnings.append(_vendor.DUCT_GAUGE_NOTE)
+                warnings += pkg["notes"]
                 warnings += pkg["warnings"]
             else:
                 lines.append({

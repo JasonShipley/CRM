@@ -464,12 +464,40 @@ DUCT_STANDARD_PACKAGE = (
     "strap per length, and — where the fan discharges to atmosphere — a flanged "
     "bird screen and a shielded rain and snow hood.")
 DUCT_HANGER_SPACING_FT = 10      # one strap per 10 ft length; confirm against the run
-DUCT_DEFAULT_GAUGE = "14"
 DUCT_DEFAULT_MATERIAL = "carbon"
+
+# MCE's duct standard (Jason, 2026-09-29): 14 gauge, unless the line is carrying an
+# abrasive material. Air-relief duct is normally carrying fines, which is why the
+# light gauge holds up — a line carrying PRODUCT wears at the elbow heel long
+# before the straight run goes, so it gets a removable back sweep elbow instead of
+# a segmented one, and the back is the part that gets changed.
+DUCT_SERVICE = [
+    ("fines", "Fines — mill or cooler air relief. 14 ga, segmented elbows."),
+    ("product", "Product — the line carries material. 14 ga with removable back "
+                "sweep elbows."),
+    ("abrasive", "Abrasive — heavier gauge and removable back sweep elbows."),
+]
+DUCT_DEFAULT_SERVICE = "fines"
+DUCT_STANDARD_GAUGE = "14"
+# The one number in the rule Jason did not name. 10 ga is the port's step-up and
+# it is flagged on every abrasive quote — one edit here changes it everywhere.
+DUCT_ABRASIVE_GAUGE = "10"
+DUCT_SERVICE_GAUGE = {"fines": DUCT_STANDARD_GAUGE, "product": DUCT_STANDARD_GAUGE,
+                      "abrasive": DUCT_ABRASIVE_GAUGE}
+DUCT_SWEEP_SERVICES = ("product", "abrasive")
+DUCT_DEFAULT_GAUGE = DUCT_STANDARD_GAUGE      # kept for callers that name it
 DUCT_GAUGE_NOTE = (
-    f"Quoted in {DUCT_DEFAULT_GAUGE} ga as the catalog's lightest air-handling duct. "
-    "MCE has not recorded a standard gauge for abrasive or combustible service — "
-    "confirm it before this goes out, because 10 ga and 7 ga are real money.")
+    f"Quoted in {DUCT_STANDARD_GAUGE} ga — MCE's standard for air-handling duct, "
+    "which normally carries fines.")
+DUCT_ABRASIVE_NOTE = (
+    f"Abrasive service: quoted in {DUCT_ABRASIVE_GAUGE} ga with removable back sweep "
+    "elbows. MCE's rule is heavier than standard for abrasive material but has not "
+    f"named the gauge — confirm {DUCT_ABRASIVE_GAUGE} ga before this goes out, "
+    "because 7 ga is real money again.")
+DUCT_SWEEP_NOTE = (
+    "Carrying product, not fines, so the elbows are 10 ga removable back sweeps "
+    "rather than segmented. A segmented elbow wears through at the heel on a "
+    "product line; a sweep lets the back be replaced without cutting the duct out.")
 
 
 def _nolin_item(name, qty, unit_list, source):
@@ -478,8 +506,9 @@ def _nolin_item(name, qty, unit_list, source):
 
 
 def duct_package(diameter_in, run_ft=0, elbows=0, adaptors=0, *,
-                 gauge=DUCT_DEFAULT_GAUGE, material=DUCT_DEFAULT_MATERIAL,
-                 elbow_angle="90", to_atmosphere=True, transition_from=None,
+                 gauge=None, material=DUCT_DEFAULT_MATERIAL,
+                 service=DUCT_DEFAULT_SERVICE, elbow_angle="90",
+                 to_atmosphere=True, transition_from=None, spare_backs=0,
                  quantity=1):
     """The catalog bill of material for a duct run, priced.
 
@@ -492,6 +521,11 @@ def duct_package(diameter_in, run_ft=0, elbows=0, adaptors=0, *,
     dia = int(diameter_in or 0)
     if dia <= 0:
         return None
+    if service not in DUCT_SERVICE_GAUGE:
+        service = DUCT_DEFAULT_SERVICE
+    if gauge is None:
+        gauge = DUCT_SERVICE_GAUGE[service]
+    sweeps = service in DUCT_SWEEP_SERVICES
     # Nolin prints flanged primed gray duct in a fixed set of sizes, and its own
     # header sends everything from 3 in to 16 in to the spouting page instead. So a
     # size the duct table prints is bought as flanged duct; a small size it does not
@@ -551,13 +585,36 @@ def duct_package(diameter_in, run_ft=0, elbows=0, adaptors=0, *,
             items.append(_nolin_item(f'{actual_dia}" hanger strap', lengths, straps,
                                      f"{_nolin.SOURCE} p. 45"))
     if elbows:
-        el = _nolin.elbow(actual_dia, elbow_angle, gauge)
+        el = _nolin.sweep_elbow(actual_dia, elbow_angle) if sweeps else None
         if el:
-            price, _d, el_gauge, centerline = el
+            price, _d, centerline = el
             items.append(_nolin_item(
-                f'{actual_dia}" {elbow_angle}° segmented elbow, {el_gauge} ga, '
+                f'{actual_dia}" {elbow_angle}° removable back sweep elbow, 10 ga, '
                 f'{centerline}" centerline', elbows, price,
-                f"{_nolin.SOURCE} p. 43"))
+                f"{_nolin.SOURCE} p. 45"))
+            if spare_backs:
+                back = _nolin.sweep_back(actual_dia, elbow_angle)
+                if back:
+                    b_price, _bd, grade = back
+                    items.append(_nolin_item(
+                        f'{actual_dia}" {elbow_angle}° replacement back, '
+                        f'{grade.replace("ga", " ga")}', spare_backs, b_price,
+                        f"{_nolin.SOURCE} p. 45"))
+        else:
+            if sweeps:
+                warnings.append(
+                    f'Nolin prints no removable back sweep elbow at {actual_dia}" — '
+                    "quoted as a segmented elbow. On a product line that is the part "
+                    "that wears out first, so ask them to make one.")
+            seg = _nolin.elbow(actual_dia, elbow_angle, gauge)
+            if not seg:
+                seg = None
+            if seg:
+                price, _d, el_gauge, centerline = seg
+                items.append(_nolin_item(
+                    f'{actual_dia}" {elbow_angle}° segmented elbow, {el_gauge} ga, '
+                    f'{centerline}" centerline', elbows, price,
+                    f"{_nolin.SOURCE} p. 43"))
     if adaptors:
         red = _nolin.reducer(actual_dia, max(actual_dia - 2, 4), gauge)
         if red:
@@ -601,9 +658,25 @@ def duct_package(diameter_in, run_ft=0, elbows=0, adaptors=0, *,
 
     basis = (f'{_nolin.SOURCE} ({_nolin.CATALOG_DATE}) list, '
              f'{adder["material"]}, at MCE\'s buy-out divisor {BUYOUT_DIVISOR:g}')
+    notes = [DUCT_ABRASIVE_NOTE if service == "abrasive" else DUCT_GAUGE_NOTE]
+    if sweeps:
+        notes.append(DUCT_SWEEP_NOTE)
+        # a sweep elbow is several times a segmented one, so the quote says by how
+        # much rather than leaving the rep to defend a number they cannot explain
+        seg = _nolin.elbow(actual_dia, elbow_angle, gauge) if elbows else None
+        sw = _nolin.sweep_elbow(actual_dia, elbow_angle) if elbows else None
+        if seg and sw:
+            delta = (sw[0] - seg[0]) * elbows
+            notes.append(
+                f'The {elbows} sweep elbow{"s" if elbows != 1 else ""} add '
+                f"${delta * (1 / BUYOUT_DIVISOR):,.0f} over segmented elbows at this "
+                f"size. That is the trade: a segmented elbow on a product line wears "
+                "through at the heel and comes out of the ceiling to be replaced.")
+
     return {"items": items, "listTotal": round(list_total, 2),
             "total": round(buyout_price(list_total) * quantity, 2),
             "diameter": actual_dia, "gauge": actual_gauge, "material": material,
+            "service": service, "sweepElbows": sweeps, "notes": notes,
             "lengths": lengths, "spouting": spouted, "basis": basis, "warnings": warnings,
             "terms": _nolin.TERMS}
 

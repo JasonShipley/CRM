@@ -395,8 +395,8 @@ def test_venturi_cyclone_arrangement():
           not duct.get("needsPrice") and duct["unitPrice"] > 0
           and "Nolin Milling 2026 catalog" in open_text(q),
           str(duct.get("unitPrice")))
-    check("the gauge assumption is flagged rather than buried",
-          "has not recorded a standard gauge" in open_text(q), open_text(q))
+    check("the gauge is MCE's standard, and says so",
+          "14 ga — MCE's standard" in open_text(q), open_text(q))
     # the hood is MCE's scope now, so it is not also handed to the customer
     check("the discharge cap is no longer pushed to others",
           not any("weather cap" in b for b in q.get("byOthers", [])),
@@ -464,6 +464,16 @@ def test_pricing_basis_is_the_only_copy():
           _pricing.KNOWN_DIVERGENCE["feeder"]["book_implies"] == 1.515
           and _pricing.KNOWN_DIVERGENCE["feeder"]["basis"] == 2.00)
     check("and so is the mill's", "mill" in _pricing.KNOWN_DIVERGENCE)
+    # both were decided on the basis, not the book — and the evidence stays, so
+    # nobody re-opens the question from scratch
+    check("nothing is left undecided", _pricing.undecided() == {},
+          str(_pricing.undecided()))
+    for scope, want in (("mill", 1.73), ("feeder", 2.00)):
+        d = _pricing.KNOWN_DIVERGENCE[scope]
+        check(f"the {scope} basis is the decision",
+              _pricing.factor(scope) == want and d["decided"] and d["decided_by"]
+              and d["rationale"], str(d))
+        check(f"and the {scope} evidence survived the decision", bool(d["evidence"]))
 
     # what cannot be priced says so, with the one input that would fix it
     for scope, gap in _pricing.UNPRICED.items():

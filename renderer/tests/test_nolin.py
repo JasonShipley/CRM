@@ -70,6 +70,26 @@ for angle in ("90", "60", "45", "30"):
             if pb < pa:
                 bad(f'elbow {angle}° {gauge} ga: {b}" (${pb}) is below {a}" (${pa})')
 
+# Replacement backs follow the same angle order as the elbows they fit.
+for name, table in (("sweep back 10 ga", n.SWEEP_BACK_10GA),
+                    ("sweep back 7 ga AR", n.SWEEP_BACK_7GA_AR)):
+    for dia, row in table.items():
+        for i, (p1, p2) in enumerate(zip(row, row[1:])):
+            if p2 > p1:
+                bad(f'{name} {dia}": angles out of order {row}')
+    sizes = sorted(table)
+    for a, b in zip(sizes, sizes[1:]):
+        for col, (pa, pb) in enumerate(zip(table[a], table[b])):
+            if pb < pa:
+                bad(f'{name} col {col}: {b}" (${pb}) is below {a}" (${pa})')
+for dia in n.SWEEP_BACK_10GA:
+    for angle in ("90", "60", "45", "30"):
+        ten = n.sweep_back(dia, angle)[0]
+        seven = n.sweep_back(dia, angle, grade="7ga")[0]
+        if seven <= ten:
+            bad(f'7 ga AR back at {dia}" {angle}° (${seven}) should be above '
+                f"10 ga (${ten})")
+
 # Sweep elbows are one gauge, so only the angle order applies.
 for dia, row in n.SWEEP_ELBOW.items():
     series = [row[a] for a in ("90", "60", "45", "30")]
@@ -153,6 +173,57 @@ if not any("clamp band" in i["name"] for i in small["items"]):
     bad("plain-end spouting has to carry its joints")
 if not any("under the flanged ductwork table" in w for w in small["warnings"]):
     bad("the quote has to say why a small run is spouting")
+
+# --- MCE's service rule: 14 ga on fines, sweeps on product, heavier on abrasive --
+fines = _vendor.duct_package(20, run_ft=60, elbows=4, service="fines")
+product = _vendor.duct_package(20, run_ft=60, elbows=4, service="product")
+abrasive = _vendor.duct_package(20, run_ft=60, elbows=4, service="abrasive")
+
+if fines["gauge"] != "14":
+    bad(f'air relief should be 14 ga, got {fines["gauge"]}')
+if fines["sweepElbows"]:
+    bad("a fines line takes segmented elbows, not sweeps")
+if not any("segmented elbow" in i["name"] for i in fines["items"]):
+    bad("a fines line has to carry segmented elbows")
+
+# carrying product keeps the standard gauge but changes the elbow — that is the
+# rule, and the elbow is where a product line actually wears out
+if product["gauge"] != "14":
+    bad(f'a product line stays 14 ga, got {product["gauge"]}')
+if not product["sweepElbows"]:
+    bad("a product line takes removable back sweep elbows")
+if not any("removable back sweep elbow" in i["name"] for i in product["items"]):
+    bad("a product line has to carry sweep elbows")
+if product["total"] <= fines["total"]:
+    bad("sweep elbows cost more than segmented")
+if not any("wears through at the heel" in n for n in product["notes"]):
+    bad("the quote has to say why the elbow changed")
+if not any("add $" in n for n in product["notes"]):
+    bad("the sweep elbow premium has to be quantified, not just asserted")
+
+# abrasive is the only case that moves the gauge
+if abrasive["gauge"] != _vendor.DUCT_ABRASIVE_GAUGE:
+    bad(f'abrasive should be {_vendor.DUCT_ABRASIVE_GAUGE} ga, got {abrasive["gauge"]}')
+if not abrasive["sweepElbows"]:
+    bad("abrasive service takes sweep elbows too")
+if abrasive["total"] <= product["total"]:
+    bad("a heavier gauge has to cost more")
+if not any("has not named the gauge" in n for n in abrasive["notes"]):
+    bad("the one number MCE did not set has to stay flagged")
+
+# the replacement back is the wear part and is quotable as a spare
+spare = _vendor.duct_package(20, run_ft=60, elbows=4, service="product",
+                             spare_backs=2)
+backs = [i for i in spare["items"] if "replacement back" in i["name"]]
+if len(backs) != 1 or backs[0]["quantity"] != 2:
+    bad(f"spare backs should quote as one line of two: {backs}")
+if backs[0]["listUnit"] >= next(i["listUnit"] for i in spare["items"]
+                                if "sweep elbow" in i["name"]):
+    bad("a replacement back costs less than the whole elbow")
+
+# an unknown service falls back to the standard rather than erroring
+if _vendor.duct_package(20, run_ft=10, service="nonsense")["gauge"] != "14":
+    bad("an unknown service falls back to MCE's standard")
 
 # A material change is a flagged budget number, never a silent one.
 ss = _vendor.duct_package(20, run_ft=60, elbows=4, material="stainless")
