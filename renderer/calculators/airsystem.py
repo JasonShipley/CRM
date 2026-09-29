@@ -211,13 +211,31 @@ def size(f):
             sizing.append(res)
             outputs.append({"label": "Duct", "value": f'{res["diameter"]}" dia at '
                                                       f"{velocity:,.0f} FPM"})
-            lines.append({
-                "name": "Ductwork — priced upon request", "quantity": 1, "unitPrice": 0,
-                "needsPrice": True, "description": "\n".join([
-                    f'{res["diameter"]}" dia duct at {velocity:,.0f} FPM on {cfm:,.0f} CFM '
-                    f'({res["minDiameter"]:.2f}" minimum, rounded up to the next even inch)',
-                    "Straight run, elbows, transitions and supports to suit the layout",
-                    "Priced upon request once the layout is determined"])})
+            head = (f'{res["diameter"]}" dia duct at {velocity:,.0f} FPM on {cfm:,.0f} CFM '
+                    f'({res["minDiameter"]:.2f}" minimum, rounded up to the next even inch)')
+            run_ft = _num(f.get("ductRunFt"))
+            elbow_count = int(_num(f.get("ductElbows")))
+            pkg = (_vendor.duct_package(res["diameter"], run_ft, elbow_count,
+                                        to_atmosphere=cleaner != "cyclone" or True)
+                   if run_ft or elbow_count else None)
+            if pkg:
+                desc = [head, _vendor.DUCT_STANDARD_PACKAGE]
+                desc += [f'  {i["quantity"]:g} × {i["name"]}' for i in pkg["items"]]
+                lines.append({"name": f'Ductwork — {pkg["diameter"]}" dia', "quantity": 1,
+                              "unitPrice": pkg["total"], "budgetPrice": True,
+                              "description": "\n".join(desc)})
+                total += pkg["total"]
+                warnings.append(f'Ductwork priced from {pkg["basis"]}.')
+                warnings.append(_vendor.DUCT_GAUGE_NOTE)
+                warnings += pkg["warnings"]
+            else:
+                lines.append({
+                    "name": "Ductwork — priced upon request", "quantity": 1,
+                    "unitPrice": 0, "needsPrice": True, "description": "\n".join([
+                        head,
+                        "Straight run, elbows, transitions and supports to suit the layout",
+                        "Give a run length and an elbow count and this prices itself off "
+                        "the duct catalog"])})
 
     # --- combustible dust ------------------------------------------------------
     # Not priced into the scope: isolation goes out as a certified valve with a real

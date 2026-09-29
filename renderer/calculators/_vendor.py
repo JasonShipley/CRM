@@ -380,6 +380,8 @@ def baghouse_budget(cloth_sqft, hopper=False):
 # The feeder multiplier and the air-pan prices live in the pricing basis now
 # (_pricing.py), so a price move updates the calculator, the book and the CRM at
 # once. These names stay as the way the rest of the code reaches them.
+import math
+
 from ._pricing import (air_pan_price, factor as pricing_factor,  # noqa: E402
                        mill_option)
 
@@ -434,38 +436,168 @@ FAN_STATIC_CYCLONE = 19
 
 # ----------------------------------------------------------- air-handling duct --
 # Duct is a BOUGHT item: Nolin Milling stocks primed gray air-handling duct,
-# segmented elbows and the round-to-round adaptors, and High Tech Duct Werks sells
-# Nordfab. MCE's duct calculator sizes the diameter; nothing here has ever priced
-# one, so DUCT_PRICES is empty on purpose and duct_price() returns None until a
-# real page of a real price list is in it. A duct line with no price says so and
-# carries its full bill of material, which is what a vendor needs to quote it.
+# segmented elbows, round-to-round adaptors and the square-to-round transitions.
+# _nolin.py holds their 2026 catalog pages as printed; everything below turns a
+# sized diameter and a stated run into that catalog's own bill of material and
+# applies MCE's buy-out divisor.
 #
-# To fill it: Nolin's air-handling ductwork pages (43-45 of the 2026 catalog) carry
-# primed gray duct per foot and segmented elbows by size. Add the rows here, keep
-# the source and the date, and every duct line prices itself.
-#   diameter_in: {"per_ft": x, "elbow_90": y, "adaptor": z, "date": ..., "source": ...}
-DUCT_PRICES = {}
-DUCT_PRICE_NOTE = ("No duct price list is on file. Nolin Milling's air-handling pages "
-                   "(43-45 of the 2026 catalog) price primed gray duct per foot and "
-                   "segmented elbows by size — add them to DUCT_PRICES and every duct "
-                   "line prices itself.")
+# What MCE puts on every air-relief duct run, unless the quote says otherwise:
+DUCT_STANDARD_PACKAGE = (
+    "Straight run in 10 ft flanged lengths, the elbows the layout needs, a hanger "
+    "strap per length, and — where the fan discharges to atmosphere — a flanged "
+    "bird screen and a shielded rain and snow hood.")
+DUCT_HANGER_SPACING_FT = 10      # one strap per 10 ft length; confirm against the run
+DUCT_DEFAULT_GAUGE = "14"
+DUCT_DEFAULT_MATERIAL = "carbon"
+DUCT_GAUGE_NOTE = (
+    f"Quoted in {DUCT_DEFAULT_GAUGE} ga as the catalog's lightest air-handling duct. "
+    "MCE has not recorded a standard gauge for abrasive or combustible service — "
+    "confirm it before this goes out, because 10 ga and 7 ga are real money.")
 
 
-def duct_price(diameter_in, run_ft=0, elbows=0, adaptors=0):
-    """(price, basis) for a duct run, or None while no price list is on file.
+def _nolin_item(name, qty, unit_list, source):
+    return {"name": name, "quantity": qty, "listUnit": round(unit_list, 2),
+            "listExtended": round(qty * unit_list, 2), "source": source}
 
-    Never estimated from the steel: duct is bought, and a fabricated-weight guess
-    would be a number nobody could stand behind against a catalog page.
+
+def duct_package(diameter_in, run_ft=0, elbows=0, adaptors=0, *,
+                 gauge=DUCT_DEFAULT_GAUGE, material=DUCT_DEFAULT_MATERIAL,
+                 elbow_angle="90", to_atmosphere=True, transition_from=None,
+                 quantity=1):
+    """The catalog bill of material for a duct run, priced.
+
+    Returns None when the diameter is off the end of Nolin's tables, which is the
+    honest answer — 38 in and up is "call for pricing and availability" on the page
+    itself, and this does not invent what the page will not print.
     """
-    row = DUCT_PRICES.get(int(diameter_in or 0))
-    if not row:
+    from . import _nolin
+
+    dia = int(diameter_in or 0)
+    if dia <= 0:
         return None
-    total = (run_ft * row.get("per_ft", 0) + elbows * row.get("elbow_90", 0)
-             + adaptors * row.get("adaptor", 0))
-    return (buyout_price(total),
-            f'{run_ft:g} ft at ${row.get("per_ft", 0):,.2f}/ft, {elbows} x 90° elbow at '
-            f'${row.get("elbow_90", 0):,.2f} ({row.get("source", "")}, '
-            f'{row.get("date", "")}), at MCE\'s buy-out divisor {BUYOUT_DIVISOR:g}')
+    # Nolin prints flanged primed gray duct in a fixed set of sizes, and its own
+    # header sends everything from 3 in to 16 in to the spouting page instead. So a
+    # size the duct table prints is bought as flanged duct; a small size it does not
+    # is bought as plain-end spouting, primed, with clamp bands at the joints.
+    spouted = dia not in _nolin.DUCT_STICK and dia <= 16
+    items, warnings = [], []
+
+    if spouted:
+        sp_dia, sp_row = _nolin._nearest(_nolin.SPOUTING_PER_FT, dia)
+        if not sp_row:
+            return None
+        actual_gauge = next((g for g in _nolin.GAUGES[_nolin.GAUGE_ORDER.get(gauge, 0):]
+                             if g in sp_row), None)
+        if not actual_gauge:
+            return None
+        actual_dia = sp_dia
+        per_ft = sp_row[actual_gauge]
+        prime_ft = _nolin.band(_nolin.PRIMING_PER_FT, actual_dia) or 0
+        warnings.append(
+            f'{actual_dia}" is under the flanged ductwork table, so it is quoted as '
+            "plain-end spouting with shop primer and clamp band joints — which is what "
+            "the catalog's own ductwork page says to do below 16 in.")
+    else:
+        stick = _nolin.stick(dia, gauge)
+        if not stick:
+            return None
+        stick_price, actual_dia, actual_gauge = stick
+        per_ft = prime_ft = 0
+
+    if actual_dia != dia:
+        warnings.append(
+            f'{dia}" is not a size Nolin prints — priced on the {actual_dia}", '
+            "the next size the catalog carries.")
+    if actual_gauge != gauge:
+        warnings.append(f'{gauge} ga is not printed at {actual_dia}" — priced in '
+                        f"{actual_gauge} ga.")
+
+    lengths = math.ceil(run_ft / _nolin.STICK_FT) if run_ft else 0
+    if run_ft and spouted:
+        items.append(_nolin_item(
+            f'{actual_dia}" dia spouting, {actual_gauge} ga, plain end',
+            run_ft, per_ft, f"{_nolin.SOURCE} p. 3"))
+        if prime_ft:
+            items.append(_nolin_item("Shop coat gray primer", run_ft, prime_ft,
+                                     f"{_nolin.SOURCE} p. 3"))
+        clamp = _nolin.band(_nolin.CLAMP_BAND, actual_dia)
+        if clamp:
+            items.append(_nolin_item(f'{actual_dia}" two piece clamp band', lengths,
+                                     clamp, f"{_nolin.SOURCE} p. 44"))
+    elif run_ft:
+        items.append(_nolin_item(
+            f'{actual_dia}" dia duct, {actual_gauge} ga, {_nolin.STICK_FT} ft flanged length',
+            lengths, stick_price, f"{_nolin.SOURCE} p. 43"))
+    if run_ft:
+        straps = _nolin.band(_nolin.HANGER_STRAP, actual_dia)
+        if straps:
+            items.append(_nolin_item(f'{actual_dia}" hanger strap', lengths, straps,
+                                     f"{_nolin.SOURCE} p. 45"))
+    if elbows:
+        el = _nolin.elbow(actual_dia, elbow_angle, gauge)
+        if el:
+            price, _d, el_gauge, centerline = el
+            items.append(_nolin_item(
+                f'{actual_dia}" {elbow_angle}° segmented elbow, {el_gauge} ga, '
+                f'{centerline}" centerline', elbows, price,
+                f"{_nolin.SOURCE} p. 43"))
+    if adaptors:
+        red = _nolin.reducer(actual_dia, max(actual_dia - 2, 4), gauge)
+        if red:
+            price, (large, small), red_gauge = red
+            items.append(_nolin_item(
+                f'{large}" to {small}" round adaptor, {red_gauge} ga', adaptors, price,
+                f"{_nolin.SOURCE} p. 44"))
+            warnings.append(
+                f'Adaptor priced as the {large}" to {small}" reducer. Nolin prints a '
+                "fixed set of reductions — give the actual pair and it prices exactly.")
+    if transition_from:
+        tr = _nolin.transition(transition_from, actual_dia, gauge)
+        if tr:
+            price, (sq, rd), tr_gauge = tr
+            items.append(_nolin_item(
+                f'{sq}" square to {rd}" round transition, {tr_gauge} ga', 1, price,
+                f"{_nolin.SOURCE} p. 44"))
+    if to_atmosphere:
+        screen = _nolin.band(_nolin.BIRD_SCREEN_ROUND, actual_dia)
+        hood = _nolin.band(_nolin.SHIELDED_RAIN_HOOD, actual_dia)
+        if screen:
+            items.append(_nolin_item(f'{actual_dia}" flanged bird screen discharge', 1,
+                                     screen, f"{_nolin.SOURCE} p. 45"))
+        if hood:
+            items.append(_nolin_item(f'{actual_dia}" shielded rain and snow hood, 12 ga',
+                                     1, hood, f"{_nolin.SOURCE} p. 45"))
+
+    if not items:
+        return None
+
+    list_total = sum(i["listExtended"] for i in items)
+    adder = _nolin.MATERIAL_ADDER.get(material, _nolin.MATERIAL_ADDER["carbon"])
+    list_total *= adder["factor"]
+    if material != "carbon":
+        warnings.append(
+            f'{adder["material"].capitalize()} priced at × {adder["factor"]:g} on the '
+            f'carbon steel catalog price — the median of {adder["samples"]} sizes where '
+            f'Nolin prints both ({adder["low"]:g}–{adder["high"]:g} across the range). '
+            "The catalog prints ductwork in primed gray carbon only, so this is "
+            "budgetary: Nolin quotes a firm price on the actual run.")
+
+    basis = (f'{_nolin.SOURCE} ({_nolin.CATALOG_DATE}) list, '
+             f'{adder["material"]}, at MCE\'s buy-out divisor {BUYOUT_DIVISOR:g}')
+    return {"items": items, "listTotal": round(list_total, 2),
+            "total": round(buyout_price(list_total) * quantity, 2),
+            "diameter": actual_dia, "gauge": actual_gauge, "material": material,
+            "lengths": lengths, "spouting": spouted, "basis": basis, "warnings": warnings,
+            "terms": _nolin.TERMS}
+
+
+def duct_price(diameter_in, run_ft=0, elbows=0, adaptors=0, **kw):
+    """(price, basis) for a duct run off Nolin's catalog, or None if it is off the
+    end of their tables."""
+    pkg = duct_package(diameter_in, run_ft, elbows, adaptors, **kw)
+    if not pkg:
+        return None
+    return pkg["total"], pkg["basis"]
 
 
 # A venturi pickup takes the mill discharge straight into the air stream: a venturi

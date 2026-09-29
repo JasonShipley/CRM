@@ -380,14 +380,27 @@ def test_venturi_cyclone_arrangement():
     check("the airlock sits under the cyclone, and says so",
           "cyclone hopper" in next(l["description"] for l in q["lines"]
                                    if l["name"].startswith("Rotary Airlock")))
-    # a stated run becomes a bill of material a duct vendor can quote from
+    # a stated run becomes the duct catalog's own bill of material, priced
     duct = next(l for l in q["lines"] if l["name"].startswith("Ductwork"))
-    for want in ("60 ft of straight run", "4 × 90° segmented elbow", '18" dia'):
+    for want in ('6 × 18" dia duct, 14 ga, 10 ft flanged length',
+                 '4 × 18" 90° segmented elbow',
+                 '6 × 18" hanger strap'):
         check(f"the duct line states {want}", want in duct["description"],
               duct["description"])
-    check("and it is unpriced while no price list is on file",
-          duct.get("needsPrice") and "No duct price list" in open_text(q),
-          open_text(q))
+    # MCE's standard package puts the discharge furniture on every run
+    for want in ("flanged bird screen discharge", "shielded rain and snow hood"):
+        check(f"the standard package includes a {want}", want in duct["description"],
+              duct["description"])
+    check("and it is priced off the catalog, not left open",
+          not duct.get("needsPrice") and duct["unitPrice"] > 0
+          and "Nolin Milling 2026 catalog" in open_text(q),
+          str(duct.get("unitPrice")))
+    check("the gauge assumption is flagged rather than buried",
+          "has not recorded a standard gauge" in open_text(q), open_text(q))
+    # the hood is MCE's scope now, so it is not also handed to the customer
+    check("the discharge cap is no longer pushed to others",
+          not any("weather cap" in b for b in q.get("byOthers", [])),
+          str(q.get("byOthers")))
     # the fan is sized by MCE's own calculator now that it is ported
     fan_line = next(l for l in q["lines"] if l["name"].startswith("Fan —"))
     check("the fan is sized off the air-swept airflow",
@@ -453,9 +466,11 @@ def test_pricing_basis_is_the_only_copy():
     check("and so is the mill's", "mill" in _pricing.KNOWN_DIVERGENCE)
 
     # what cannot be priced says so, with the one input that would fix it
-    for scope in ("ductwork", "fan"):
-        gap = _pricing.UNPRICED[scope]
+    for scope, gap in _pricing.UNPRICED.items():
         check(f"{scope} names what it needs", gap["needs"] and gap["one_edit"])
+    check("the fan is still the open one", "fan" in _pricing.UNPRICED)
+    # ductwork came off that list when Nolin's catalog pages landed
+    check("ductwork is priced, not pending", "ductwork" not in _pricing.UNPRICED)
 
     # an increase moves the factor and writes itself down
     new, entry = _pricing.apply_increase("plenum_rate", pct=10,

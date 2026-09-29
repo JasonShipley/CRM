@@ -530,6 +530,7 @@ def build(job, today=None, delivery_weeks=None):
         # Ductwork is sized from the same system airflow as everything else, but the
         # run length, the fittings and whether it vents to atmosphere all come out
         # of the site layout, so it is quoted on request rather than guessed at.
+        have_duct_hood = False
         if "Ductwork" in outstanding:
             outstanding.remove("Ductwork")
             plenum_cfm = round(system_cfm) or None
@@ -562,19 +563,26 @@ def build(job, today=None, delivery_weeks=None):
                 desc.append("Bill of material: " + ", ".join(bom)
                             + (", plus hangers, supports and the bolted flange joints"))
                 if not dk.get("error"):
-                    priced = _vendor.duct_price(dk["diameter"], run_ft or 0, elbows)
+                    priced = _vendor.duct_package(
+                        dk["diameter"], run_ft or 0, elbows,
+                        to_atmosphere=True, quantity=qty)
             else:
                 desc.append("Straight run, elbows, transitions and supports to suit the "
                             "layout")
             desc.append("May vent to atmosphere depending on the arrangement")
             if priced:
-                duct_total, duct_basis = priced
-                desc.append("Primed gray air-handling duct with bolted flange joints")
+                desc = [d for d in desc if not d.startswith("Bill of material")]
+                desc.append(_vendor.DUCT_STANDARD_PACKAGE)
+                for item in priced["items"]:
+                    desc.append(f'  {item["quantity"]:g} × {item["name"]}')
                 lines.append({
-                    "name": f'Ductwork — {dk["diameter"]}" dia', "quantity": qty,
-                    "unitPrice": round(duct_total, 2), "budgetPrice": True,
-                    "description": "\n".join(desc)})
-                open_items.append(f"Ductwork priced from {duct_basis}.")
+                    "name": f'Ductwork — {priced["diameter"]}" dia', "quantity": qty,
+                    "unitPrice": round(priced["total"] / max(qty, 1), 2),
+                    "budgetPrice": True, "description": "\n".join(desc)})
+                open_items.append(f'Ductwork priced from {priced["basis"]}.')
+                open_items.append(_vendor.DUCT_GAUGE_NOTE)
+                open_items += priced["warnings"]
+                have_duct_hood = True
             else:
                 desc.append("Priced upon request once the layout is determined")
                 lines.append({
@@ -593,7 +601,7 @@ def build(job, today=None, delivery_weeks=None):
                 "description": (
                     f"{item} for the mill air-relief system. MCE has no calculator for this "
                     "item yet — engineering to size and price, or quote it by others.")})
-        if have_baghouse:
+        if have_baghouse and not have_duct_hood:
             by_others.insert(0, "Stack and weather cap at the fan discharge")
             open_items.append(
                 f'Air system requested: {"filter receiver" if want_receiver else "bin vent"} '

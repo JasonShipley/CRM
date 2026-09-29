@@ -218,6 +218,12 @@ AIRSYSTEM_FIELDS = [
      "options": cyclone.WG_OPTIONS, "showWhen": {"cleaner": "cyclone"}},
     {"key": "velocity", "label": "Duct conveying velocity", "type": "select",
      "default": "4000", "options": duct.VELOCITY_PRESETS},
+    {"key": "ductRunFt", "label": "Duct run", "type": "number", "unit": "ft",
+     "default": "", "step": 5, "min": 0,
+     "help": "State the run and the ductwork prices itself off the catalog — "
+             "lengths, hangers, elbows, bird screen and rain hood."},
+    {"key": "ductElbows", "label": "90° elbows", "type": "number", "default": "",
+     "step": 1, "min": 0},
     {"key": "combustible", "label": "Combustible dust", "type": "select", "default": "",
      "options": [("", "Not stated — no protection offered"),
                  ("1", "Yes — offer NFPA isolation and venting")],

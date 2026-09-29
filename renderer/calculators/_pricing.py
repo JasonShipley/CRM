@@ -85,18 +85,10 @@ KNOWN_DIVERGENCE = {
 # Everything MCE quotes is priced from something on file. These two are not, and
 # saying so in one place beats each of them being a surprise on a proposal. Each
 # names the ONE input that would close it.
+# Ductwork came off this list on 2026-09-29, when Nolin Milling's 2026 catalog
+# pages 3 and 43-45 landed as page images. They are transcribed in _nolin.py and
+# a duct run now prices itself from its own bill of material.
 UNPRICED = {
-    "ductwork": {
-        "needs": "Nolin Milling's air-handling pages (43-45 of the 2026 catalog): "
-                 "primed gray duct per foot and segmented elbows by size",
-        "why": "duct is a bought item — Nolin stocks it, High Tech Duct Werks sells "
-               "Nordfab — so it is never estimated from the steel",
-        "one_edit": "fill DUCT_PRICES in _vendor.py; every duct line then prices "
-                    "itself from its own bill of material",
-        "blocked_by": "Drive's text extraction stops at page 32 and the 37 MB file is "
-                      "over the download limit — the pages are needed as images or a "
-                      "trimmed PDF",
-    },
     "fan": {
         "needs": "MCE's XF fan sizing calculator, and the XF price list behind it",
         "why": "MCE builds its own XF fans — a fan price regressed off another "
