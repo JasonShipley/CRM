@@ -22,9 +22,21 @@ services:
       # Powers the "describe the job" box. Without it the box says so and the
       # rest of the builder still works.
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
-      # Optional second lock behind Caddy's basic auth. Set both, or neither.
+      # Optional second lock on the BROWSER pages behind Caddy's basic auth. Set
+      # both, or neither. It does not gate /api/ — that always needs a token.
       RENDERER_PASSWORD: ${RENDERER_PASSWORD:-}
       SECRET_KEY: ${RENDERER_SECRET_KEY:-}
+      # Who may issue themselves an API token. Comma separated; defaults to
+      # usemce.com. A gmail address is refused before a code is ever generated.
+      ALLOWED_EMAIL_DOMAINS: ${ALLOWED_EMAIL_DOMAINS:-}
+      # Mail for the one-time codes. Without SMTP_HOST the code is written to the
+      # service log instead — fine for issuing the first token by hand, not fine
+      # for self-service.
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM: ${SMTP_FROM:-}
     volumes:
       - quote-data:/data
     depends_on:

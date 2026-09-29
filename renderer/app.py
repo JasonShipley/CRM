@@ -94,8 +94,17 @@ TOKEN_ENDPOINTS = {"builder.api_interpret", "builder.api_calc", "builder.api_pri
                    # a holder manages their own tokens without asking anyone
                    "api_token_list", "api_token_revoke"}
 # Endpoints anyone may reach — the token self-service flow has to work before you
-# hold a token.
+# hold a token. Both still gate on the work-email domain (tokens.py), and confirm
+# needs a code that was mailed to that address.
 OPEN_ENDPOINTS = {"login", "static", "api_token_request", "api_token_confirm"}
+
+# Everything under this prefix is passed through Caddy without basic auth so
+# bearer headers survive, so this app is the only guard in front of it.
+API_PREFIX = "/api/"
+
+
+def _is_api(path):
+    return path.startswith(API_PREFIX) or path == API_PREFIX.rstrip("/")
 
 
 @app.before_request
@@ -105,6 +114,14 @@ def _gate():
     A salesperson signs in at /login. An agent presents `Authorization: Bearer
     mceq_...`, which it issued itself against its work email — see tokens.py. The
     token reaches the quote and calculator APIs only.
+
+    /api/ is the part to be careful with. Caddy routes it straight through with no
+    basic auth, because a basic-auth challenge would reject the bearer header
+    before this app ever saw it (deploy/Caddyfile). That makes this function the
+    ONLY thing standing in front of the API — so an /api/ request must carry a
+    valid token or a signed-in browser session, and RENDERER_PASSWORD being unset
+    does NOT open it. Unset is the normal production setup, where Caddy holds the
+    password for the pages a person uses.
     """
     if request.endpoint in OPEN_ENDPOINTS:
         return None
@@ -120,6 +137,16 @@ def _gate():
                             "allowed": sorted(TOKEN_ENDPOINTS)}), 403
         g.api_user = who
         return None
+
+    if _is_api(request.path):
+        if session.get("ok"):
+            return None                       # signed in at /login in this browser
+        return jsonify({
+            "error": "This endpoint needs an API token.",
+            "how": "POST /api/tokens/request with your work email, then "
+                   "/api/tokens/confirm with the code you are sent.",
+            "use": "Authorization: Bearer <token>",
+        }), 401
 
     if not RENDERER_PASSWORD or session.get("ok"):
         return None

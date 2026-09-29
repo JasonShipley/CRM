@@ -25,8 +25,86 @@ def check(name, cond, detail=""):
         FAILS.append(f"{name}{': ' + detail if detail else ''}")
 
 
+
+def production_shape():
+    """A second app the way it actually runs on the server.
+
+    RENDERER_PASSWORD is UNSET in production — Caddy holds the password for the
+    pages a person uses. app.py reads it at import, so this reloads the module
+    with a clean environment and its own data directory.
+    """
+    import importlib
+    saved_pw = os.environ.get("RENDERER_PASSWORD")
+    saved_dir = os.environ["RENDERER_DATA_DIR"]
+    os.environ["RENDERER_PASSWORD"] = ""
+    os.environ["RENDERER_DATA_DIR"] = tempfile.mkdtemp()
+    importlib.reload(tokens)
+    prod = importlib.reload(appmod)
+    client = prod.app.test_client()
+
+    def restore():
+        os.environ["RENDERER_PASSWORD"] = saved_pw or ""
+        os.environ["RENDERER_DATA_DIR"] = saved_dir
+        importlib.reload(tokens)
+        importlib.reload(appmod)
+
+    return client, restore
+
+
+def test_api_is_closed_without_a_token():
+    """The one that matters in production.
+
+    Caddy routes /api/ straight through with NO basic auth, because a basic-auth
+    challenge rejects the bearer header before the app ever sees it. That makes
+    app.py the only guard in front of the API — and in production
+    RENDERER_PASSWORD is unset.
+
+    So an /api/ request with no valid token has to be refused even with no
+    RENDERER_PASSWORD. Getting this wrong publishes MCE's pricing basis and every
+    quote to the internet, which is exactly what an unguarded /api/ did the first
+    time it was routed past Caddy.
+    """
+    c, restore = production_shape()
+    try:
+        check("the app really has no password of its own",
+              appmod.RENDERER_PASSWORD == "", repr(appmod.RENDERER_PASSWORD))
+        for path in ("/api/tokens", "/api/pricing"):
+            r = c.get(path)
+            check(f"{path} is refused without a token", r.status_code == 401,
+                  f"{r.status_code} {r.get_data()[:120]}")
+            check(f"{path} leaks nothing in the refusal",
+                  "Bliss" not in r.get_data(as_text=True), r.get_data(as_text=True)[:120])
+        check("and a write is refused too",
+              c.post("/api/quotes", json={}).status_code == 401)
+        check("an invalid token is refused",
+              c.get("/api/pricing",
+                    headers={"Authorization": "Bearer mceq_nope"}).status_code == 401)
+
+        # the self-service flow stays open — nobody could get a token otherwise
+        check("issuing a token stays open",
+              c.post("/api/tokens/request",
+                     json={"email": "jb@usemce.com"}).status_code == 200)
+        check("but still only to a work address",
+              c.post("/api/tokens/request",
+                     json={"email": "someone@gmail.com"}).status_code == 400)
+
+        # the pages a person uses are left to Caddy; double-locking them here
+        # would break the deployed login
+        check("browser pages are left to Caddy", c.get("/tools").status_code == 200)
+
+        # and a real token gets in
+        code, _ = tokens.request_code("jb@usemce.com")
+        token = c.post("/api/tokens/confirm",
+                       json={"email": "jb@usemce.com", "code": code}).get_json()["token"]
+        r = c.get("/api/pricing", headers={"Authorization": f"Bearer {token}"})
+        check("a valid token reaches the API", r.status_code == 200, r.status_code)
+    finally:
+        restore()
+
+
 def main():
     c = appmod.app.test_client()
+
 
     # 1. only work domains
     r = c.post("/api/tokens/request", json={"email": "someone@gmail.com"})
@@ -99,6 +177,9 @@ def main():
           c.get("/api/pricing", headers={"Authorization": "Bearer " + t2}
                 ).status_code == 200)
 
+    # 6. and the production shape: no app password, Caddy not in front of /api/
+    test_api_is_closed_without_a_token()
+
     if FAILS:
         print(f"{len(FAILS)} FAILURE(S):")
         for f in FAILS:
@@ -106,6 +187,7 @@ def main():
         return 1
     print("OK — tokens are self-issued to work addresses and reach only the quote API.")
     return 0
+
 
 
 if __name__ == "__main__":
