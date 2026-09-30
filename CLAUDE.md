@@ -34,6 +34,18 @@
   plain "nylon cup feeder with built-in [manual-clean / auto self-clean] magnetic separator" spec, per the
   no-disclosure rule below.
 
+- **575V vs 230/460V mill drive motor pricing (Teco/TWMC MAX-E1 EP-series)**: verified against real Teco
+  portal catalog pages for EP0202 (20 HP, 3600 RPM, 254/256T) — the 230/460V version and the 575V version
+  (catalog #EP02025) carry the *identical* List Price ($3,106.00) and Net/Your Price ($1,009.45); Teco does
+  not charge more for this line at 575V. Standing practice: **still charge the customer 1% more for a
+  575V-specced mill drive motor** than the 230/460V sell price (net cost &times; 1.30 + $500 flat freight,
+  per standing MCE pricing policy) — a margin cushion, not a real vendor cost difference. Apply this same
+  1% adder to every EP-series mill drive motor frame in a job (20 HP and up), not just the verified 20 HP
+  point, since Teco's flat 32.5%-of-list net pricing and blanket percentage escalation apply uniformly
+  across the whole catalog. Never disclose in a customer-facing document that this is a margin adder rather
+  than a real vendor cost — write the motor line as a normal 575V spec at the marked-up price, per the
+  no-disclosure rule below.
+
 ## Customer-Facing Quote/Proposal Rules (apply to every quote, every item)
 
 - **MANDATORY final check, every time any customer-facing document (proposal, quote PDF) is edited, not
