@@ -19,6 +19,21 @@
   SKU (search by "HE-" model number). Only fall back to the MAC catalog's dimensional data if a
   custom/intermediate size is genuinely needed and worth costing out.
 
+- **10"/14" dia rotary feeder + magnetic adapter combo pricing** (a 2017 rotary-feeder-and-magnet OEM price
+  book, the same one MCE's own "manual clean/manual self-clean/auto self-clean" magnet-adapter option
+  structure was modeled from — original file kept locally, not Drive, per Jason): each diameter's page
+  gives a base nylon-cup (or stainless-cup) feeder price by row count, plus three magnetic-adapter add-on
+  tiers: **manual clean** (least cost, hinged clamps), **manual self-clean** (mid), **automatic self-clean**
+  (highest, air-cylinder/solenoid actuated). MCE's sell price for a given row size/tier = (base feeder price
+  + adapter tier add-on) &times; 2 — confirmed against real current MCE sell figures for the 10" 3-row combo
+  (manual clean $8,816; manual self-clean $11,990; auto self-clean $13,658), which match this formula
+  exactly off the source book's 10" DIA page. **Standing practice: only ever offer the manual-clean tier
+  (base-quoted) or the automatic self-clean tier (offered as an upgrade option) — skip the manual
+  self-clean middle tier entirely** unless a customer specifically asks for it. Never disclose the source
+  book, the tier model codes, or the &times;2 formula in a customer-facing document — write the combo as a
+  plain "nylon cup feeder with built-in [manual-clean / auto self-clean] magnetic separator" spec, per the
+  no-disclosure rule below.
+
 ## Customer-Facing Quote/Proposal Rules (apply to every quote, every item)
 
 - **MANDATORY final check, every time any customer-facing document (proposal, quote PDF) is edited, not
@@ -26,6 +41,7 @@
   run a literal search of the *entire* document for this exact term list and confirm zero hits. Do not
   rely on memory of what you meant to remove — grep the whole file:
   `MAC|Nolin|Airlanco|AirPro|Kice|AVS|TECO|IDEC|Nix Forest|Zoho|Eaton|Baldor|Dodge|Coperion|Cincinnati Fan|
+  Bliss|Carlane|Ponca City|SMA|SCMA-M|SCMA-A|
   modeled from|data sheet|catalog sheet|source catalog|sourced from|per MCE's own|vendor quote|outside
   vendor|comparable quote|budgetary|scaled by|midpoint|divide by|cost/0\.7|non-stock|isn't a stocked|needs?
   to be engineered|confirm .* once|pending (fabrication|final)|the next smaller|the next size`.
