@@ -141,6 +141,17 @@
   by 0.7. Add roughly $1,500–$2,000 for freight on top of the whole ductwork line's sell price (baked into
   the total, never called out as freight on the customer document, consistent with never stating an item
   includes freight).
+  - **Always offer galvanized and 304 stainless ductwork as options/adders on every quote**, priced from
+    the same Nolin catalog (galvanized: catalog p.47; 304 stainless: catalog p.50), same build method as
+    the mild-steel base ductwork line. At the Ballard job's 11" dia/14ga/100ft: mild steel (base) cost
+    $499/10-ft length; galvanized $649/10-ft length; 304 stainless $1,489/10-ft length. Formula: take the
+    base line's total built cost (duct + transitions + rain hood + freight-fold, pre-margin — i.e. sell
+    &times; 0.7), subtract the base duct-only cost, add back the duct-only cost at the upgrade material's
+    per-length price, then divide by 0.7 again for the new sell price; the adder is upgrade sell minus base
+    sell. On this job: galvanized sell $11,988.57 (**+$2,142.86** adder over base); 304 stainless sell
+    $23,988.57 (**+$14,142.86** adder). Even when the customer will realistically never pick 304 stainless
+    (e.g. a dry-climate inland job), still list it as a standing option — this is a per-quote constant, not
+    a judgment call about what a given customer is likely to want.
 - **Never disclose internal pricing methodology or sourcing in a customer-facing document.** Item
   descriptions must read like a normal, confident vendor/catalog spec sheet — a feature and construction
   list — never a note explaining how MCE arrived at the number. Specifically, never write into an item
