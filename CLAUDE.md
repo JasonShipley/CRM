@@ -56,6 +56,9 @@
   across the whole catalog. Never disclose in a customer-facing document that this is a margin adder rather
   than a real vendor cost — write the motor line as a normal 575V spec at the marked-up price, per the
   no-disclosure rule below.
+  - **Control panels (e.g. cooler control system) specced at 575V use a lighter 0.75% adder** instead of the
+    1% mill-drive-motor adder — same margin-cushion logic, just a smaller cushion for a panel vs. a bare
+    motor. Apply to the panel's full sell price, same no-disclosure treatment.
 
 ## Customer-Facing Quote/Proposal Rules (apply to every quote, every item)
 
