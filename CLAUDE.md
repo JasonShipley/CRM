@@ -34,6 +34,17 @@
   plain "nylon cup feeder with built-in [manual-clean / auto self-clean] magnetic separator" spec, per the
   no-disclosure rule below.
 
+- **10" rotary airlock pricing** (real current vendor quote via email, Prairie States Industrial Supply /
+  Prater Industries, rep Jeff Mahurin, Aug 2026 — "10\" PAV Series" airlock, revised quote total $6,810.91
+  for the bare 10" airlock, confirmed current): use this real vendor cost, not the stale Zoho catalog
+  Unit_Price, whenever quoting a 10" airlock — Zoho's $6,496 listed price is now **below** this real current
+  vendor cost and would sell at a loss. Apply the same `cost / 0.7` margin rule used for screw
+  conveyors/ductwork: $6,810.91 / 0.7 = **$9,729.87** sell price per 10" airlock. Check Jason's email for
+  the latest Jeff Mahurin quote before relying on Zoho's airlock catalog price in any future quote — Zoho
+  has not kept pace with this vendor's current pricing. Never name the vendor, rep, or model line in a
+  customer-facing document — write it as a generic "cast-iron rotary airlock" spec per the no-disclosure
+  rule below.
+
 - **575V vs 230/460V mill drive motor pricing (Teco/TWMC MAX-E1 EP-series)**: verified against real Teco
   portal catalog pages for EP0202 (20 HP, 3600 RPM, 254/256T) — the 230/460V version and the 575V version
   (catalog #EP02025) carry the *identical* List Price ($3,106.00) and Net/Your Price ($1,009.45); Teco does
@@ -53,7 +64,7 @@
   run a literal search of the *entire* document for this exact term list and confirm zero hits. Do not
   rely on memory of what you meant to remove — grep the whole file:
   `MAC|Nolin|Airlanco|AirPro|Kice|AVS|TECO|IDEC|Nix Forest|Zoho|Eaton|Baldor|Dodge|Coperion|Cincinnati Fan|
-  Bliss|Carlane|Ponca City|SMA|SCMA-M|SCMA-A|
+  Bliss|Carlane|Ponca City|SMA|SCMA-M|SCMA-A|Prairie States|Mahurin|PAV Series|Prater|
   modeled from|data sheet|catalog sheet|source catalog|sourced from|per MCE's own|vendor quote|outside
   vendor|comparable quote|budgetary|scaled by|midpoint|divide by|cost/0\.7|non-stock|isn't a stocked|needs?
   to be engineered|confirm .* once|pending (fabrication|final)|the next smaller|the next size`.
