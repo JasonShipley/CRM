@@ -71,12 +71,15 @@
   - Labor: a controls engineer assembles/wires/programs/tests the panel at **$35/hr** — budget **14 hours**
     (~$490.00) for a panel this size unless Jason has a better estimate
   - **Total build cost: $5,270.00** (vs. $8,180.40 to buy pre-built — real savings from the two verified
-    line items alone). Apply the standard `cost / 0.7` margin: $5,270.00 / 0.7 = **$7,528.57** sell price.
+    line items alone). This is a fully in-house build (MCE buys the raw components and a controls engineer
+    assembles/wires/programs/tests the finished panel), so it uses the in-house-build margin, not the
+    standard vendor-quote margin: `cost / 0.5` ("double your money") instead of `cost / 0.7`. $5,270.00 /
+    0.5 = **$10,540.00** sell price.
   - The enclosure/breaker/transformer/switch/fan/labor-hour figures above are engineering estimates, not
     firm quotes — replace with real catalog or vendor numbers (and confirm actual build hours with
     whichever controls engineer does the work) before relying on this margin for a firm bid. This listing
     is 460V-only — no 575V-rated component set has been priced yet, so on a 575V job carry the same
-    460V-sourced $7,528.57 forward but flag to Jason that it needs real 575V component pricing before the
+    460V-sourced $10,540.00 forward but flag to Jason that it needs real 575V component pricing before the
     job is firmed up (same gap pattern as the mill drive motors before the Teco 575V data point existed).
   Never name the vendor, distributor, or drive/model line in a customer-facing document — write it as a
   generic "enclosed VFD panel" spec per the no-disclosure rule below.
@@ -172,6 +175,14 @@
   the quoted sell price as `cost / 0.7` (i.e. a 30% margin). Use this same formula every time a screw
   conveyor needs pricing from a comparable quote. Sanity-check the result against any competitor pricing
   on file for the same duty (it should come in under) before using it.
+- **In-house build margin — `cost / 0.5` ("double your money")**: the standard `cost / 0.7` margin is for
+  items priced from a real vendor/distributor quote for the *complete* item (screw conveyors, airlocks,
+  ductwork materials, feeders). When MCE instead buys raw components and fully builds/assembles/wires the
+  finished item in-house (e.g. the cooler exhaust fan VFD panel — components bought, a controls engineer
+  assembles and tests it), use `cost / 0.5` instead — doubling the cost, not just marking it up 30%. Cost
+  basis is still parts (real + estimated, flagged per the usual rule) plus labor at the applicable hourly
+  rate. Never disclose this distinction (or any margin multiplier) to the customer — same no-disclosure
+  rule as every other margin figure.
 - These rules don't change internal recordkeeping — track the real basis (vendor quotes, formulas,
   non-stock sizes) wherever MCE keeps its own working notes. They only govern what ends up in a document
   the customer will read.
