@@ -77,10 +77,28 @@
     0.5 = **$10,540.00** sell price.
   - The enclosure/breaker/transformer/switch/fan/labor-hour figures above are engineering estimates, not
     firm quotes — replace with real catalog or vendor numbers (and confirm actual build hours with
-    whichever controls engineer does the work) before relying on this margin for a firm bid. This listing
-    is 460V-only — no 575V-rated component set has been priced yet, so on a 575V job carry the same
-    460V-sourced $10,540.00 forward but flag to Jason that it needs real 575V component pricing before the
-    job is firmed up (same gap pattern as the mill drive motors before the Teco 575V data point existed).
+    whichever controls engineer does the work) before relying on this margin for a firm bid.
+  - **575V build (updated, real pricing found)**: Teco's 460V-rated A510/DURApulse-class drives don't
+    cover 575V at 40 HP, but Teco's 690V-class A510 line does (the A510 covers 1-10 HP at 575V and
+    15-250 HP at 690V/690V-class is used as a drop-in for 575V service at 40 HP, since 575V falls inside
+    the drive's rated input range). Verified components for a 40 HP/575V build:
+    - VFD drive unit, 40/50 HP, 600-690VAC class (TECO A510-6040-C3-U): **$3,386.96** [real, verified,
+      Task Industrial, Oct 2026]
+    - 3% line reactor, 480/600V, 45A, rated 30-40 HP (MTE RL-04513): **$843.20** [real, verified, Wolf
+      Automation, Oct 2026]
+    - NEMA 3R enclosure: ~$550 [estimated]
+    - UL489 main breaker, lockable disconnect, 600V-rated frame: ~$280 [estimated — bumped from the 460V
+      build's ~$220 for the higher voltage rating]
+    - Control transformer w/ breaker protection (575V primary / 120V control): ~$220 [estimated — bumped
+      from ~$180 for the higher primary voltage]
+    - On/off/auto selector switch + speed potentiometer: ~$75 [estimated]
+    - Enclosure cooling fan + thermostat kit: ~$135 [estimated]
+    - Terminal blocks, DIN rail, 600V-rated wire, labeling, misc hardware: ~$130 [estimated]
+    - Parts subtotal: **$5,620.16**
+    - Labor: same 14 hours @ $35/hr = **$490.00**
+    - **Total build cost: $6,110.16** → in-house build margin `cost / 0.5` = **$12,220.32** sell price.
+    This replaces the earlier 460V-carried-forward placeholder on any 575V job (e.g. the Ballard Quebec
+    quote) — use this real 575V BOM instead now that it exists.
   Never name the vendor, distributor, or drive/model line in a customer-facing document — write it as a
   generic "enclosed VFD panel" spec per the no-disclosure rule below.
 
