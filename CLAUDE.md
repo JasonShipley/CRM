@@ -46,7 +46,12 @@
   the latest Jeff Mahurin quote before relying on Zoho's airlock catalog price in any future quote — Zoho
   has not kept pace with this vendor's current pricing. Never name the vendor, rep, or model line in a
   customer-facing document — write it as a generic "cast-iron rotary airlock" spec per the no-disclosure
-  rule below.
+  rule below. **Default drive voltage on this airlock is 460V — only spec 575V when the job's own
+  electrical service genuinely requires it (e.g. Canada).** Same $9,729.87 sell price either way; no
+  evidence of a real vendor cost difference between the two, so don't invent a voltage adder for it (same
+  spirit as the Teco motor finding below). Caught a real miss on the Ballard Kentucky quote: defaulted the
+  airlocks to 575V out of habit from the Quebec version of the same job, when Kentucky — standard US
+  voltage — should have been 460V from the start.
 
 - **Cooler exhaust fan VFD pricing — build vs. buy**: a pre-built stock panel ("WCD Stock NEMA 3R Panel,
   WorldDrive FC, 460V, 40 HP, 55 Amps CT, 75 Amps VT," product # WCD3RC-075B4A+HIM3RU) costs MCE $8,180.40,
@@ -102,7 +107,8 @@
   HIM3RU|WCD Stock|AutomationDirect|DURApulse|GS4-4040|LR-4040|
   modeled from|data sheet|catalog sheet|source catalog|sourced from|per MCE's own|vendor quote|outside
   vendor|comparable quote|budgetary|scaled by|midpoint|divide by|cost/0\.7|non-stock|isn't a stocked|needs?
-  to be engineered|confirm .* once|pending (fabrication|final)|the next smaller|the next size`.
+  to be engineered|confirm .* once|pending (fabrication|final)|the next smaller|the next size|no .*
+  equivalent available|confirm (final )?voltage|voltage matching`.
   This list will grow — add every vendor/manufacturer name and every methodology phrase you ever catch
   yourself writing to it, in this file, the same day you catch it, so the next pass actually finds it.
   A partial fix (removing one flagged sentence from an item but leaving a second one in the same bullet
@@ -144,6 +150,12 @@
   stocked SKU and would need to be engineered/costed from scratch." If a component's price needed real
   engineering work to derive, that's expected and fine — the customer only ever sees the finished number
   and a normal spec description, exactly as if it came straight out of a catalog.
+  - This also covers **design/spec decisions, not just pricing**: never explain to the customer *why* an
+    item carries the spec it does (e.g. "quoted at 575V — no 230/460V equivalent available," "confirm
+    voltage matching before release"). State the final spec plainly and confidently, full stop. If a
+    choice needs a caveat or follow-up, that conversation happens with Jason/MCE internally, not as a note
+    printed in the document. Caught doing exactly this on the Ballard Kentucky quote — fixed by deleting
+    the explanation rather than softening it.
 - **Screw conveyor pricing formula**: when a real vendor quote is available for a comparable screw
   conveyor (same or larger diameter, similar or longer length), treat its total price as **cost** and set
   the quoted sell price as `cost / 0.7` (i.e. a 30% margin). Use this same formula every time a screw
