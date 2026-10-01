@@ -36,7 +36,10 @@
 
 - **10" rotary airlock pricing** (real current vendor quote via email, Prairie States Industrial Supply /
   Prater Industries, rep Jeff Mahurin, Aug 2026 — "10\" PAV Series" airlock, revised quote total $6,810.91
-  for the bare 10" airlock, confirmed current): use this real vendor cost, not the stale Zoho catalog
+  for the bare 10" airlock, confirmed current): applies to **every** rotary airlock on a job, not just one —
+  on the Ballard job this meant upsizing the pre-crack discharge airlock from 8" to 10" to match the
+  final-grind and cooler-cyclone airlocks, so all three price and spec identically. Use this real vendor
+  cost, not the stale Zoho catalog
   Unit_Price, whenever quoting a 10" airlock — Zoho's $6,496 listed price is now **below** this real current
   vendor cost and would sell at a loss. Apply the same `cost / 0.7` margin rule used for screw
   conveyors/ductwork: $6,810.91 / 0.7 = **$9,729.87** sell price per 10" airlock. Check Jason's email for
