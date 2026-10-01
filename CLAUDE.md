@@ -48,6 +48,34 @@
   customer-facing document — write it as a generic "cast-iron rotary airlock" spec per the no-disclosure
   rule below.
 
+- **Cooler exhaust fan VFD pricing — build vs. buy**: a pre-built stock panel ("WCD Stock NEMA 3R Panel,
+  WorldDrive FC, 460V, 40 HP, 55 Amps CT, 75 Amps VT," product # WCD3RC-075B4A+HIM3RU) costs MCE $8,180.40,
+  but **standing practice is to build this in-house from components instead** — cheaper, per Jason. Bill of
+  materials for a 40 HP/460V build:
+  - VFD drive unit, 40 HP/460V 3-phase (AutomationDirect DURApulse GS4-4040): **$3,099.00** [real, verified]
+  - 3% line reactor, 40 HP/460V (AutomationDirect LR-4040): **$401.00** [real, verified] — matches the
+    panel spec's "3% Input Reactors Standard" line; keypad is bundled free with the GS4-4040 drive, no
+    separate keypad line needed
+  - NEMA 3R enclosure sized to the drive/reactor/breaker: ~$550 [estimated, not yet a real quote]
+  - UL489 main breaker, lockable disconnect, ~100A frame: ~$220 [estimated]
+  - Control transformer w/ breaker protection (120V control power): ~$180 [estimated]
+  - On/off/auto selector switch + speed potentiometer: ~$75 [estimated]
+  - Enclosure cooling fan + thermostat kit: ~$135 [estimated]
+  - Terminal blocks, DIN rail, wire, labeling, misc hardware: ~$120 [estimated]
+  - Parts subtotal: **$4,780.00**
+  - Labor: a controls engineer assembles/wires/programs/tests the panel at **$35/hr** — budget **14 hours**
+    (~$490.00) for a panel this size unless Jason has a better estimate
+  - **Total build cost: $5,270.00** (vs. $8,180.40 to buy pre-built — real savings from the two verified
+    line items alone). Apply the standard `cost / 0.7` margin: $5,270.00 / 0.7 = **$7,528.57** sell price.
+  - The enclosure/breaker/transformer/switch/fan/labor-hour figures above are engineering estimates, not
+    firm quotes — replace with real catalog or vendor numbers (and confirm actual build hours with
+    whichever controls engineer does the work) before relying on this margin for a firm bid. This listing
+    is 460V-only — no 575V-rated component set has been priced yet, so on a 575V job carry the same
+    460V-sourced $7,528.57 forward but flag to Jason that it needs real 575V component pricing before the
+    job is firmed up (same gap pattern as the mill drive motors before the Teco 575V data point existed).
+  Never name the vendor, distributor, or drive/model line in a customer-facing document — write it as a
+  generic "enclosed VFD panel" spec per the no-disclosure rule below.
+
 - **575V vs 230/460V mill drive motor pricing (Teco/TWMC MAX-E1 EP-series)**: verified against real Teco
   portal catalog pages for EP0202 (20 HP, 3600 RPM, 254/256T) — the 230/460V version and the 575V version
   (catalog #EP02025) carry the *identical* List Price ($3,106.00) and Net/Your Price ($1,009.45); Teco does
@@ -70,7 +98,8 @@
   run a literal search of the *entire* document for this exact term list and confirm zero hits. Do not
   rely on memory of what you meant to remove — grep the whole file:
   `MAC|Nolin|Airlanco|AirPro|Kice|AVS|TECO|IDEC|Nix Forest|Zoho|Eaton|Baldor|Dodge|Coperion|Cincinnati Fan|
-  Bliss|Carlane|Ponca City|SMA|SCMA-M|SCMA-A|Prairie States|Mahurin|PAV Series|Prater|
+  Bliss|Carlane|Ponca City|SMA|SCMA-M|SCMA-A|Prairie States|Mahurin|PAV Series|Prater|WorldDrive|WCD3RC|
+  HIM3RU|WCD Stock|AutomationDirect|DURApulse|GS4-4040|LR-4040|
   modeled from|data sheet|catalog sheet|source catalog|sourced from|per MCE's own|vendor quote|outside
   vendor|comparable quote|budgetary|scaled by|midpoint|divide by|cost/0\.7|non-stock|isn't a stocked|needs?
   to be engineered|confirm .* once|pending (fabrication|final)|the next smaller|the next size`.
