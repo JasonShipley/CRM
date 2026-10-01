@@ -284,6 +284,14 @@ AIRLOCK_QUOTES = [
      "8-vane polyurethane flex-tip rotor, 2 HP at 30 RPM, 1.23 ft³ per rotation"),
 ]
 AIRLOCK_QUOTES.append(
+    ("Prater", "PAV-14", None, None, "2026-10-01",
+     "Prater KT100126082900 via Prairie States (Jeff Mahurin)",
+     "14\" PAV series drop-through rotary valve, quoted against a 857 ft³/h pet "
+     "food duty. Quoted in cast iron and in stainless; MCE asked for mild steel "
+     "and neither of the two priced builds is that. The price is in the quote "
+     "PDF and is NOT yet on file"))
+
+AIRLOCK_QUOTES.append(
     ("Prater", "PAV-10", 6810.91, None, "2026-08-03",
      "Prater KT063026130300 rev 1 via Prairie States (Jeff Mahurin)",
      "10\" PAV series drop-through rotary valve. Bought for a saw dust duty; the "
@@ -298,6 +306,25 @@ AIRLOCK_DEFAULT = "FT-12"
 # so it cannot be checked against a duty until Airlanco gives the figure — which
 # is exactly what calculators/airlock.py says instead of guessing.
 AIRLOCK_DISPLACEMENT = {
+    # Jeff Mahurin, Prairie States, 2026-10-01, for the PAV-14 against MCE's own
+    # 857 ft³/h duty. He gave capacity in lb/h at 35 lb/ft³ rather than ft³/rev:
+    #
+    #   12 rpm  29,750 lb/h at 80% fill   |   32,725 lb/h at 90% fill
+    #   11 rpm  27,265     10 rpm  24,780     9 rpm  22,295
+    #    8 rpm  19,810      7 rpm  17,360     6 rpm  14,875
+    #
+    # The six unqualified rows all come back to 1.1806 ft³/rev, so they are the
+    # 80 % line, and that line implies a geometric displacement of 1.4757 ft³/rev.
+    # His 90 % figure implies 1.4429. The two disagree because his 90 % number is
+    # exactly 1.10x the 80 % one where a true 80->90 step is 1.125x. The CONSERVATIVE
+    # figure is carried here, which reproduces his stated 32,725 lb/h exactly; the
+    # optimistic one is recorded in AIRLOCK_DISPLACEMENT_UNRESOLVED so nobody has
+    # to re-derive it, and it is worth one question to Jeff.
+    #
+    # 6 rpm is his floor: that is 30 Hz on a VFD, and below it he wants a motor
+    # horsepower upgrade to keep the amp draw off the motor.
+    "PAV-14": {"ft3_per_rev": 1.4429, "rpm": 12, "hp": None,
+               "min_rpm": 6, "source": "Prairie States (Jeff Mahurin) 2026-10-01"},
     "EMVDL-RVEX-HT37": {"ft3_per_rev": 0.70, "rpm": 30, "hp": 1,
                         "source": "NEMO Feed 20260428"},
     "EMVDL-RVEX-HT45": {"ft3_per_rev": 1.23, "rpm": 30, "hp": 2,
@@ -317,6 +344,14 @@ AIRLOCK_NO_DISPLACEMENT = {
 # somebody supplies a displacement — see AIRLOCK_NO_DISPLACEMENT — but its price
 # is what makes chasing that number worth the email.
 AIRLOCK_CHEAPEST_UNSIZED = "PAV-10"
+
+# Where a vendor's own two statements do not agree. Not reconciled by us.
+AIRLOCK_DISPLACEMENT_UNRESOLVED = {
+    "PAV-14": {"conservative": 1.4429, "from": "his 90% fill figure, 32,725 lb/h at 12 rpm",
+               "optimistic": 1.4757, "from_alt": "his 80% fill line, 29,750 lb/h at 12 rpm",
+               "gap": "2.3%", "ask": "which of the two is the valve's real swept volume",
+               "source": "Prairie States (Jeff Mahurin) 2026-10-01"},
+}
 # The two certified valves above are the ones MCE has sell prices for. They are
 # DIFFERENT SIZES, so neither is a drop-in for the other or for the standard
 # FT-12 — they are carried as a range, and the size gets picked against the real
@@ -361,6 +396,8 @@ def airlock(number=None):
     want = number or AIRLOCK_DEFAULT
     for brand, model, cost, sell, date, source, desc in AIRLOCK_QUOTES:
         if model == want:
+            if sell is None and cost is None:
+                return model, None, date, brand, source, desc   # quoted, price not read yet
             price = sell if sell is not None else buyout_price(cost)
             return model, price, date, brand, source, desc
     return None

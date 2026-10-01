@@ -467,6 +467,7 @@ def build(job, today=None, delivery_weeks=None):
                 sized = calculators.run("airlock", {
                     "rate": pph, "bulkDensity": density,
                     "fill": getattr(job, "airlock_fill", None) or "",
+                    "rpm": getattr(job, "airlock_rpm", None) or "",
                     "service": "gravity",
                 })
                 if sized.get("error"):
@@ -820,11 +821,17 @@ def build(job, today=None, delivery_weeks=None):
         if iso:
             options.append(iso)
             lo, hi, source = _vendor.certified_valve_range()
+            scope_priced = not airlock_line.get("needsPrice")
             open_items.append(
                 f'Certified valve offered as an option, priced from the 10" VDL HT250 on '
-                f"High Tech Duct Werks estimate 7659. It is a 10\" valve and the "
-                f"{replacing} in the scope is larger, so it prices BELOW the standard "
-                "airlock — do not read that as a credit. Larger certified valves on file "
+                f'High Tech Duct Werks estimate 7659. It is a 10" valve and the '
+                f"{replacing} in the scope is larger, so "
+                + ("it prices BELOW the standard airlock — do not read that as a credit. "
+                   if scope_priced else
+                   "the two are not comparable; the scope valve has no price on file "
+                   "yet, so this option cannot be read as an adder or a credit until it "
+                   "does. ")
+                + "Larger certified valves on file "
                 f"run {money(lo)}–{money(hi)} ({source}); settle the size against the "
                 "duty before this goes out.")
 

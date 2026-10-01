@@ -134,6 +134,10 @@ class JobRequest(BaseModel):
         None, description="Pocket fill fraction to size the rotary airlock on, if the "
                           "rep stated one — e.g. \"90% pocket fill\" is 0.9. Only if "
                           "they said it.")
+    airlock_rpm: Optional[float] = Field(
+        None, description="Rotor speed to size the airlock at, if the rep or the "
+                          "vendor stated one. The vendor's own quoted speed wins over "
+                          "any default.")
     air_swept: bool = Field(
         False, description="Rep asked for an air-swept mill, a drop-down air pan, or a drop "
                            "down airpan. These go together and change how the air is sized.")
