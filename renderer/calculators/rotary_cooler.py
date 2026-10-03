@@ -56,6 +56,11 @@ PRESETS = [
 ]
 PRESET_BY_ID = {p["id"]: p for p in PRESETS}
 
+# Friedman-Marshall's 0.5 × 2.9, the drum calibration in cooler_heat.py
+# (DRUM_CAL_DEFAULT) — Jason, 2026-10-03: "2.9 in both". The page this is
+# ported from shipped 0.5; its default was moved with it so the two agree.
+K_UA_DEFAULT = 1.45
+
 # MCE's proposed rotary cooler grid: diameter (ft) -> lengths (ft)
 GRID = {3: [12, 16, 20, 24, 30], 4: [16, 20, 24, 30, 36],
         5: [20, 24, 30, 36, 40, 50], 6: [24, 30, 36, 40, 50, 60],
@@ -226,7 +231,7 @@ def size(f):
     margin = _num(f.get("margin"), 15) / 100
     min_cfm_ton = _num(f.get("minCfmTon"), 250)
     rh_max = _num(f.get("rhMax"), 60) / 100
-    k_ua = _num(f.get("kua"), 0.5)
+    k_ua = _num(f.get("kua"), K_UA_DEFAULT)
     rpm = _num(f.get("rpm"), 4)
     slope = _num(f.get("slope"), 0.375)
     hold_max = _num(f.get("holdMax"), 12) / 100

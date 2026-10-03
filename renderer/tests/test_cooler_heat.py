@@ -171,7 +171,8 @@ fd = cooler_heat.FIELD_DATA["tumble_4x8_soy"]
 field = {"coolerType": "drum_counter", "tph": fd["tph"],
          "tProductIn": fd["t_product_in_f"], "cp": 0.45, "bulkDensity": 38,
          "moistIn": 7, "moistOut": 6, "airDryBulb": 70, "airRh": 50,
-         "elevation": 1000, "drumDia": 4, "drumLength": 8, "drumFill": 15}
+         "elevation": 1000, "drumDia": 4, "drumLength": 8, "drumFill": 15,
+         "calFactor": 1.0}   # what the uncalibrated correlation says
 says = fd["model_says"]
 for acfm, want in says["discharge_f_at_acfm"].items():
     got = cooler_heat.size(dict(field, acfm=acfm))
@@ -217,6 +218,28 @@ co = cooler_heat.size({"coolerType": "drum_co", "tph": m["max_lb_h"] / 2000,
                        "acfm": m["fan_acfm"]})
 if round(co["balance"]["floorCoCurrent"]) != 153:
     fails.append("Insta-Pro 900 co-current floor: %s" % co["balance"]["floorCoCurrent"])
+
+# Drums carry the Insta-Pro calibration by default (Jason, 2026-10-03); beds
+# do not, and a factor typed in still wins.
+dflt = cooler_heat.size(dict(OZARK, coolerType="drum_counter", acfm=22300,
+                             drumDia=9.0, drumLength=30.0, calFactor=""))
+one = cooler_heat.size(dict(OZARK, coolerType="drum_counter", acfm=22300,
+                            drumDia=9.0, drumLength=30.0, calFactor=1.0))
+if abs(dflt["transfer"]["uvUsed"] / one["transfer"]["uvUsed"]
+       - cooler_heat.DRUM_CAL_DEFAULT) > 0.01:
+    fails.append("blank calFactor on a drum is not the Insta-Pro default")
+if not any("Insta-Pro" in n for n in dflt["notes"]):
+    fails.append("drum default calibration is not called out in the notes")
+if cooler_heat.size(dict(OZARK, calFactor=""))["transfer"]["uvUsed"] != t["uvUsed"]:
+    fails.append("a blank calFactor moved the bed")
+ip900 = cooler_heat.size({"coolerType": "drum_counter", "tph": 2, "tProductIn": 250,
+                          "cp": 0.45, "bulkDensity": 38, "moistIn": 7, "moistOut": 6,
+                          "airDryBulb": 100, "airRh": 40, "elevation": 1000,
+                          "drumDia": 46 / 12, "drumLength": 8, "drumFill": 15,
+                          "acfm": 2500})
+if round(ip900["transfer"]["discharge"]) != 120:
+    fails.append("Insta-Pro 900 at its rating with the default calibration: %s"
+                 % ip900["transfer"]["discharge"])
 
 if fails:
     print("cooler heat balance: %d disagreements with the workbook" % len(fails))

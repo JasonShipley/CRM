@@ -74,6 +74,16 @@ DEVIATIONS = {
     },
 }
 
+# Drum coolers carry a calibration by default; beds do not. Jason, 2026-10-03:
+# "2.9 in both" — this correlation and the rotary cooler's K (0.5 × 2.9).
+# 2.9 puts the Insta-Pro 900 (46" × 96", 2,500 ACFM) at its 4,000 lb/h rating
+# 20 °F over a 100 °F ambient with one point of moisture flashed, at ambient
+# with two — "something close to their recommendations" while the
+# evaporative credit is real. A measured discharge (section 6) replaces it.
+DRUM_CAL_DEFAULT = 2.9
+DRUM_CAL_SOURCE = ("Insta-Pro Model 900 rating — 4,000 lb/h, 46\" × 96\" drum, "
+                   "2,500 ACFM, 100 °F ambient (Jason, 2026-10-03)")
+
 KNOWN_DIVERGENCE = {
     "air_density": {
         "workbook_implies": 0.0720346,
@@ -290,7 +300,12 @@ def size(f):
     drum_len = _num(f.get("drumLength"), 30.0)
     fill = _num(f.get("drumFill"), 15.0)
     uv_override = _opt(f.get("uvOverride"))
-    cal = _num(f.get("calFactor"), 1.0) or 1.0
+    cal_raw = _opt(f.get("calFactor"))
+    cal_default = cal_raw is None or cal_raw <= 0
+    if cal_default:
+        cal = DRUM_CAL_DEFAULT if kind != "bed" else 1.0
+    else:
+        cal = cal_raw
     rho_override = _opt(f.get("airDensity"))
     measured = _opt(f.get("measuredDischarge"))
 
@@ -482,6 +497,10 @@ def size(f):
     if uv_override is not None:
         notes.append(f"Volumetric coefficient overridden at {_fmt.fixed(uv, 1)} "
                      "BTU/h·ft³·°F — the correlation is not in play.")
+    elif cal_default and kind != "bed":
+        notes.append(f"Drum correlation calibrated × {_fmt.fixed(cal, 2)} to the "
+                     f"{DRUM_CAL_SOURCE}. No discharge has been measured yet — "
+                     "a measured run (section 6) replaces it.")
     elif abs(cal - 1.0) > 1e-9:
         notes.append(f"Correlation calibrated × {_fmt.fixed(cal, 2)} from field data.")
     if kind != "bed" and uv_override is None and abs(cal - 1.0) < 1e-9:

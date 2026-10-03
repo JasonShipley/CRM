@@ -346,7 +346,9 @@ COOLER_HEAT_FIELDS = [
      "unit": "BTU/h·ft³·°F", "default": "", "step": 1, "min": 0.1, "advanced": True,
      "help": "A measured value from a calibration run, in place of the correlation."},
     {"key": "calFactor", "label": "Correlation calibration factor", "type": "number",
-     "default": 1.00, "step": 0.05, "min": 0.1, "advanced": True},
+     "default": "", "step": 0.05, "min": 0.1, "advanced": True,
+     "help": "Blank: 2.9 on a drum (calibrated to Insta-Pro's Model 900 rating), "
+             "1.0 on a bed. Replace with the factor from a measured run."},
     {"key": "airDensity", "label": "Air density override", "type": "number",
      "unit": "lb/ft³", "default": "", "step": 0.0001, "min": 0.03,
      "advanced": True},
@@ -473,8 +475,9 @@ ROTARY_COOLER_FIELDS = [
     {"key": "rhMax", "label": "Max exhaust RH", "type": "number", "unit": "%",
      "default": 60, "step": 5, "min": 10, "max": 100, "advanced": True},
     {"key": "kua", "label": "Volumetric coefficient K", "type": "number",
-     "default": 0.5, "step": 0.05, "min": 0.05, "advanced": True,
-     "help": "Ua = K·G^0.67/D. Calibrate it against a running drum."},
+     "default": 1.45, "step": 0.05, "min": 0.05, "advanced": True,
+     "help": "Ua = K·G^0.67/D. 1.45 is Friedman-Marshall's 0.5 × 2.9, calibrated "
+             "to Insta-Pro's Model 900 rating. Replace with a running drum's."},
     {"key": "rpm", "label": "Drum speed", "type": "number", "unit": "RPM",
      "default": 4, "step": 0.5, "min": 0.5, "advanced": True},
     {"key": "slope", "label": "Drum slope", "type": "number", "unit": "in/ft",
