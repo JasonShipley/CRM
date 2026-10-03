@@ -207,6 +207,17 @@ for cfm_ton, by_ap in ip["implied_cal_factor"].items():
         if abs(pair[0] / pair[1] - 1) > 0.05:
             fails.append("Insta-Pro 900 and 700 imply different factors: %s" % (pair,))
 
+# 2,500 ACFM settles the arrangement: co-current cannot make the 900's rating.
+m = ip["models"]["900"]
+co = cooler_heat.size({"coolerType": "drum_co", "tph": m["max_lb_h"] / 2000,
+                       "tProductIn": 250, "cp": 0.45, "bulkDensity": 38,
+                       "moistIn": 7, "moistOut": 6, "airDryBulb": 100,
+                       "airRh": 40, "elevation": 1000, "drumDia": m["dia_in"] / 12,
+                       "drumLength": m["length_in"] / 12, "drumFill": 15,
+                       "acfm": m["fan_acfm"]})
+if round(co["balance"]["floorCoCurrent"]) != 153:
+    fails.append("Insta-Pro 900 co-current floor: %s" % co["balance"]["floorCoCurrent"])
+
 if fails:
     print("cooler heat balance: %d disagreements with the workbook" % len(fails))
     for f in fails:

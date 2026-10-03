@@ -125,14 +125,32 @@ FIELD_DATA = {
         "reported": "2026-10-03",
         "models": {
             "400": {"max_lb_h": 1000},
-            "700": {"max_lb_h": 2000, "dia_in": 36, "length_in": 72},
+            "700": {"max_lb_h": 2000, "dia_in": 36, "length_in": 72,
+                    "drive_hp": 0.75, "weight_lb": 1500,
+                    "overall": '85"H x 48"W x 115"L', "serves": "one extruder"},
             "900": {"max_lb_h": 4000, "dia_in": 46, "length_in": 96,
-                    "flights": 48, "fan_hp": 2},
+                    "flights": 48, "drive_hp": 0.75, "weight_lb": 1850,
+                    "overall": '90"H x 55"W x 139"L', "serves": "two extruders",
+                    "fan_acfm": 2500, "fan_hp_field": 2},
             "950": {"max_lb_h": 6000},
         },
+        # Insta-Pro overview brochure (Jason, 2026-10-03): auxiliary equipment
+        # spec table gives drive HP, weight and overall size above, and one
+        # "Cooler Fan" at 3 HP, 190 lb; Jason's field fan is 2 HP. "Fan pulls
+        # air through drum and exhausts it through cyclone fines collector."
+        # Extruded soybeans leave the barrel at 300 °F; the 2000R extruder
+        # makes 1,300-2,000 lb/h, so the 900 is two of them.
+        "brochure": {"cooler_fan_hp": 3, "cooler_fan_weight_lb": 190,
+                     "cyclone": '80"H x 43"W x 36"L, 147 lb',
+                     "extruder_discharge_f": 300},
+        # 2,500 ACFM on the 900 is Jason's figure (2026-10-03). At its rating
+        # that is 1,250 CFM/ton, the middle row below. It also settles the
+        # arrangement: co-current, the 900 at 4,000 lb/h and 2,500 ACFM
+        # cannot get the meal below ~153 °F, so the rating only holds
+        # counter-current.
         "ambient_max_f": 100,
         "unknown": ["discharge temperature or approach the rating holds",
-                    "airflow", "product moisture"],
+                    "product moisture"],
         # Drum volume per lb/h is the one number that needs no assumption:
         # 700 → 47.2 lb/h per ft³, 900 → 43.3.
         "lb_h_per_ft3": {"700": 47.2, "900": 43.3},
