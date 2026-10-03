@@ -186,6 +186,27 @@ cal = cooler_heat.size(dict(field, acfm=2500, measuredDischarge=100))["calibrati
 if round(cal["factor"], 2) != says["cal_factor_if_discharge_100f_at_2500"]:
     fails.append("field 4x8 cal factor: %s" % cal["factor"])
 
+# Insta-Pro ratings: the implied factors are recorded, and the two sizes must
+# keep agreeing — that agreement is the finding.
+ip = cooler_heat.FIELD_DATA["instapro_ratings"]
+for cfm_ton, by_ap in ip["implied_cal_factor"].items():
+    for ap, pair in by_ap.items():
+        for model, want in zip(("900", "700"), pair):
+            m = ip["models"][model]
+            tph = m["max_lb_h"] / 2000
+            r = cooler_heat.size({
+                "coolerType": "drum_counter", "tph": tph, "tProductIn": 250,
+                "cp": 0.45, "bulkDensity": 38, "moistIn": 7, "moistOut": 6,
+                "airDryBulb": 100, "airRh": 40, "elevation": 1000,
+                "drumDia": m["dia_in"] / 12, "drumLength": m["length_in"] / 12,
+                "drumFill": 15, "acfm": cfm_ton * tph, "approach": ap,
+                "measuredDischarge": 100 + ap})
+            if round(r["calibration"]["factor"], 2) != want:
+                fails.append("Insta-Pro %s @ %d CFM/ton +%d F: %s vs %s" % (
+                    model, cfm_ton, ap, r["calibration"]["factor"], want))
+        if abs(pair[0] / pair[1] - 1) > 0.05:
+            fails.append("Insta-Pro 900 and 700 imply different factors: %s" % (pair,))
+
 if fails:
     print("cooler heat balance: %d disagreements with the workbook" % len(fails))
     for f in fails:

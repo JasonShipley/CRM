@@ -116,6 +116,38 @@ FIELD_DATA = {
                    "meal in a flighted tumble cooler. Calibrate with a measured "
                    "discharge before carrying a factor.",
     },
+    # Insta-Pro's published maximums for its extruded-meal rotary coolers, all
+    # "100 °F ambient maximum" (Jason, 2026-10-03). The 900 is the 4 × 8 above;
+    # 46" × 96" with 48 flights and the 700's 36" × 72" are from used-equipment
+    # listings, not Insta-Pro. 400 and 950 dimensions are not on file.
+    "instapro_ratings": {
+        "reported_by": "Jason",
+        "reported": "2026-10-03",
+        "models": {
+            "400": {"max_lb_h": 1000},
+            "700": {"max_lb_h": 2000, "dia_in": 36, "length_in": 72},
+            "900": {"max_lb_h": 4000, "dia_in": 46, "length_in": 96,
+                    "flights": 48, "fan_hp": 2},
+            "950": {"max_lb_h": 6000},
+        },
+        "ambient_max_f": 100,
+        "unknown": ["discharge temperature or approach the rating holds",
+                    "airflow", "product moisture"],
+        # Drum volume per lb/h is the one number that needs no assumption:
+        # 700 → 47.2 lb/h per ft³, 900 → 43.3.
+        "lb_h_per_ft3": {"700": 47.2, "900": 43.3},
+        # calFactor that makes each drum hit its rating at 250 °F in, 100 °F /
+        # 40 % RH, 7→6 % moisture, counter-current, 15 % fill, by assumed
+        # airflow (CFM/ton) and approach to ambient (°F). Both sizes imply the
+        # same factor to within ~3 %, so the correlation scales with drum size
+        # the way Insta-Pro's ratings do and is off by a constant; which
+        # constant depends on the two unknowns. Each pair is (900, 700).
+        "implied_cal_factor": {
+            1000: {10: (5.38, 5.25), 15: (4.59, 4.48), 20: (3.96, 3.87), 30: (3.00, 2.93)},
+            1250: {10: (3.79, 3.70), 15: (3.31, 3.23), 20: (2.91, 2.84), 30: (2.28, 2.23)},
+            1500: {10: (3.01, 2.94), 15: (2.66, 2.60), 20: (2.36, 2.31), 30: (1.88, 1.84)},
+        },
+    },
 }
 
 
