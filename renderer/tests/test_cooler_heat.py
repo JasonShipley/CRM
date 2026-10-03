@@ -165,6 +165,27 @@ assert any("bed cap" in w for w in fast["warnings"]), fast["warnings"]
 assert cooler_heat.size(dict(OZARK, uvOverride="", calFactor=""))["transfer"]["uvUsed"] \
     == t["uvUsed"], "blank override and blank calibration must fall back, not zero"
 
+# The 4×8 soy tumble cooler field point: what the model says about it is
+# recorded beside it, so a change to the model shows up here.
+fd = cooler_heat.FIELD_DATA["tumble_4x8_soy"]
+field = {"coolerType": "drum_counter", "tph": fd["tph"],
+         "tProductIn": fd["t_product_in_f"], "cp": 0.45, "bulkDensity": 38,
+         "moistIn": 7, "moistOut": 6, "airDryBulb": 70, "airRh": 50,
+         "elevation": 1000, "drumDia": 4, "drumLength": 8, "drumFill": 15}
+says = fd["model_says"]
+for acfm, want in says["discharge_f_at_acfm"].items():
+    got = cooler_heat.size(dict(field, acfm=acfm))
+    if round(got["transfer"]["discharge"]) != want:
+        fails.append("field 4x8 @ %d ACFM: %s vs recorded %s"
+                     % (acfm, got["transfer"]["discharge"], want))
+got = cooler_heat.size(dict(field, acfm=2500))
+if round(got["balance"]["minimumAcfm"]) != says["min_airflow_acfm"]:
+    fails.append("field 4x8 min airflow: %s vs recorded %s"
+                 % (got["balance"]["minimumAcfm"], says["min_airflow_acfm"]))
+cal = cooler_heat.size(dict(field, acfm=2500, measuredDischarge=100))["calibration"]
+if round(cal["factor"], 2) != says["cal_factor_if_discharge_100f_at_2500"]:
+    fails.append("field 4x8 cal factor: %s" % cal["factor"])
+
 if fails:
     print("cooler heat balance: %d disagreements with the workbook" % len(fails))
     for f in fails:

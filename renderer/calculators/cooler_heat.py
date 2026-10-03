@@ -85,6 +85,40 @@ KNOWN_DIVERGENCE = {
 }
 
 
+# Field data from running coolers, kept beside the model they test. An entry
+# whose discharge is not known cannot be calibrated against (section 6); it is
+# recorded so the gap between the correlation and the field stays visible.
+FIELD_DATA = {
+    "tumble_4x8_soy": {
+        "reported_by": "Jason",
+        "reported": "2026-10-03",
+        "cooler": "4 ft dia × 8 ft tumble (rotary drum) cooler",
+        "product": "soy meal",
+        "tph": 2.0,
+        "t_product_in_f": 250,
+        "fan_hp": 2,
+        "result": "2 TPH of cooled meal",
+        "unknown": ["discharge temperature", "ambient dry bulb / RH",
+                    "moisture in and out", "fan CFM and static",
+                    "flow arrangement (counter- or co-current)", "drum fill"],
+        # What this model says about it, at cp 0.45, 38 lb/ft³, 7→6 % moisture,
+        # 70 °F / 50 % RH, counter-current, 15 % fill (2026-10-03):
+        "model_says": {
+            "min_airflow_acfm": 1445,     # the air side: a 2 HP fan carries it
+            "discharge_f_at_acfm": {1500: 171, 2000: 160, 2500: 151, 3000: 143},
+            "cal_factor_if_discharge_100f_at_2500": 2.70,
+        },
+        "reading": "The energy balance agrees with the field: 2 HP of fan moves "
+                   "more than the ~1,450 ACFM the heat load needs. The "
+                   "Friedman-Marshall transfer rate (K 0.5) does not: it "
+                   "predicts ~150 °F out of this drum, so if the meal really "
+                   "leaves near ambient, the correlation is ~2.5-3× low for "
+                   "meal in a flighted tumble cooler. Calibrate with a measured "
+                   "discharge before carrying a factor.",
+    },
+}
+
+
 def _num(raw, default=0.0):
     try:
         v = float(str(raw).replace(",", "").strip())
