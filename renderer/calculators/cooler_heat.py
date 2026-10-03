@@ -143,7 +143,19 @@ FIELD_DATA = {
             "900": {"max_lb_h": 4000, "dia_in": 46, "length_in": 96,
                     "flights": 48, "drive_hp": 0.75, "weight_lb": 1850,
                     "overall": '90"H x 55"W x 139"L', "serves": "two extruders",
-                    "fan_acfm": 2500, "fan_hp_field": 2},
+                    "fan_acfm": 2500, "fan_hp_field": 2,
+                    # Aaron Equipment stock 47056001, 304 SS, photos from
+                    # Jason 2026-10-03. Both nameplates date June 2011.
+                    "drive": {
+                        "motor": "Baldor Super-E XEX VECP3587T, 2 HP, 1755 rpm, "
+                                 "145TC, TEFC, 1.15 SF",
+                        "reducer": "Winsmith E35MDTD, 75:1, 1.0 SF rating 2.883 "
+                                   "input HP / 6,891 in-lb output",
+                        "reducer_output_rpm": 23.4,
+                        "chain_ratio": "2:1 or 3:1 (Jason) — not confirmed",
+                        "drum_rpm_if_2_to_1": 11.7,   # 147 ft/min shell speed
+                        "drum_rpm_if_3_to_1": 7.8,    # 98 ft/min
+                    }},
             "950": {"max_lb_h": 6000},
         },
         # Insta-Pro overview brochure (Jason, 2026-10-03): auxiliary equipment
