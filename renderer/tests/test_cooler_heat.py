@@ -250,6 +250,8 @@ rc_ip = rotary_cooler.size({"preset": "feed", "tph": 2, "tin": 250, "tout": 120,
                             "tmax": 100, "humMode": "rh", "humVal": 40})
 if rc_ip["model"] != "RC 4×8":
     fails.append("rotary sizing at the Insta-Pro 900 rating picked %s" % rc_ip["model"])
+if rc_ip["fanDuty"]["motor"] != 5:   # hot running, not the cold start
+    fails.append("rotary fan motor at the Insta-Pro rating: %s" % rc_ip["fanDuty"])
 if any(d["L"] / d["d"] < 4 for d in rotary_cooler.DRUMS):
     fails.append("short cooler drums leaked into the dryer's grid")
 

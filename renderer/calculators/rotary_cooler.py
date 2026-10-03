@@ -443,7 +443,11 @@ def size(f):
     bhp_fan = _div(acfm_fan * sp_act, 6356 * eta)
     rho_cold = PSY.rho(tcold, 0.002, patm)
     bhp_cold = _div(bhp_fan * rho_cold, rho_fan)
-    fan_motor = std_motor(max(bhp_fan, bhp_cold) * 1.05 * 1.05)
+    # Sized on hot running, not the cold start (Jason, 2026-10-03: "go with
+    # 5 HP, size it on hot running"). The fan starts with its inlet damper
+    # closed or on a VFD, so it never pulls the cold-air BHP; that figure is
+    # still reported so the start-up interlock is not forgotten.
+    fan_motor = std_motor(bhp_fan * 1.05 * 1.05)
     cyc_d = math.sqrt(acfm_fan / 5.45)
     duct_d = math.sqrt(acfm_fan / 4500 * 4 / math.pi) * 12
 
@@ -549,7 +553,8 @@ def size(f):
         ("Density factor", _f(df, 3)),
         ("Curve-selection static (std air)", f'{_f(sp_std, 1)}" WC'),
         ("Brake HP at design", f"{_f(bhp_fan, 1)} bhp (η {_fmt.locale(eta)})"),
-        ("Cold-start BHP", f"{_f(bhp_cold, 1)} bhp @ {_f(tcold)} °F"),
+        ("Cold-start BHP", f"{_f(bhp_cold, 1)} bhp @ {_f(tcold)} °F — start "
+                           "damper-closed or on a VFD"),
         ("Fan motor", f"{_fmt.locale(fan_motor)} HP · radial wheel"),
         ("Exhaust duct @ 4,500 FPM", f"{_f(duct_d)} in dia"),
         ("Cyclone class (verify)", f"HE-{_f(cyc_d)}"),

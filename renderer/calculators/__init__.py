@@ -499,7 +499,8 @@ ROTARY_COOLER_FIELDS = [
      "step": 0.05, "min": 0.2, "max": 0.9, "advanced": True},
     {"key": "tcold", "label": "Cold-start ambient", "type": "number", "unit": "°F",
      "default": 20, "step": 5, "min": -40, "max": 100, "advanced": True,
-     "help": "Dense winter air is what actually sizes the fan motor."},
+     "help": "Cold air pulls more power. The motor is sized on hot running, so the "
+             "fan starts damper-closed or on a VFD; this sets the start-up check."},
 ]
 
 AIRLOCK_FIELDS = [

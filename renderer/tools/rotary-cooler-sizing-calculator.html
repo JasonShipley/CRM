@@ -281,7 +281,7 @@
           <div class="field"><label for="tlow">Summer low (sweep start)</label><div class="unit-input"><input type="number" id="tlow" value="70" step="1" /><span class="unit">°F</span></div></div>
           <div class="field"><label for="sweepMode">Sweep humidity assumption</label>
             <select id="sweepMode"><option value="w">Hold humidity ratio (same moisture, RH rises as it cools)</option><option value="rh">Hold relative humidity</option></select></div>
-          <div class="field"><label for="tcold">Cold-start ambient (fan motor)</label><div class="unit-input"><input type="number" id="tcold" value="20" step="5" /><span class="unit">°F</span></div></div>
+          <div class="field"><label for="tcold">Cold-start ambient (damper / VFD check)</label><div class="unit-input"><input type="number" id="tcold" value="20" step="5" /><span class="unit">°F</span></div></div>
         </div>
       </section>
 
@@ -345,7 +345,7 @@
       <section class="card card-pad">
         <h2 class="section-title">Fan &amp; Air System</h2>
         <div class="spec-list" id="fanSpecs"></div>
-        <p class="note" style="margin-top:10px">Select on the vendor curve at the listed ACFM and <b>standard-air static</b>; at site density the fan delivers the actual static shown. Motor is sized for the cold-start case (densest air the fan will ever see at fixed speed). Straight radial wheel for dusty cooler exhaust.</p>
+        <p class="note" style="margin-top:10px">Select on the vendor curve at the listed ACFM and <b>standard-air static</b>; at site density the fan delivers the actual static shown. Motor is sized on hot running — start the fan with its inlet damper closed or on a VFD, because cold-start air (shown) pulls more power. Straight radial wheel for dusty cooler exhaust.</p>
       </section>
     </div>
   </div>
@@ -396,7 +396,7 @@
       <li><b>Drum volume</b> V<sub>req</sub> = Q<sub>air</sub>(1+margin) ÷ (U<sub>a</sub> · LMTD), counter-current LMTD, U<sub>a</sub> = K · G<sup>0.67</sup> / D (Btu/h·ft³·°F; G in lb/h·ft², D in ft; K = 0.5 — Perry's Chemical Engineers' Handbook, direct-heat rotary dryers/coolers).</li>
       <li><b>Retention</b> by Friedman–Marshall: θ = 0.23 L / (S N<sup>0.9</sup> D) + 0.6 B L G / F minutes (counter-current, plus sign), B = 5 d<sub>p</sub><sup>−0.5</sup> with d<sub>p</sub> in µm, F = dry feed lb/h·ft² of drum section. Holdup = θ × volumetric feed ÷ drum volume; 5–15% is the working band.</li>
       <li><b>Drive power</b> (Perry): bhp = N (4.75 d w + 0.1925 D<sub>r</sub> W + 0.33 W) / 10⁵ with live load w, riding-ring diameter D<sub>r</sub> = d + 1 ft, total rotating load W = w + shell (3/8" plate × 1.6 for flights, tires and gear). Motor = bhp ÷ 0.85 drive efficiency × 1.15, next standard frame.</li>
-      <li><b>Fan</b>: ACFM at fan conditions from ṁ<sub>air</sub> and specific volume; density factor DF = ρ<sub>fan</sub>/0.075; curve-selection static = actual static ÷ DF (fan curves are drawn at standard air, and pressure scales with density at fixed speed and ACFM); BHP = ACFM × SP ÷ (6356 η); cold-start BHP = design BHP × ρ<sub>cold</sub>/ρ<sub>fan</sub>; motor = worst case × 1.05 belt × 1.05 headroom. Cyclone class from the MCE rule HE-D ≈ √(ACFM ÷ 5.45); duct at 4,500 FPM per the cooler air-line band.</li>
+      <li><b>Fan</b>: ACFM at fan conditions from ṁ<sub>air</sub> and specific volume; density factor DF = ρ<sub>fan</sub>/0.075; curve-selection static = actual static ÷ DF (fan curves are drawn at standard air, and pressure scales with density at fixed speed and ACFM); BHP = ACFM × SP ÷ (6356 η); cold-start BHP = design BHP × ρ<sub>cold</sub>/ρ<sub>fan</sub>; motor = hot-running BHP × 1.05 belt × 1.05 headroom (start damper-closed or on a VFD). Cyclone class from the MCE rule HE-D ≈ √(ACFM ÷ 5.45); duct at 4,500 FPM per the cooler air-line band.</li>
       <li><b>Summer sweep</b>: counter-flow effectiveness ε-NTU with NTU = U<sub>a</sub>V/C<sub>min</sub> on the recommended drum at fixed air mass flow; the evaporative credit is carried as a constant share of the product's heat release along the drum, so the convective exchange sees an effective product capacity rate of (1 − Q<sub>lat</sub>/Q<sub>p</sub>)·ṁc<sub>p</sub> — the same basis as the LMTD sizing. Humidity ratio is held constant across the sweep unless RH is held instead.</li>
     </ol>
     <p class="note">The RC drum grid is a proposed MCE standard (diameter × length, ft) pending Engineering Manager sign-off; it is not yet registered in the part-number master. Products above ~400°F in a direct air-swept drum need a combustion review — consider an indirect water-jacketed or inerted cooler for biochar and torrefied material.</p>
@@ -599,7 +599,7 @@ function calc() {
   const bhpFan = acfmFan * spAct / (6356 * eta);
   const rhoCold = PSY.rho(tcold, 0.002, P);
   const bhpCold = bhpFan * rhoCold / rhoFan;
-  const fanMotor = stdMotor(Math.max(bhpFan, bhpCold) * 1.05 * 1.05);
+  const fanMotor = stdMotor(bhpFan * 1.05 * 1.05);  // hot running; start damper-closed or on a VFD
   const cycD = Math.sqrt(acfmFan / 5.45);
   const ductD = Math.sqrt(acfmFan / 4500 * 4 / Math.PI) * 12;
 
@@ -695,7 +695,7 @@ function render(warnings) {
     ["Density factor", fmt(L.DF, 3)],
     ["Curve-selection static (std air)", `${fmt(L.spStd, 1)}" WC`],
     ["Brake HP at design", `${fmt(L.bhpFan, 1)} bhp (η ${L.eta})`],
-    ["Cold-start BHP", `${fmt(L.bhpCold, 1)} bhp @ ${fmt(L.tcold)} °F`],
+    ["Cold-start BHP", `${fmt(L.bhpCold, 1)} bhp @ ${fmt(L.tcold)} °F — start damper-closed or on a VFD`],
     ["Fan motor", `${L.fanMotor} HP · radial wheel`],
     ["Exhaust duct @ 4,500 FPM", `${fmt(L.ductD, 0)} in dia`],
     ["Cyclone class (verify)", `HE-${fmt(L.cycD, 0)}`]
@@ -773,7 +773,7 @@ function specBlock(L) {
     b ? `  Drive: ${fmt(L.drive.bhp, 1)} bhp → ${L.drive.motor} HP, 460/3/60 TEFC` : ``,
     `Air: ${fmt(L.scfm)} SCFM (${fmt(L.scfm / L.tph)} SCFM/ton, ${L.airGov.toLowerCase()} governs) · exhaust ${fmt(L.taOutAct, 0)} °F / ${fmt(L.rhOut * 100)}% RH · ${fmt(L.acfmOut)} ACFM`,
     `Fan (${L.fanLoc === "id" ? "induced draft after cyclone" : "forced draft"}): ${fmt(L.acfmFan)} ACFM @ ${fmt(L.spAct, 1)}" WC actual at ${fmt(L.tFan, 0)} °F, ${fmt(L.rhoFan, 4)} lb/ft³ (DF ${fmt(L.DF, 3)})`,
-    `  Select on curve at ${fmt(L.acfmFan)} ACFM @ ${fmt(L.spStd, 1)}" WC standard air · ${fmt(L.bhpFan, 1)} bhp design / ${fmt(L.bhpCold, 1)} bhp cold start (${fmt(L.tcold)} °F) · ${L.fanMotor} HP · straight radial wheel, V-belt 1.3 SF`,
+    `  Select on curve at ${fmt(L.acfmFan)} ACFM @ ${fmt(L.spStd, 1)}" WC standard air · ${fmt(L.bhpFan, 1)} bhp design / ${fmt(L.bhpCold, 1)} bhp cold start (${fmt(L.tcold)} °F, damper closed / VFD) · ${L.fanMotor} HP · straight radial wheel, V-belt 1.3 SF`,
     `  Exhaust duct ${fmt(L.ductD, 0)} in @ 4,500 FPM · cyclone class HE-${fmt(L.cycD, 0)} (verify in cyclone calculator)`,
     `Summer sweep (drum & airflow fixed): ` + L.sweep.map(r => `${r.t}°F→${fmt(r.tpOut, 0)}°F`).join(", "),
     `Basis: Perry Ua = ${L.K}·G^0.67/D · approaches ${L.apHot}/${L.apCold} °F · margin ${fmt(L.margin * 100)}% · min ${L.minCfmTon} SCFM/ton · max exhaust RH ${fmt(L.rhMax * 100)}%`,
