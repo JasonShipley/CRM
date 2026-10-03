@@ -75,7 +75,9 @@ DEVIATIONS = {
 }
 
 # Drum coolers carry a calibration by default; beds do not. Jason, 2026-10-03:
-# "2.9 in both" — this correlation and the rotary cooler's K (0.5 × 2.9).
+# "2.9 in both" — then "be at the same thing they are at", so the rotary
+# cooler's sizing K was calibrated on its own method to the same rating
+# (rotary_cooler.K_UA_DEFAULT); this one stays at 2.9.
 # 2.9 puts the Insta-Pro 900 (46" × 96", 2,500 ACFM) at its 4,000 lb/h rating
 # 20 °F over a 100 °F ambient with one point of moisture flashed, at ambient
 # with two — "something close to their recommendations" while the

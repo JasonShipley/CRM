@@ -475,9 +475,10 @@ ROTARY_COOLER_FIELDS = [
     {"key": "rhMax", "label": "Max exhaust RH", "type": "number", "unit": "%",
      "default": 60, "step": 5, "min": 10, "max": 100, "advanced": True},
     {"key": "kua", "label": "Volumetric coefficient K", "type": "number",
-     "default": 1.45, "step": 0.05, "min": 0.05, "advanced": True,
-     "help": "Ua = K·G^0.67/D. 1.45 is Friedman-Marshall's 0.5 × 2.9, calibrated "
-             "to Insta-Pro's Model 900 rating. Replace with a running drum's."},
+     "default": 3.36, "step": 0.01, "min": 0.05, "advanced": True,
+     "help": "Ua = K·G^0.67/D. 3.36 makes a 4 × 8 drum carry Insta-Pro's Model 900 "
+             "rating (4,000 lb/h, 250 → 120 °F, 100 °F day). Replace with a "
+             "running drum's."},
     {"key": "rpm", "label": "Drum speed", "type": "number", "unit": "RPM",
      "default": 4, "step": 0.5, "min": 0.5, "advanced": True},
     {"key": "slope", "label": "Drum slope", "type": "number", "unit": "in/ft",
@@ -487,11 +488,13 @@ ROTARY_COOLER_FIELDS = [
     {"key": "fanLoc", "label": "Fan location", "type": "select", "default": "id",
      "options": list(rotary_cooler.FAN_LOCATIONS)},
     {"key": "spDrum", "label": "Drum static", "type": "number", "unit": '" WC',
-     "default": 1.5, "step": 0.5, "min": 0, "advanced": True},
+     "default": 0.5, "step": 0.5, "min": 0, "advanced": True},
     {"key": "spCyc", "label": "Cyclone static", "type": "number", "unit": '" WC',
      "default": 4, "step": 0.5, "min": 0, "advanced": True},
     {"key": "spDuct", "label": "Duct static", "type": "number", "unit": '" WC',
-     "default": 2, "step": 0.5, "min": 0, "advanced": True},
+     "default": 1, "step": 0.5, "min": 0, "advanced": True,
+     "help": "Drum 0.5 + cyclone 4 + duct 1 = 5.5\" WC: about 3\" over the ~2.5\" "
+             "Insta-Pro's 1.5 HP fan implies, for the fan after the cyclone."},
     {"key": "eta", "label": "Fan efficiency", "type": "number", "default": 0.60,
      "step": 0.05, "min": 0.2, "max": 0.9, "advanced": True},
     {"key": "tcold", "label": "Cold-start ambient", "type": "number", "unit": "°F",

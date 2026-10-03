@@ -241,6 +241,18 @@ if round(ip900["transfer"]["discharge"]) != 120:
     fails.append("Insta-Pro 900 at its rating with the default calibration: %s"
                  % ip900["transfer"]["discharge"])
 
+# Rotary cooler sizing reproduces the Insta-Pro 900 at its rating: 2 TPH,
+# 250 -> 120 F on a 100 F / 40 % day selects a 4 x 8, and the dryer still
+# picks from the long grid only.
+from calculators import rotary_cooler, dryer
+rc_ip = rotary_cooler.size({"preset": "feed", "tph": 2, "tin": 250, "tout": 120,
+                            "cp": 0.45, "rho": 38, "mcin": 7, "mcout": 6,
+                            "tmax": 100, "humMode": "rh", "humVal": 40})
+if rc_ip["model"] != "RC 4×8":
+    fails.append("rotary sizing at the Insta-Pro 900 rating picked %s" % rc_ip["model"])
+if any(d["L"] / d["d"] < 4 for d in rotary_cooler.DRUMS):
+    fails.append("short cooler drums leaked into the dryer's grid")
+
 if fails:
     print("cooler heat balance: %d disagreements with the workbook" % len(fails))
     for f in fails:

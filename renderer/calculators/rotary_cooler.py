@@ -56,10 +56,16 @@ PRESETS = [
 ]
 PRESET_BY_ID = {p["id"]: p for p in PRESETS}
 
-# Friedman-Marshall's 0.5 × 2.9, the drum calibration in cooler_heat.py
-# (DRUM_CAL_DEFAULT) — Jason, 2026-10-03: "2.9 in both". The page this is
-# ported from shipped 0.5; its default was moved with it so the two agree.
-K_UA_DEFAULT = 1.45
+# Calibrated so this sizing method reproduces Insta-Pro's Model 900 rating
+# exactly: a 4 ft × 8 ft drum cooling 4,000 lb/h of soy meal from 250 °F to
+# 120 °F on a 100 °F / 40 % RH day (their "100 °F ambient maximum"; 120 °F is
+# what cooler_heat.py's ×2.9 calibration predicts for that drum there). Jason,
+# 2026-10-03: "We need to basically be at the same thing they are at because
+# it works." 3.36 is Friedman-Marshall's 0.5 × 6.7 (3.351 exactly, rounded up so the 4 × 8 passes) — more than the heat
+# balance's 2.9 because this method carries its own conservatism (15 %
+# margin, LMTD on a planned exhaust), which the calibration now absorbs.
+# The page this is ported from shipped 0.5; its default moved with it.
+K_UA_DEFAULT = 3.36
 
 # MCE's proposed rotary cooler grid: diameter (ft) -> lengths (ft)
 GRID = {3: [12, 16, 20, 24, 30], 4: [16, 20, 24, 30, 36],
@@ -73,6 +79,19 @@ for _d, _lengths in GRID.items():
         _A = math.pi * _d * _d / 4
         DRUMS.append({"d": _d, "L": _L, "name": f"RC {_d}×{_L}", "A": _A, "V": _A * _L})
 DRUMS.sort(key=lambda x: (x["V"], x["d"]))
+
+# Short, tumble-cooler drums at Insta-Pro's proportions (L/D about 2-3: the
+# 700 is 3 × 6, the 900 4 × 8), added to the cooler's selection so a duty that
+# a 4 × 8 handles in the field is not sold as a 4 × 16 (Jason, 2026-10-03).
+# Coolers only — dryer.py selects from DRUMS, which these stay out of.
+SHORT_GRID = {3: [6, 8, 10], 4: [8, 10, 12], 5: [10, 12, 16]}
+COOLER_DRUMS = list(DRUMS)
+for _d, _lengths in SHORT_GRID.items():
+    for _L in _lengths:
+        _A = math.pi * _d * _d / 4
+        COOLER_DRUMS.append({"d": _d, "L": _L, "name": f"RC {_d}×{_L}", "A": _A,
+                             "V": _A * _L})
+COOLER_DRUMS.sort(key=lambda x: (x["V"], x["d"]))
 
 HUM_MODES = [("wb", "Wet bulb, °F"), ("rh", "Relative humidity, %")]
 SWEEP_MODES = [("w", "Hold the design humidity ratio"),
@@ -235,9 +254,9 @@ def size(f):
     rpm = _num(f.get("rpm"), 4)
     slope = _num(f.get("slope"), 0.375)
     hold_max = _num(f.get("holdMax"), 12) / 100
-    sp_drum = _num(f.get("spDrum"), 1.5)
+    sp_drum = _num(f.get("spDrum"), 0.5)
     sp_cyc = _num(f.get("spCyc"), 4)
-    sp_duct = _num(f.get("spDuct"), 2)
+    sp_duct = _num(f.get("spDuct"), 1)
     fan_loc = str(f.get("fanLoc") or "id")
     eta = _num(f.get("eta"), 0.6)
     tcold = _num(f.get("tcold"), 20)
@@ -342,7 +361,7 @@ def size(f):
     s_slope = slope / 12
     b_factor = _div(5, math.sqrt(dp) if dp > 0 else 0)
     cands = []
-    for dr in DRUMS:
+    for dr in COOLER_DRUMS:
         g = _div(m_air, dr["A"])
         ua = _div(k_ua * _pow(g, 0.67), dr["d"])
         v_req = _div(qair * (1 + margin), ua * lmtd)

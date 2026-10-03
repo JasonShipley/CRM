@@ -294,7 +294,7 @@
           <div class="field"><label for="margin">Design margin</label><div class="unit-input"><input type="number" id="margin" value="15" step="5" min="0" /><span class="unit">%</span></div></div>
           <div class="field"><label for="minCfmTon">Min sweep air</label><div class="unit-input"><input type="number" id="minCfmTon" value="250" step="25" min="0" /><span class="unit">SCFM/ton</span></div></div>
           <div class="field"><label for="rhMax">Max exhaust RH</label><div class="unit-input"><input type="number" id="rhMax" value="60" step="5" min="20" max="95" /><span class="unit">%</span></div></div>
-          <div class="field"><label for="kua">U<sub>a</sub> coefficient K</label><div class="unit-input"><input type="number" id="kua" value="1.45" step="0.05" min="0.1" /><span class="unit">Perry</span></div></div>
+          <div class="field"><label for="kua">U<sub>a</sub> coefficient K</label><div class="unit-input"><input type="number" id="kua" value="3.36" step="0.05" min="0.1" /><span class="unit">Perry</span></div></div>
           <div class="field"><label for="rpm">Drum speed</label><div class="unit-input"><input type="number" id="rpm" value="4" step="0.5" min="0.5" /><span class="unit">RPM</span></div></div>
           <div class="field"><label for="slope">Drum slope</label><div class="unit-input"><input type="number" id="slope" value="0.375" step="0.125" min="0.125" /><span class="unit">in/ft</span></div></div>
           <div class="field"><label for="holdMax">Max holdup</label><div class="unit-input"><input type="number" id="holdMax" value="12" step="1" min="3" max="20" /><span class="unit">% vol</span></div></div>
@@ -308,9 +308,9 @@
           <div class="field"><label for="fanLoc">Fan location</label>
             <select id="fanLoc"><option value="id">Induced draft — after cyclone (hot, humid exhaust)</option><option value="fd">Forced draft — ambient into discharge end</option></select></div>
           <div class="field"><label for="eta">Fan static efficiency</label><div class="unit-input"><input type="number" id="eta" value="0.60" step="0.05" min="0.3" max="0.85" /><span class="unit">η</span></div></div>
-          <div class="field"><label for="spDrum">Drum, hoods &amp; seals</label><div class="unit-input"><input type="number" id="spDrum" value="1.5" step="0.25" min="0" /><span class="unit">" WC</span></div></div>
+          <div class="field"><label for="spDrum">Drum, hoods &amp; seals</label><div class="unit-input"><input type="number" id="spDrum" value="0.5" step="0.25" min="0" /><span class="unit">" WC</span></div></div>
           <div class="field"><label for="spCyc">Cyclone / collector</label><div class="unit-input"><input type="number" id="spCyc" value="4" step="0.5" min="0" /><span class="unit">" WC</span></div></div>
-          <div class="field"><label for="spDuct">Ductwork &amp; damper</label><div class="unit-input"><input type="number" id="spDuct" value="2" step="0.5" min="0" /><span class="unit">" WC</span></div></div>
+          <div class="field"><label for="spDuct">Ductwork &amp; damper</label><div class="unit-input"><input type="number" id="spDuct" value="1" step="0.5" min="0" /><span class="unit">" WC</span></div></div>
         </div>
       </section>
     </div>
@@ -440,7 +440,7 @@ const PRESETS = [
 ];
 
 /* ---------- proposed MCE rotary cooler grid: diameter × length, ft ---------- */
-const GRID = { 3: [12, 16, 20, 24, 30], 4: [16, 20, 24, 30, 36], 5: [20, 24, 30, 36, 40, 50], 6: [24, 30, 36, 40, 50, 60],
+const GRID = { 3: [6, 8, 10, 12, 16, 20, 24, 30], 4: [8, 10, 12, 16, 20, 24, 30, 36], 5: [10, 12, 16, 20, 24, 30, 36, 40, 50], 6: [24, 30, 36, 40, 50, 60],
   7: [30, 36, 40, 50, 60, 70], 8: [40, 50, 60, 70, 80], 9: [50, 60, 70, 80, 90], 10: [50, 60, 70, 80, 100], 12: [60, 70, 80, 100, 120] };
 const DRUMS = [];
 Object.keys(GRID).forEach(k => GRID[k].forEach(L => { const d = +k, A = Math.PI * d * d / 4; DRUMS.push({ d, L, name: `RC ${d}×${L}`, A, V: A * L }); }));
