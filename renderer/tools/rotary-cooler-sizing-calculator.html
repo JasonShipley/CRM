@@ -296,7 +296,7 @@
           <div class="field"><label for="rhMax">Max exhaust RH</label><div class="unit-input"><input type="number" id="rhMax" value="60" step="5" min="20" max="95" /><span class="unit">%</span></div></div>
           <div class="field"><label for="kua">U<sub>a</sub> coefficient K</label><div class="unit-input"><input type="number" id="kua" value="3.36" step="0.05" min="0.1" /><span class="unit">Perry</span></div></div>
           <div class="field"><label for="rpm">Drum speed</label><div class="unit-input"><input type="number" id="rpm" value="" step="0.5" min="0.5" placeholder="from shell speed" /><span class="unit">RPM</span></div></div>
-          <div class="field"><label for="periph">Shell speed (RPM blank; never below 7.8)</label><div class="unit-input"><input type="number" id="periph" value="95" step="5" min="10" /><span class="unit">ft/min</span></div></div>
+          <div class="field"><label for="periph">Shell speed (RPM blank; never below 5)</label><div class="unit-input"><input type="number" id="periph" value="60" step="5" min="10" /><span class="unit">ft/min</span></div></div>
           <div class="field"><label for="slope">Drum slope</label><div class="unit-input"><input type="number" id="slope" value="0.375" step="0.125" min="0.125" /><span class="unit">in/ft</span></div></div>
           <div class="field"><label for="holdMax">Max holdup</label><div class="unit-input"><input type="number" id="holdMax" value="12" step="1" min="3" max="20" /><span class="unit">% vol</span></div></div>
         </div>
@@ -492,8 +492,8 @@ function calc() {
   const elev = num("elev"), tmax = num("tmax"), tavg = num("tavg"), tlow = num("tlow"), humMode = $("humMode").value, hum = num("humVal"), sweepMode = $("sweepMode").value;
   const apHot = num("apHot"), apCold = num("apCold"), margin = num("margin") / 100, minCfmTon = num("minCfmTon"), rhMax = num("rhMax") / 100;
   const K = num("kua"), rpmFixed = num("rpm"), periphT = num("periph"), slope = num("slope"), holdMax = num("holdMax") / 100;
-  /* drum speed: Insta-Pro 900 shell speed (95 ft/min), never slower than its 7.8 rpm, unless an RPM is entered */
-  const drumRpm = d => rpmFixed > 0 ? rpmFixed : Math.max(Math.round(periphT / (Math.PI * d) * 10) / 10, 7.8);
+  /* drum speed: Insta-Pro 900 shell speed (60 ft/min), never slower than its 5 rpm (12 s/rev), unless an RPM is entered */
+  const drumRpm = d => rpmFixed > 0 ? rpmFixed : Math.max(Math.round(periphT / (Math.PI * d) * 10) / 10, 5);
   const spDrum = num("spDrum"), spCyc = num("spCyc"), spDuct = num("spDuct"), fanLoc = $("fanLoc").value, eta = num("eta"), tcold = num("tcold");
 
   /* design ambient state */

@@ -252,9 +252,9 @@ if rc_ip["model"] != "RC 4×8":
     fails.append("rotary sizing at the Insta-Pro 900 rating picked %s" % rc_ip["model"])
 if rc_ip["fanDuty"]["motor"] != 5:   # hot running, not the cold start
     fails.append("rotary fan motor at the Insta-Pro rating: %s" % rc_ip["fanDuty"])
-# The 900's own speed and drive: 7.8 rpm (never slower), 2 HP minimum, and no
+# The 900's own speed and drive: 5 rpm (never slower), 2 HP minimum, and no
 # drum loaded past its 43.3 lb/h per ft³.
-if (rc_ip["drive"]["motor"], rc_ip["drum"][9]["value"].split(" RPM")[0]) != (2, "7.8"):
+if (rc_ip["drive"]["motor"], rc_ip["drum"][9]["value"].split(" RPM")[0]) != (2, "5"):
     fails.append("rotary 4 x 8 drive/speed: %s, %s"
                  % (rc_ip["drive"]["motor"], rc_ip["drum"][9]["value"]))
 if any(c["ok"] and 4000 / c["V"] > rotary_cooler.MAX_LOADING

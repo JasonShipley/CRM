@@ -69,8 +69,8 @@ K_UA_DEFAULT = 3.36
 
 # Shell (peripheral) speed the drum is run at, ft/min, and the slowest it is
 # ever turned — see drum_rpm in size().
-SHELL_SPEED_DEFAULT = 95
-RPM_MIN = 7.8
+SHELL_SPEED_DEFAULT = 60
+RPM_MIN = 5.0
 
 # Insta-Pro's ratings carry 43-47 lb/h of meal per ft³ of drum (900: 4,000 lb/h
 # in 92 ft³; 700: 2,000 lb/h in 42 ft³). Turning at their speed empties a small
@@ -273,10 +273,10 @@ def size(f):
     k_ua = _num(f.get("kua"), K_UA_DEFAULT)
     # Drum speed: the Insta-Pro 900's shell speed, but never slower than its
     # RPM (Jason, 2026-10-05: "follow somewhere around that same track", then
-    # "I don't think they need to turn any slower ... that's pretty slow").
-    # The 900 is 23.4 rpm out of its 75:1 worm through a 3:1 chain: 7.8 rpm,
-    # 95 ft/min on a 46" drum. So a 3 ft drum turns faster (10.1 rpm) and 4 ft
-    # and up turn 7.8. A number in the RPM field fixes every drum at it.
+    # "I don't think they need to turn any slower"). A video of a running 900
+    # shows about 12 s a revolution (Jason): 5 rpm, 60 ft/min on its 46" drum.
+    # So a 3 ft drum turns faster (6.4 rpm) and 4 ft and up turn 5. A number
+    # in the RPM field fixes every drum at it.
     periph_target = _num(f.get("periph"), SHELL_SPEED_DEFAULT)
     rpm_fixed = _num(f.get("rpm"), 0) if str(f.get("rpm") or "").strip() else 0
 

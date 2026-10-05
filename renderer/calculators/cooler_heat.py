@@ -152,9 +152,11 @@ FIELD_DATA = {
                         "reducer": "Winsmith E35MDTD, 75:1, 1.0 SF rating 2.883 "
                                    "input HP / 6,891 in-lb output",
                         "reducer_output_rpm": 23.4,
-                        "chain_ratio": "2:1 or 3:1 (Jason) — not confirmed",
-                        "drum_rpm_if_2_to_1": 11.7,   # 147 ft/min shell speed
-                        "drum_rpm_if_3_to_1": 7.8,    # 98 ft/min
+                        # Jason guessed a 2:1 or 3:1 chain; a video of a
+                        # running 900 (Jason, 2026-10-05) shows ~12 s a
+                        # revolution, which puts the chain nearer 4.7:1.
+                        "drum_rpm_measured": 5.0,     # 60 ft/min on 46"
+                        "chain_ratio_implied": 4.7,
                     }},
             "950": {"max_lb_h": 6000},
         },
