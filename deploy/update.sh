@@ -70,6 +70,11 @@ echo "==> [4/5] Reloading the proxy"
 # survive) would sit on disk unapplied. `caddy reload` is graceful — it does not
 # drop TLS or in-flight requests.
 if docker compose "${COMPOSE[@]}" ps --status running --services 2>/dev/null | grep -qx caddy; then
+  # QUOTES_PASSWORD_HASH reaches Caddy as a container environment variable,
+  # fixed when the container is created — a reload never sees a new one. `up -d`
+  # recreates Caddy only when its configuration (that variable included) has
+  # changed, and is a no-op otherwise.
+  docker compose "${COMPOSE[@]}" up -d caddy
   if docker compose "${COMPOSE[@]}" exec -T caddy \
        caddy reload --config /etc/caddy/Caddyfile --adapter caddyfile; then
     echo "    Caddyfile reloaded"
