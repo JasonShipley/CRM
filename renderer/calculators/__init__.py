@@ -843,3 +843,21 @@ def run(key, form):
         result.setdefault("calculator", calc["label"])
         result["key"] = key
     return result
+
+
+def defaults(key):
+    """The inputs a calculator's form starts with — what the web form fills in
+    before a person changes anything."""
+    calc = CALCULATORS.get(key) or {}
+    return {f["key"]: f["default"] for f in calc.get("fields", []) if "default" in f}
+
+
+def run_with_defaults(key, form):
+    """run(), with every input the caller left out taken from the form's default.
+
+    The web form always posts every field, so it never needed this. An agent
+    calling /api/calc, or the bundled skill, sends only what it knows; without
+    the defaults most calculators refuse to start ("Capacity is required").
+    An input the caller did send — blank included — is left exactly as sent."""
+    return run(key, {**defaults(key), **(form or {})})
+

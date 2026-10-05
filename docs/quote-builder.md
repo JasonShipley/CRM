@@ -17,7 +17,7 @@ working.
 |---|---|---|
 | **The originals** | `renderer/tools/*.html` | MCE's calculators, byte for byte. Served at `/tools/<slug>`. The engineering source of truth. |
 | **The ports** | `renderer/calculators/*.py` | The same math in Python, so the quote form can size and price server-side. |
-| *(hosted, not ported)* | `renderer/tools/rotary-cooler-sizing-calculator.html` | Direct air-swept drum cooler — a different machine from the counterflow cooler, with no quote path yet. Hosted at `/tools/rotary-cooler`; the quote builder cannot size one. |
+| **Rotary cooler** | `renderer/tools/rotary-cooler-sizing-calculator.html` + `calculators/rotary_cooler.py` | Direct air-swept drum cooler — a different machine from the counterflow cooler. Ported and calibrated to a running Insta-Pro 900 (see `cooler_heat.FIELD_DATA`), sized through `/api/calc/rotary_cooler` and the skill; not yet on the free-text quote path. |
 
 The originals are **never edited by this project** — with one exception on
 record: on 2026-09-23 Jason moved MCE's 44" rotor mills to a 60" screen, and
@@ -594,6 +594,35 @@ combustible-dust quote's internal notes:
 A quote past its expiry still prices, but says so on the line and raises an open
 item — a stale basis is visible rather than silent. Update the numbers here when
 a new vendor quote lands.
+
+## The downloadable skill
+
+`renderer/skill/` builds **quote-builder.zip**, a Claude skill that carries the
+calculators, quote assembly and pricing basis into any chat or Cowork session.
+It holds copies of the same files this service runs, not rewrites, so sizing and
+pricing work with no network and no login. The server is used only to save a
+quote or to get the house PDF.
+
+```bash
+python3 renderer/skill/build_skill.py      # -> dist/quote-builder.zip (gitignored)
+python3 renderer/tests/test_skill_bundle.py
+```
+
+- `mce.py` is the skill's command line: `list`, `fields`, `calc`, `pricing`, `quote`,
+  `render` and `save`. It is stdlib-only, and `render` adds Jinja2.
+  `test_skill_bundle.py` runs it under `python -S` (no site-packages) and holds
+  every calculator, the pricing payload and three full quotes to the in-repo code.
+- In a chat, Claude does the extraction step itself. `reference/job_request.md` is
+  generated from `interpret.SYSTEM` and `JobRequest`, so the rules are the
+  server's own. `job_defaults.json` carries every field's default and allowed
+  values, and the CLI refuses a value pydantic would refuse.
+- `/api/calc` and `mce.py calc` both fill an omitted input from the calculator
+  form's default (`calculators.run_with_defaults`). `/api/pricing` and
+  `mce.py pricing` share `calculators/_pricing_api.payload()`.
+- **Rebuild and re-upload** whenever a calculator, the pricing basis or a vendor
+  basis changes. `VERSION` inside the zip names the commit it was built from.
+- **It is MCE-internal.** The vendor cost basis is inside, including Boss
+  Products' figures. Share it with the claude.ai organization and never outside it.
 
 ## Adding a calculator
 

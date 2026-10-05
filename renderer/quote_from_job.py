@@ -256,7 +256,7 @@ def build(job, today=None, delivery_weeks=None):
             "trough": FALLBACK_TROUGH,
             "runLength": 0,
             # so the screw prices to the quote's own date, not the wall clock
-            "today": today.isoformat(),
+            "today": issued.isoformat(),
         }
         result = calculators.run("hammermill", form)
         # Every air item downstream sizes off one number. Without an air-swept pan

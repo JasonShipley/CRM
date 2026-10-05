@@ -17,8 +17,6 @@ import interpret
 import quote_from_job
 import quotes_store as store
 import render_ctx
-from calculators._book_inputs import MILL_OPTIONS
-from calculators._data import FEEDER_PRICING, MILL_PRICING
 
 bp = Blueprint("builder", __name__)
 
@@ -168,37 +166,15 @@ def api_pricing():
     behind the buy-out lines. Anything quoting MCE equipment should start here
     rather than from a number someone remembered.
     """
-    from calculators import _pricing, _vendor
+    from calculators import _pricing_api
 
-    return jsonify({
-        "basis": _pricing.BLISS_BASIS,
-        "factors": {k: dict(v) for k, v in _pricing.FACTORS.items()},
-        "escalations": _pricing.ESCALATIONS,
-        "known_divergence": _pricing.KNOWN_DIVERGENCE,
-        "unpriced": _pricing.UNPRICED,
-        "rules": {
-            "buy_out": f"vendor cost ÷ {_vendor.BUYOUT_DIVISOR:g}",
-            "fabrication": f"cost × {1 + _vendor.FAB_CONTINGENCY:g} ÷ "
-                           f"{1 - _vendor.FAB_MARGIN:g}",
-            "parts": f"cost ÷ {_vendor.PARTS_DIVISOR:g}",
-            "fan_with_filter": f"AirPro cost × {_vendor.FAN_MARKUP:g}",
-        },
-        "models": {"screw": _vendor.SCREW_MODEL},
-        "mill_price": {m: _pricing.mill_price(m) for m in sorted(MILL_PRICING)},
-        "mill_options": {m: {k: _pricing.mill_option(m, k)
-                             for k in sorted(MILL_OPTIONS.get(m, {}))}
-                         for m in sorted(MILL_OPTIONS)},
-        "feeder_price": {
-            f'{d}-{cup}-{rows}': _pricing.feeder_price(d, cup, rows)
-            for d in (10, 14) for cup in ("nylon", "ss", "tt")
-            for rows in FEEDER_PRICING["rows"]},
-    })
+    return jsonify(_pricing_api.payload())
 
 
 @bp.route("/api/calc/<key>", methods=["POST"])
 def api_calc(key):
     form = request.get_json(silent=True) or request.form.to_dict()
-    result = calculators.run(key, form)
+    result = calculators.run_with_defaults(key, form)
     return jsonify(result), (400 if result.get("error") else 200)
 
 

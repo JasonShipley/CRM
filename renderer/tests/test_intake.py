@@ -187,6 +187,14 @@ def test_thin_request():
     check("capacity row is orange TBD", cap and cap["needsInput"] and cap["value"] == "TBD")
 
 
+def test_no_date_given():
+    """The server's free-text box calls build(job) with no date. Every other test
+    passes one, which is how a `today.isoformat()` on None reached the mill path
+    unnoticed — any mill quote from the box would have failed."""
+    q = qfj.build(jb_request())
+    check("builds with no date", bool(q["lines"]), str(q.get("lines"))[:200])
+
+
 def test_no_air_system():
     """Not asking for an air system moves it to furnished-by-others."""
     q = qfj.build(jb_request(include_air_system=False), today=TODAY)
@@ -624,6 +632,7 @@ def test_reference_slug():
 
 def main():
     for fn in (test_jb_request, test_motor_conflict, test_thin_request,
+               test_no_date_given,
                test_no_air_system, test_cyclone_when_the_rep_asks_for_one,
                test_baghouse_is_still_the_default,
                test_no_vendor_brands_on_customer_lines, test_delivery_weeks,
