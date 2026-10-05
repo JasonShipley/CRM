@@ -480,7 +480,12 @@ ROTARY_COOLER_FIELDS = [
              "rating (4,000 lb/h, 250 → 120 °F, 100 °F day). Replace with a "
              "running drum's."},
     {"key": "rpm", "label": "Drum speed", "type": "number", "unit": "RPM",
-     "default": 4, "step": 0.5, "min": 0.5, "advanced": True},
+     "default": "", "step": 0.5, "min": 0.5, "advanced": True,
+     "help": "Blank: the shell speed below, never slower than the Insta-Pro 900's "
+             "7.8 RPM."},
+    {"key": "periph", "label": "Shell speed", "type": "number", "unit": "ft/min",
+     "default": 95, "step": 5, "min": 10, "advanced": True,
+     "help": "Insta-Pro's 900 runs about 95 ft/min (7.8 RPM on a 46\" drum)."},
     {"key": "slope", "label": "Drum slope", "type": "number", "unit": "in/ft",
      "default": 0.375, "step": 0.125, "min": 0.05, "advanced": True},
     {"key": "holdMax", "label": "Max holdup", "type": "number", "unit": "%",

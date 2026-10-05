@@ -67,6 +67,26 @@ PRESET_BY_ID = {p["id"]: p for p in PRESETS}
 # The page this is ported from shipped 0.5; its default moved with it.
 K_UA_DEFAULT = 3.36
 
+# Shell (peripheral) speed the drum is run at, ft/min, and the slowest it is
+# ever turned — see drum_rpm in size().
+SHELL_SPEED_DEFAULT = 95
+RPM_MIN = 7.8
+
+# Insta-Pro's ratings carry 43-47 lb/h of meal per ft³ of drum (900: 4,000 lb/h
+# in 92 ft³; 700: 2,000 lb/h in 42 ft³). Turning at their speed empties a small
+# drum fast enough that holdup no longer stops it, and the transfer
+# correlation over-credits small diameters, so without this a 3 × 8 is sold
+# for the 900's duty. No drum is loaded past the 900's rating — the unit
+# Jason knows runs 2 TPH. (The 700's 47.2 would let a 3 × 12 take that duty;
+# at 43.3 a 1 TPH duty takes a 3 × 8 rather than the 700's 3 × 6.)
+MAX_LOADING = 43.3   # lb/h of wet feed per ft³ of drum
+
+# Smallest drum drive MCE puts on a rotary cooler (Jason, 2026-10-05: "a
+# two-horse minimum is fine"). Insta-Pro's 900 carries 2 HP on a drum the
+# running-torque formula puts at ~0.6 bhp — starting a drum full of meal,
+# not running it, is what the motor is for.
+DRIVE_MIN_HP = 2
+
 # MCE's proposed rotary cooler grid: diameter (ft) -> lengths (ft)
 GRID = {3: [12, 16, 20, 24, 30], 4: [16, 20, 24, 30, 36],
         5: [20, 24, 30, 36, 40, 50], 6: [24, 30, 36, 40, 50, 60],
@@ -251,7 +271,20 @@ def size(f):
     min_cfm_ton = _num(f.get("minCfmTon"), 250)
     rh_max = _num(f.get("rhMax"), 60) / 100
     k_ua = _num(f.get("kua"), K_UA_DEFAULT)
-    rpm = _num(f.get("rpm"), 4)
+    # Drum speed: the Insta-Pro 900's shell speed, but never slower than its
+    # RPM (Jason, 2026-10-05: "follow somewhere around that same track", then
+    # "I don't think they need to turn any slower ... that's pretty slow").
+    # The 900 is 23.4 rpm out of its 75:1 worm through a 3:1 chain: 7.8 rpm,
+    # 95 ft/min on a 46" drum. So a 3 ft drum turns faster (10.1 rpm) and 4 ft
+    # and up turn 7.8. A number in the RPM field fixes every drum at it.
+    periph_target = _num(f.get("periph"), SHELL_SPEED_DEFAULT)
+    rpm_fixed = _num(f.get("rpm"), 0) if str(f.get("rpm") or "").strip() else 0
+
+    def drum_rpm(d):
+        if rpm_fixed > 0:
+            return rpm_fixed
+        return max(_fmt.jsround(_div(periph_target, math.pi * d) * 10) / 10,
+                   RPM_MIN)
     slope = _num(f.get("slope"), 0.375)
     hold_max = _num(f.get("holdMax"), 12) / 100
     sp_drum = _num(f.get("spDrum"), 0.5)
@@ -367,12 +400,14 @@ def size(f):
         v_req = _div(qair * (1 + margin), ua * lmtd)
         vel = _div(acfm_out, dr["A"])
         f_load = _div(dry, dr["A"])
-        theta = (_div(0.23 * dr["L"], s_slope * _pow(rpm, 0.9) * dr["d"])
+        rpm_d = drum_rpm(dr["d"])
+        theta = (_div(0.23 * dr["L"], s_slope * _pow(rpm_d, 0.9) * dr["d"])
                  + _div(0.6 * b_factor * dr["L"] * g, f_load))
         hold = _div(theta / 60 * q_vol, dr["V"])
         util = _div(v_req, dr["V"])
         ratios = {"Thermal": util, "Air velocity": _div(vel, vmax),
-                  "Holdup": _div(hold, hold_max)}
+                  "Holdup": _div(hold, hold_max),
+                  "Loading": _div(_div(m_in, dr["V"]), MAX_LOADING)}
         # the original reduces left to right and keeps the earlier key on a tie
         gov = list(ratios)[0]
         for key in list(ratios)[1:]:
@@ -412,6 +447,7 @@ def size(f):
 
     # --- drive ------------------------------------------------------------------
     drive, periph = None, 0.0
+    rpm = drum_rpm(best["d"]) if best else drum_rpm(4)
     if best:
         live = best["hold"] * best["V"] * rho
         shell = 15.3 * math.pi * best["d"] * best["L"] * 1.6
@@ -420,12 +456,12 @@ def size(f):
         bhp = rpm * (4.75 * best["d"] * live + 0.1925 * d_ring * weight
                      + 0.33 * weight) / 1e5
         drive = {"live": live, "shell": shell, "Wt": weight, "bhp": bhp,
-                 "motor": std_motor(bhp / 0.85 * 1.15)}
+                 "motor": max(std_motor(bhp / 0.85 * 1.15), DRIVE_MIN_HP)}
         periph = math.pi * best["d"] * rpm
-        if periph < 20 or periph > 100:
+        if periph < 20 or rpm > 0.4 * 76.6 / math.sqrt(best["d"]):
             warnings_raw.append(("warn",
                 f"Shell peripheral speed {_f(periph)} ft/min is outside the usual "
-                "20–100 ft/min band — adjust drum RPM."))
+                "band (20 ft/min up to 40% of critical speed) — adjust drum RPM."))
         if best["hold"] < 0.05:
             warnings_raw.append(("warn",
                 f'Holdup on {best["name"]} is only {_f(best["hold"] * 100, 1)}% — '
