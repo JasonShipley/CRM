@@ -20,6 +20,17 @@ substitute for it, and never created speculatively.
    frame isn't confirmed, a feeder still needing a vendor quote) stays out of
    the line items and gets called out in Comments/Terms instead — never a
    placeholder price.
+   - **A customer-facing quote shows sell price only — never cost, never
+     margin/markup, never the math between them.** Don't write "vendor cost
+     $X, priced at MCE's Y% margin" (or anything equivalent) into a line
+     description, comment, or term. That reasoning can live in chat/internal
+     notes, never in the document itself.
+   - **MCE's sizing calculators produce a size/spec, never a price.** Some of
+     them carry internal cost-estimate tables (e.g. the hammer mill
+     calculator's package-cost tables) for MCE's own reference — those
+     numbers are never copied into a quote as "the price." An ancillary
+     item's price comes only from the QBO/Twenty catalog or an actual vendor
+     quote; absent that, the line stays priced TBD per the rule above.
 4. **Render the PDF** via the renderer app (`http://<server>:8090/quote/<id>/pdf`)
    and hand it to Jason for review. Do not send it to the customer directly.
 5. Jason reviews and sends it (himself, or asks Claude to send via Gmail once
