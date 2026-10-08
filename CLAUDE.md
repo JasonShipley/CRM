@@ -5,14 +5,16 @@ every quote, proposal and quote email without being asked.
 
 ## Quote emails
 
-- Every quote email includes this video line just before the sign-off, as a hyperlink
-  (HTML `<a>`; in plain text put the URL on its own line):
+- **Hammer mill quotes only** (not coolers, dryers, parts or other equipment):
+  - Include this video line just before the sign-off, as a hyperlink (HTML `<a>`; in
+    plain text put the URL on its own line):
 
-  > Here is a video on our mills and why they are better than the rest.
-  > [What Makes Our Mills Better? (You'll Notice at 2AM)](https://www.youtube.com/watch?v=2HlUqEfD350)
+    > Here is a video on our mills and why they are better than the rest.
+    > [What Makes Our Mills Better? (You'll Notice at 2AM)](https://www.youtube.com/watch?v=2HlUqEfD350)
 
-- Attach the proposal PDF and `Hammermill Marketing Brochure_compressed.pdf`
-  (Drive file id `1mTmHGuEdqG3o0eAoUtiXKE-fnNxJARhz`).
+  - Attach `Hammermill Marketing Brochure_compressed.pdf` (Drive file id
+    `1mTmHGuEdqG3o0eAoUtiXKE-fnNxJARhz`) along with the proposal PDF.
+- All quote emails attach the proposal PDF.
 - Layout to follow: the RD Equipment Co quote email of 2026-10-08 (subject
   "RE: RFQ Hammer mill"): greeting, proposal reference, "What's included" bullets,
   total / FOB / delivery / terms, open items, video line, "Let me know if you have
