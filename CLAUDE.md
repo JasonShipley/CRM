@@ -28,7 +28,7 @@ every quote, proposal and quote email without being asked.
 | Baghouse filter and fan | **FILTER LINE — HAND-OFF v7** sheet, Drive file id `1is5j8bL4FMlIzXU1TSBTTbSnSR63Bwyq` (all baghouse pricing lives here). Size with the baghouse calculator (`baghouse-filter-calculator.html`): system CFM = mill screen area × 1.3, MCE 7–7.5:1 air-to-cloth. Fan must be rated at or above the system CFM — step up from the sheet's paired fan if it is not. |
 | Hammer mill, feeder + magnet, plenum | Hammermill sizing calculator (`hammermill-sizing-calculator-updated.html`): plenum = Bliss 10-ga weight at the design FPM × 1.35 duty × $15.25/lb. |
 | Mill drive motors | TECO/TWMC 2026 price book, "MCE Sell Price" column (cost × 1.30 + $500 freight). |
-| Rotary airlocks | Zoho catalog: PAV-10 $10,216 (0.424 cu ft/rev, 16 RPM), PAV-14 $14,750 (1.184 cu ft/rev @ 80%, 15 RPM). No current PAV-12 quote (0.76 cu ft/rev @ 80%, 8–20 RPM): price it at $13,617, the midpoint between the PAV-10/PAV-14 average and the PAV-14 (Jason, 2026-10-08). Size by RPM = ft³/hr ÷ 60 ÷ cu ft/rev; keep it under ~20 RPM. |
+| Rotary airlocks | Zoho catalog: PAV-10 $10,216 (0.424 cu ft/rev, 16 RPM), PAV-14 $14,750 (1.184 cu ft/rev @ 80%, 15 RPM). PAV-12 (0.76 cu ft/rev @ 80%, 8–20 RPM): once a current vendor quote is on file, price it at quote ÷ 0.70, same as the PAV-10. Until then, use $13,617, the midpoint between the PAV-10/PAV-14 average and the PAV-14 (Jason, 2026-10-08). Size by RPM = ft³/hr ÷ 60 ÷ cu ft/rev; keep it under ~20 RPM. |
 | Anything priced from a vendor quote | sell = cost ÷ 0.70. |
 | Everything else | QBO / Zoho product catalog; if no real price exists, say so — never invent one. |
 
