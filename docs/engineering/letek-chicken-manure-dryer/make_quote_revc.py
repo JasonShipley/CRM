@@ -55,9 +55,10 @@ BURNER = """10 MMBtu/hr maximum with 10:1 turndown. Normal fire is about 3.6 MMB
 - Burner management panel, NEMA 4X fiberglass enclosure, two self-checking UV flame safeguards, high-temperature limits, combustion E-stop
 - One week of combustion start-up and tuning on site"""
 
-PRESS = """Two screw presses in parallel, sized for about 35,000 gal/day of digestate at 8% TS, 0.5 mm screen, direct fed by chopper pump; includes feed pumps and controls. Expected cake 30 to 35% TS.
-A screw press needs some fiber structure in the solids to work. This line is conditional on a test of a sample of your digestate, which will confirm cake solids, solids capture and whether polymer is needed. Wetted-parts materials for the 3,000 mg/L chloride and 3,500 mg/L ammonia levels are being confirmed with the press manufacturer and may adjust this price.
-Polymer make-up system, if the test shows it is needed, is quoted after the test."""
+PRESS = """Two screw presses in parallel, sized for about 35,000 gal/day of digestate at 8% TS, 0.5 mm screen, direct fed by chopper pump. Includes the chopper feed pump and press drives on VFDs and a basic control package. About 50 hp connected for the presses and pumps. Expected cake 30 to 35% TS. Lead time about 20 weeks.
+Materials: stainless steel components throughout except the cast iron press bodies, which are kept for rigidity (stainless bodies flex and wear the screens and screws) and are coated internally for the chloride and ammonia in this digestate.
+A screw press needs some fiber structure in the solids to work. This line is conditional on a test of a sample of your digestate, which will confirm cake solids, solids capture and whether polymer is needed.
+Good mixing ahead of the presses is essential to separation; the feed tank and its mixer are by others, with the mixer sized after the sample test. Polymer make-up system, if the test shows it is needed, is quoted after the test."""
 
 SKIDTXT = """For 195 scfm (7,455 Nm3/day) of biogas at 500 ppm H2S or less (bulk H2S removal in the digester by others): iron-oxide polishing vessels to under 100 ppm, gas cooler and moisture knockout, booster blower to 2 psig, flame arrester, pressure control. Process design MCE-LETEK-BGS-001.
 """
@@ -72,7 +73,7 @@ lines = [
  dict(name='Screw press dewatering system, 2 units, subject to sample test', qty=1, unit=312500.0, desc=PRESS),
  dict(name='Biogas conditioning skid, 500 ppm inlet', qty=1, unit=SKID or 0.0, desc=SKIDTXT + ("Budget allowance; component pricing is being collected and will be confirmed." if SKID else "PRICE: budget allowance to follow.")),
  dict(name='Freight', qty=1, unit=0.0, desc="FOB Stuart, FL. Sea freight door to door Stuart - Miami - Progreso - Merida to be quoted for the final equipment list and billed at time of shipment; the April 2026 estimate for a comparable shipment was about $27,000."),
- dict(name='OPTION: decanter centrifuge in place of the screw press (line 7)', qty=1, unit=-48000.0, desc="If the sample test shows the solids are too fine for a screw press. A reconditioned decanter centrifuge in place of line 7, with the cyclone stepped up to an HE-47 in 304 stainless for the higher airflow: net change -$48,000 against the base total (decanter $262,500; a new decanter instead is about $562,500, net +$252,000).\nTrade-offs: cake about 20% TS instead of 30 to 35%, so the dryer duty rises to about 6.3 MMBtu/hr (biogas covers about 96%, the rest LPG) and exhaust to about 11,200 ACFM; polymer is more likely to be needed."),
+ dict(name='OPTION: decanter centrifuge in place of the screw press (line 7)', qty=1, unit=-48000.0, desc="If the sample test shows the solids are too fine for a screw press. A reconditioned decanter centrifuge in place of line 7, with the cyclone stepped up to an HE-47 in 304 stainless for the higher airflow: net change -$48,000 against the base total (decanter $262,500; a new decanter instead is about $562,500, net +$252,000).\nTrade-offs: cake about 20% TS instead of 30 to 35%, so the dryer duty rises to about 6.3 MMBtu/hr (biogas covers about 96%, the rest LPG) and exhaust to about 11,200 ACFM; polymer is more likely to be needed. A new decanter takes about twice the screw press lead time, roughly 40 weeks."),
  dict(name='OPTION: 316L stainless steel drum system (in lieu of line 1 A36)', qty=1, unit=422500.0, desc="316L drum shell and flights, feed screw, drop-out box and airlock in place of A36, for long service on digestate (ammonia, chlorides, pH about 8). Estimated shell life 30 to 35 years for 316L versus 7 to 10 years for 3/8 in A36. Adder over line 1."),
 ]
 
@@ -91,7 +92,7 @@ comments = ("Bernardo, thank you for the data and the call on 29 September. This
 "The liquid fraction from the dewatering step is described after the line items so you can size its treatment to the NOM-001 limits; that treatment is by others.")
 terms = ("50% down with order, 30% on approval drawings, 15% before shipment, 5% on start-up. Budgetary proposal, valid 60 days. "
 "Delivery 18-22 weeks after approval drawings, to be confirmed by production at time of order. Installation, foundations, utilities, permits, biogas H2S bulk removal in the digester, "
-"LPG supply, digestate feed tank, treatment and disposal of the liquid fraction, and any exhaust scrubber required by the air permit are by others. "
+"LPG supply, digestate feed tank and its mixer, treatment and disposal of the liquid fraction, and any exhaust scrubber required by the air permit are by others. "
 "Prices in US dollars, FOB Stuart, FL, exclusive of taxes and duties.")
 
 LIQ = [

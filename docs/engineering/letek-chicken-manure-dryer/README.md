@@ -368,3 +368,13 @@ Liquid fraction (Bernardo 13 Oct: give flow and composition; LETEK will treat to
 for the press without polymer (README open item 2, 8 Sep) and 70-90% for the decanter (Kyte: 70% without polymer). Liquid 101-111 MT/day
 (press) or 82-93 (decanter), 1.2-3.8% TS, NH4-N ~3,500 mg/L, Cl ~3,000 mg/L, pH ~8; TN/COD/BOD/TP/O&G by lab analysis. This corrects the
 "80 to 100 MT/day" in the 13 Oct email, which assumed full capture. Dried product at 60-80% capture is 7.3-9.7 MT/day (12.1 at full capture).
+
+### NCS answers (Tim Rensch, 14 Oct)
+
+- Materials: all stainless except the cast iron press body (kept for rigidity; stainless bodies flex and wear screens/screws). Not
+  concerned about 3,000 mg/L Cl / 3,500 mg/L NH4-N; recommends receiving the presses, stripping them, coating the body internally and
+  reassembling. **Coating cost not priced; not in the $312,500.** Quote text says the bodies are coated internally.
+- "Basic controls": chopper feed pump on VFD, press control on VFD, some mixing control. **Mixers sized separately, not included**
+  ("good mixing is an absolute key to separation"); quote puts feed tank and mixer by others. Discharge conveyor control a small adder.
+- Lead time: press package ~20 weeks; centrifuges about double (NCS centrifuge price includes pump VFD, back-drive regen, differential).
+- Power: ~50 hp for two presses and pumps.
