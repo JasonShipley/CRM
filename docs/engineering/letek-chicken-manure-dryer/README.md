@@ -315,3 +315,56 @@ drawings for approval with an order. SD-26-01 (DWG rev P2) and SD-26-02 regenera
 to Bernardo re-created with the new SD-26-01 e-mail copy (24.2 KB; md5 684145a3b6fd0a98dfb523018634876c
 verified on the draft); six earlier drafts trashed as the drawings were corrected. **Not sent;
 Jason to review.** SD-26-02's DXF (plan, elevation and end view) carries the same HE-74 geometry.
+
+## Rev C rebuild (14 Oct 2026) - DRAFT, not sent
+
+`make_quote_revc.py` -> `MCE_Quote_20261016-LETEK-C_Chicken_Manure_Dryer.pdf` (reportlab, base-14 fonts, ~19 KB, 4 pages)
+and `quote_data_revC.json`. `SKID=<dollars> python3 make_quote_revc.py` prices the biogas skid allowance; without it the
+line prints TBD and the total excludes it. Promised to Bernardo for Fri 16 Oct (Jason's 13 Oct email).
+
+Basis: Bernardo's confirmed 128.7 MT/day liquid digestate at 8% TS (10.3 MT/day DS, ~34,000 gal/day); grit/sand separate.
+Calculator runs (`case_letek_revC_press30.json`, `case_letek_revC_decanter20.json`, flow pages `LETEK_revC_*_Flow.pdf`):
+
+| | Screw press, 30% TS cake | Decanter, 20% TS cake |
+|---|---:|---:|
+| Cake to dryer | 3,153 lb/hr | 4,729 lb/hr |
+| Water evaporated | 2,040 lb/hr | 3,616 lb/hr |
+| Duty (MCE 1,750 basis / rigorous) | 3.57 / 3.24 MMBtu/hr | 6.33 / 5.70 MMBtu/hr |
+| Biogas coverage (6.07 MMBtu/hr avg) | 170% | 96% |
+| Exhaust | 6,342 ACFM, 25 hp at 12 in WC | 11,242 ACFM, 40 hp |
+| Calculator drum pick | XD-72 (6x30 in its table) | XD-84 (7x35) |
+| Cyclone inlet area | 277 in2 -> HE-39 (317 in2, 8,800 CFM) | 491 in2 -> HE-47 (454 in2, 12,600 CFM) |
+
+Lines and pricing basis:
+
+| # | Line | Price | Basis |
+|---|---|---:|---|
+| 1 | XD-72 Mk.2 (includes XF-36 60 hp fan, 60 ft duct, basic BMS, MCC, feed screw, airlock, 1 man-week) | $489,000 | HubSpot catalog |
+| 2 | Dual-fuel burner 10 MMBtu/hr | $170,000 | Rev B (BDC 16 Sep budget / 0.8), unchanged |
+| 3 | Automation and Controls | $89,950 | Rev B / catalog |
+| 4 | HE-39 cyclone | $14,950 | HubSpot catalog |
+| 5 | HE-39 304 SS adder | $8,000 | **Assumption:** HE-39 catalog lists no 304 adder; HE-43's $8,000 used. Confirm. |
+| 6 | FT-12 airlock | $12,895 | Rev B / catalog |
+| 7 | Screw press, 2 x NCS SM 260 FA, 0.5 mm screen, pumps and controls | $312,500 | Tim Rensch (NCS) 9 Oct, "$250k neighborhood" / 0.8; coatings for Cl/NH3 pending (Jason asked 13 Oct) |
+| 8 | Biogas skid, 500 ppm inlet | TBD | **No vendor pricing on file.** Allowance to be set by Jason |
+| 9 | Freight | TBD | April 2026 comparable estimate ~$27,000 |
+| Opt | Decanter in place of press | -$48,000 net | Kyte reconditioned 14x57, $210k top of range / 0.8 = $262,500; HE-47 + 304 adder (+$2,000). New decanter (NCS ~$450k / 0.8 = $562,500) = +$252,000 net |
+| Opt | 316L drum system | +$422,500 | L. Wilkinson's 27 Mar 2026 XD-72 quote to LETEK (316L +$422,500) |
+
+Total excluding the skid: **$1,097,295** (Rev B was $1,352,772 with the skid at $0). Deleted vs Rev B: XD-96 (-$100,500),
+storage hopper and transfer screw (-$64,487), HE-74 + 304 adder (-$51,940 -> HE-39 $22,950), Vincent VP-16 press ($374,000 -> $312,500).
+
+Open items before it goes out:
+1. **XD-72 drum size.** HubSpot XD-72 Mk.2 text says 7 ft x 35 ft; the calculator's model table says XD-72 = 6 x 30; the 23 Sep email to
+   Bernardo said 6 x 40. The quote uses the catalog text. If it is 7 ft, the decanter option fits (7 ft design 13,470 ACFM > 11,242).
+   If it is 6 ft (9,896 ACFM), the decanter option needs the XD-96 (+$100,500), so the option becomes +$52,500, not -$48,000.
+   The flow pages print "XD-72 (6x30)", so they are not attached to the customer quote.
+2. **Biogas skid allowance** (line 8).
+3. HE-39 304 adder assumption (line 5); cyclone picks to be run through the MCE cyclone calculator.
+4. Decanter option basis: reconditioned (Kyte) vs new (NCS).
+5. NCS answers on coatings, scope of "pumps and controls", lead time and power (asked 13 Oct).
+
+Liquid fraction (Bernardo 13 Oct: give flow and composition; LETEK will treat to NOM-001 themselves): capture assumed 60-80%
+for the press without polymer (README open item 2, 8 Sep) and 70-90% for the decanter (Kyte: 70% without polymer). Liquid 101-111 MT/day
+(press) or 82-93 (decanter), 1.2-3.8% TS, NH4-N ~3,500 mg/L, Cl ~3,000 mg/L, pH ~8; TN/COD/BOD/TP/O&G by lab analysis. This corrects the
+"80 to 100 MT/day" in the 13 Oct email, which assumed full capture. Dried product at 60-80% capture is 7.3-9.7 MT/day (12.1 at full capture).
