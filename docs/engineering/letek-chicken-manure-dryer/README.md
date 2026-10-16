@@ -390,3 +390,7 @@ for the press without polymer (README open item 2, 8 Sep) and 70-90% for the dec
   `make_quote_revc.py` now reads it by default (`SKID=` overrides).
 - Rev C total **$1,572,295**. Like for like with Rev B ($1,352,772 with the skid at $0) the equipment is $255,477 lower; the skid
   allowance is the new money.
+- Cover email drafted in Gmail (draft `r7130908907302015208`, reply on the "Dryer System for Chicken Manure" thread, to Bernardo,
+  cc Santiago, Roberto, JB, Mike, Magda) with the Rev C PDF attached (19,198 bytes, md5 8c6a9978bf1a0cb4b098e6d84911dfe8 verified on
+  the draft). It corrects the 6 x 40 ft drum size, gives the skid allowance and the Rev B comparison, summarizes the liquid fraction
+  (and that it is higher than the 13 Oct figure), and asks for a 20 L sample. **Not sent; Jason to review.**
