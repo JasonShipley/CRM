@@ -4,3 +4,4 @@ data/
 
 # LETEK raw DXF is 7 MB; the committed .dxf.zip is the tracked copy
 docs/engineering/letek-chicken-manure-dryer/*.dxf
+__pycache__/
