@@ -378,3 +378,15 @@ for the press without polymer (README open item 2, 8 Sep) and 70-90% for the dec
   ("good mixing is an absolute key to separation"); quote puts feed tank and mixer by others. Discharge conveyor control a small adder.
 - Lead time: press package ~20 weeks; centrifuges about double (NCS centrifuge price includes pump VFD, back-drive regen, differential).
 - Power: ~50 hp for two presses and pumps.
+
+### 16 Oct: XD-72 size confirmed, skid estimated
+
+- Jason confirmed the XD-72 Mk.2 is **7 ft x 35 ft** (HubSpot catalog text). The decanter option therefore stays in the same drum
+  (7 ft design 13,470 ACFM > 11,242) at **-$48,000 net**. The calculator's model table (XD-72 = 6 x 30) and the 23 Sep email
+  to Bernardo (6 x 40) are wrong; the cover email for Rev C corrects the email. The calculator table still needs fixing.
+- Biogas skid: Jason asked for an estimate. `skid_estimate.py` builds it from the BGS-001 equipment list using typical budget
+  costs per component (**MCE engineering estimate, not vendor quotes, about +/-30%**): net $379,000 including the first iron-oxide
+  charge (2 x 14,000 lb at ~$2/lb, consistent with the $50-60k/yr media OPEX), sell **$475,000** at net / 0.8 (range $332k-$618k).
+  `make_quote_revc.py` now reads it by default (`SKID=` overrides).
+- Rev C total **$1,572,295**. Like for like with Rev B ($1,352,772 with the skid at $0) the equipment is $255,477 lower; the skid
+  allowance is the new money.

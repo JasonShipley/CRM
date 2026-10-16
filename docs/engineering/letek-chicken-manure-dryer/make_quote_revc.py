@@ -1,7 +1,7 @@
 """LETEK Rev C budgetary quote (reportlab, base-14 fonts, e-mail size).
 Basis: 128.7 MT/day liquid digestate at 8% TS, screw press to 30-35% TS cake, XD-72 Mk.2.
 Pricing basis and open items are in README.md (Rev C section). Writes quote_data_revC.json and the PDF.
-SKID=<dollars> sets the biogas skid allowance; without it the line prints TBD and is left out of the total."""
+The biogas skid allowance comes from skid_estimate.py; SKID=<dollars> overrides it."""
 import json, io, os
 from pathlib import Path
 from PIL import Image
@@ -13,7 +13,8 @@ from reportlab.platypus import BaseDocTemplate, PageTemplate, Frame, Paragraph, 
 from reportlab.lib.enums import TA_RIGHT
 HERE = Path(__file__).parent; REPO = HERE.parents[2]
 REF = '20261016-LETEK-C'; ISSUE = 'Oct 16, 2026'; EXPIRES = 'Dec 15, 2026'
-SKID = float(os.environ['SKID']) if os.environ.get('SKID') else None
+import skid_estimate
+SKID = float(os.environ['SKID']) if os.environ.get('SKID') else float(skid_estimate.sell)
 
 APP = """Feed: 128.7 MT/day of liquid digestate at 8% TS (about 34,000 gal/day), 24 h/day, 350 days/year
 Dewatered cake to the dryer: 3,153 lb/hr at 30% TS (70% moisture), sized at full solids capture
@@ -60,7 +61,7 @@ Materials: stainless steel components throughout except the cast iron press bodi
 A screw press needs some fiber structure in the solids to work. This line is conditional on a test of a sample of your digestate, which will confirm cake solids, solids capture and whether polymer is needed.
 Good mixing ahead of the presses is essential to separation; the feed tank and its mixer are by others, with the mixer sized after the sample test. Polymer make-up system, if the test shows it is needed, is quoted after the test."""
 
-SKIDTXT = """For 195 scfm (7,455 Nm3/day) of biogas at 500 ppm H2S or less (bulk H2S removal in the digester by others): iron-oxide polishing vessels to under 100 ppm, gas cooler and moisture knockout, booster blower to 2 psig, flame arrester, pressure control. Process design MCE-LETEK-BGS-001.
+SKIDTXT = """For 195 scfm (7,455 Nm3/day) of biogas at 500 ppm H2S or less (bulk H2S removal in the digester by others): iron-oxide polishing vessels to under 100 ppm, gas cooler and moisture knockout, booster blower to 2 psig, inlet and outlet flame arresters, pressure control, inlet and outlet gas analyzers (CH4, H2S, O2), local control panel linked to the burner BMS, and the first charge of iron-oxide media. Process design MCE-LETEK-BGS-001.
 """
 
 lines = [
@@ -71,7 +72,7 @@ lines = [
  dict(name='HE-39 Cyclone - 304 stainless construction adder', qty=1, unit=8000.0, desc="304 stainless construction of the cyclone for the wet, ammonia-laden dryer exhaust."),
  dict(name='FT-12 Airlock', qty=1, unit=12895.0, desc="Rotary airlock under the cyclone discharge; fines rejoin the dried product."),
  dict(name='Screw press dewatering system, 2 units, subject to sample test', qty=1, unit=312500.0, desc=PRESS),
- dict(name='Biogas conditioning skid, 500 ppm inlet', qty=1, unit=SKID or 0.0, desc=SKIDTXT + ("Budget allowance; component pricing is being collected and will be confirmed." if SKID else "PRICE: budget allowance to follow.")),
+ dict(name='Biogas conditioning skid, 500 ppm inlet', qty=1, unit=SKID or 0.0, desc=SKIDTXT + ("Budget allowance from our component estimate for this design (accuracy about +/-30%); it will be firmed up with component quotations once the biogas analysis is available." if SKID else "PRICE: budget allowance to follow.")),
  dict(name='Freight', qty=1, unit=0.0, desc="FOB Stuart, FL. Sea freight door to door Stuart - Miami - Progreso - Merida to be quoted for the final equipment list and billed at time of shipment; the April 2026 estimate for a comparable shipment was about $27,000."),
  dict(name='OPTION: decanter centrifuge in place of the screw press (line 7)', qty=1, unit=-48000.0, desc="If the sample test shows the solids are too fine for a screw press. A reconditioned decanter centrifuge in place of line 7, with the cyclone stepped up to an HE-47 in 304 stainless for the higher airflow: net change -$48,000 against the base total (decanter $262,500; a new decanter instead is about $562,500, net +$252,000).\nTrade-offs: cake about 20% TS instead of 30 to 35%, so the dryer duty rises to about 6.3 MMBtu/hr (biogas covers about 96%, the rest LPG) and exhaust to about 11,200 ACFM; polymer is more likely to be needed. A new decanter takes about twice the screw press lead time, roughly 40 weeks."),
  dict(name='OPTION: 316L stainless steel drum system (in lieu of line 1 A36)', qty=1, unit=422500.0, desc="316L drum shell and flights, feed screw, drop-out box and airlock in place of A36, for long service on digestate (ammonia, chlorides, pH about 8). Estimated shell life 30 to 35 years for 316L versus 7 to 10 years for 3/8 in A36. Adder over line 1."),
@@ -86,6 +87,7 @@ comments = ("Bernardo, thank you for the data and the call on 29 September. This
 "At 30% TS the dryer duty is about 3.6 MMBtu/hr, so your biogas covers it with a wide margin and LPG is only needed at start-up or with the digester down. "
 "That lets us drop from the XD-96 to the XD-72 drum, delete the storage hopper and transfer screw (the press discharges straight onto the dryer feed screw), "
 "and size the cyclone to the smaller airflow. The 10 MMBtu/hr dual-fuel burner stays, so the dryer can still run on LPG alone. "
+"The biogas conditioning skid is carried as a budget allowance from our component estimate, to be firmed up once the biogas analysis is available. "
 "The decanter centrifuge is priced as an option in case the sample test shows the solids are too fine for a press. "
 "Both suppliers need a sample of your digestate to confirm cake solids, solids capture and polymer; the press line is quoted subject to that test. "
 "Dried product is 12.1 MT/day at full solids capture. A press without polymer typically captures 60 to 80% of the solids, which would give about 7.3 to 9.7 MT/day; polymer raises capture. "
