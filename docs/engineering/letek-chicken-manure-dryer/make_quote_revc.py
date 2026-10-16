@@ -14,7 +14,7 @@ from reportlab.lib.enums import TA_RIGHT
 HERE = Path(__file__).parent; REPO = HERE.parents[2]
 REF = '20261016-LETEK-C'; ISSUE = 'Oct 16, 2026'; EXPIRES = 'Dec 15, 2026'
 import skid_estimate
-SKID = float(os.environ['SKID']) if os.environ.get('SKID') else float(skid_estimate.sell)
+SKID = float(os.environ['SKID']) if os.environ.get('SKID') else (float(skid_estimate.sell) if skid_estimate.sell else None)
 
 APP = """Feed: 128.7 MT/day of liquid digestate at 8% TS (about 34,000 gal/day), 24 h/day, 350 days/year
 Dewatered cake to the dryer: 3,153 lb/hr at 30% TS (70% moisture), sized at full solids capture

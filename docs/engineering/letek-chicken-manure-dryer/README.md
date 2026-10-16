@@ -394,3 +394,12 @@ for the press without polymer (README open item 2, 8 Sep) and 70-90% for the dec
   cc Santiago, Roberto, JB, Mike, Magda) with the Rev C PDF attached (19,198 bytes, md5 8c6a9978bf1a0cb4b098e6d84911dfe8 verified on
   the draft). It corrects the 6 x 40 ft drum size, gives the skid allowance and the Rev B comparison, summarizes the liquid fraction
   (and that it is higher than the 13 Oct figure), and asks for a 20 L sample. **Not sent; Jason to review.**
+
+### 16 Oct (later): skid restructured for shop hours and 30% margin
+
+Jason: MCE needs a minimum 30% margin on fabricated equipment; vessels will be bought from a tank shop. `skid_estimate.py`
+now splits the skid into bought-in equipment ($299,000, vessels included), skid materials ($30,000, replacing the material
+part of the old $60,000 lump), engineering ($20,000) and **370 shop hours x SHOP_RATE** (frame 60, SS piping 140, setting 40,
+wiring 80, test 30, paint/ship prep 20), then sells at cost / 0.7. No MCE shop rate is on file (QBO has only individual
+maintenance pay rates), so the sell price waits on Jason's burdened rate: about $540k at $75/hr, $550k at $95/hr.
+Until it is set, `make_quote_revc.py` prints the skid as TBD; the committed PDF and the Gmail draft still carry $475,000.
