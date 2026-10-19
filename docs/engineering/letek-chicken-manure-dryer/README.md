@@ -403,3 +403,20 @@ part of the old $60,000 lump), engineering ($20,000) and **370 shop hours x SHOP
 wiring 80, test 30, paint/ship prep 20), then sells at cost / 0.7. No MCE shop rate is on file (QBO has only individual
 maintenance pay rates), so the sell price waits on Jason's burdened rate: about $540k at $75/hr, $550k at $95/hr.
 Until it is set, `make_quote_revc.py` prints the skid as TBD; the committed PDF and the Gmail draft still carry $475,000.
+
+### 19 Oct: shop rate set, quote regenerated and verified (current state)
+
+- Jason set the burdened shop rate at **$95/hr** (default in `skid_estimate.py`). Skid cost $384,150 (bought-in $299,000,
+  materials $30,000, engineering $20,000, 370 h x $95 = $35,150); sell rounds **up** to the next $5k so the margin never drops
+  below 30%: **$550,000 (30.2%)**. This supersedes the $475,000 net / 0.8 figure and the "prints the skid as TBD" note above.
+- **Rev C total $1,647,295.** Rev B was $1,352,772 (skid TBD); Rev C without the skid is $1,097,295, i.e. $255,477 lower in total.
+  Of that, $190,990 is on equipment in both revisions and $64,487 is the deleted hopper and transfer screw.
+- A four-angle verification pass (arithmetic, cross-document consistency, customer-facing leakage, engineering) with a skeptic per
+  angle found and these were fixed: the email's "equipment that appears in both" comparison reworded as a total-to-total comparison;
+  line 7 no longer says the press bodies are coated (internal coating is recommended and priced after the sample test, since the
+  coating is **not** in the $312,500); "25 bhp" corrected to "25 hp fan motor (about 18 bhp)"; "our dewatering suppliers / both
+  suppliers" replaced with neutral wording; the email now gives the decanter liquid solids range (1.2-3.3%) next to the press range.
+- Left for Jason (not changed): the quote is dated 16 Oct (expires 15 Dec), so it reaches LETEK with under 60 days' validity; the
+  bought-in sell prices are exact multiples of 1.25 x a round vendor figure ($312,500, $262,500, $562,500), which a careful reader
+  could back out; the 7 ft x 35 ft XD-72 size rests on the HubSpot catalog text (confirmed by Jason 16 Oct) while the calculator
+  table and older notes say 6 ft.

@@ -4,7 +4,7 @@ Equipment list and sizes are from BGS-001 Rev A (vessels and cooler unchanged at
 The vessels are bought from a tank shop (their fab labor is in the vendor price); MCE builds the skid, so its shop
 hours are carried separately at SHOP_RATE. The skid is MCE-fabricated equipment: sell = cost / (1 - MARGIN), MARGIN 30%.
 SHOP_RATE defaults to $95/hr burdened (Jason, 19 Oct 2026); SHOP_RATE=<$/hr> overrides it."""
-import os
+import math, os
 MARGIN = 0.30
 SHOP_RATE = float(os.environ.get('SHOP_RATE') or 95)
 
@@ -42,7 +42,7 @@ materials = sum(c for *_, c in MATERIALS)
 hours = sum(h for _, h in SHOP_HOURS)
 labor = hours * SHOP_RATE if SHOP_RATE else None
 cost = buyout + materials + ENGINEERING + (labor or 0)
-sell = round(cost / (1 - MARGIN) / 5000) * 5000 if SHOP_RATE else None
+sell = math.ceil(cost / (1 - MARGIN) / 5000) * 5000 if SHOP_RATE else None   # round up so margin never drops below MARGIN
 
 if __name__ == '__main__':
     for group, rows in (('Bought-in equipment', BUYOUT), ('Skid materials', MATERIALS)):
@@ -53,4 +53,4 @@ if __name__ == '__main__':
     print(f'  {hours:>4} h  total' + (f' at ${SHOP_RATE:,.0f}/hr = {labor:,.0f}' if SHOP_RATE else ' (set SHOP_RATE)'))
     print(f'Engineering {ENGINEERING:,}')
     print(f'Cost {cost:,.0f}' + ('' if SHOP_RATE else ' excluding shop labor'))
-    if sell: print(f'Sell at {MARGIN:.0%} margin, rounded to $5k: {sell:,}')
+    if sell: print(f'Sell at {MARGIN:.0%} margin, rounded up to $5k: {sell:,} ({1 - cost / sell:.1%} margin)')

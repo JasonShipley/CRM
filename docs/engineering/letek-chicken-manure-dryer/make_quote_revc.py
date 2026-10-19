@@ -23,7 +23,7 @@ Dried product: 1,113 lb/hr (12.1 MT/day) at full capture
 Water removed: 2,040 lb/hr (245 gal/hr)
 Thermal duty: 3.57 MMBtu/hr (rigorous check 3.24); at 35% TS cake 2.8 MMBtu/hr
 Biogas (145.8 MMBtu/day, about 6.1 MMBtu/hr average) covers about 170% of the duty
-Exhaust: 6,342 ACFM at 230 F, 12 in WC static, 25 bhp; drum inlet gas 900 F"""
+Exhaust: 6,342 ACFM at 230 F, 12 in WC static, 25 hp fan motor (about 18 bhp); drum inlet gas 900 F"""
 
 XD72 = """XD Series - Heavy Duty Direct Fired Rotary Thermal Conditioning System
 - Feed screw system with 2 HP motor; the dewatering unit discharges by chute directly onto the feed screw
@@ -57,7 +57,7 @@ BURNER = """10 MMBtu/hr maximum with 10:1 turndown. Normal fire is about 3.6 MMB
 - One week of combustion start-up and tuning on site"""
 
 PRESS = """Two screw presses in parallel, sized for about 35,000 gal/day of digestate at 8% TS, 0.5 mm screen, direct fed by chopper pump. Includes the chopper feed pump and press drives on VFDs and a basic control package. About 50 hp connected for the presses and pumps. Expected cake 30 to 35% TS. Lead time about 20 weeks.
-Materials: stainless steel components throughout except the cast iron press bodies, which are kept for rigidity (stainless bodies flex and wear the screens and screws) and are coated internally for the chloride and ammonia in this digestate.
+Materials: stainless steel components throughout except the cast iron press bodies, which are kept for rigidity (stainless bodies flex and wear the screens and screws). An internal protective coating of the press bodies is recommended for the chloride and ammonia in this digestate; it will be confirmed and priced after the sample test.
 A screw press needs some fiber structure in the solids to work. This line is conditional on a test of a sample of your digestate, which will confirm cake solids, solids capture and whether polymer is needed.
 Good mixing ahead of the presses is essential to separation; the feed tank and its mixer are by others, with the mixer sized after the sample test. Polymer make-up system, if the test shows it is needed, is quoted after the test."""
 
@@ -83,13 +83,13 @@ subtotal = sum(l['qty']*l['unit'] for l in lines if not l['name'].startswith('OP
 
 comments = ("Bernardo, thank you for the data and the call on 29 September. This Rev C budgetary proposal is sized on your confirmed basis: "
 "128.7 MT/day of liquid digestate at 8% TS, with the grit and sand stream handled separately. "
-"We recommend a screw press ahead of the dryer. Our dewatering suppliers expect 30 to 35% TS cake from a screw press on this feed and about 20% from a decanter centrifuge. "
+"We recommend a screw press ahead of the dryer. We expect 30 to 35% TS cake from a screw press on this feed and about 20% from a decanter centrifuge. "
 "At 30% TS the dryer duty is about 3.6 MMBtu/hr, so your biogas covers it with a wide margin and LPG is only needed at start-up or with the digester down. "
 "That lets us drop from the XD-96 to the XD-72 drum, delete the storage hopper and transfer screw (the press discharges straight onto the dryer feed screw), "
 "and size the cyclone to the smaller airflow. The 10 MMBtu/hr dual-fuel burner stays, so the dryer can still run on LPG alone. "
 "The biogas conditioning skid is carried as a budget allowance from our component estimate, to be firmed up once the biogas analysis is available. "
 "The decanter centrifuge is priced as an option in case the sample test shows the solids are too fine for a press. "
-"Both suppliers need a sample of your digestate to confirm cake solids, solids capture and polymer; the press line is quoted subject to that test. "
+"A sample of your digestate is needed to confirm cake solids, solids capture and polymer for either route; the press line is quoted subject to that test. "
 "Dried product is 12.1 MT/day at full solids capture. A press without polymer typically captures 60 to 80% of the solids, which would give about 7.3 to 9.7 MT/day; polymer raises capture. "
 "The liquid fraction from the dewatering step is described after the line items so you can size its treatment to the NOM-001 limits; that treatment is by others.")
 terms = ("50% down with order, 30% on approval drawings, 15% before shipment, 5% on start-up. Budgetary proposal, valid 60 days. "
