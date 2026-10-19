@@ -466,3 +466,18 @@ Until it is set, `make_quote_revc.py` prints the skid as TBD; the committed PDF 
   the 20261019 PDF attached (19,563 bytes, md5 `7282991d7052344be075b446e95607ce`, byte-identical to this folder's file). Body: ref
   20261019-LETEK-C, reconditioned decanter, total US$1,645,915, about US$257,000 below Rev B excluding the skid. The 16 Oct draft
   `r4823297210867381002` is deleted. The subject is still the thread's Rev B subject. Jason reviews and sends.
+
+### 19 Oct (evening): options at $0 net, 304 SS drum recommended, Rev C PFD
+
+- Jason: option lines show their **unit price** with **$0.00 net** ("option, not in total"). The stainless option is now the
+  **recommended 304 SS drum system at $358,000** (Jason set this figure for the XD-72 in March, Lorand's 27 Mar quote); 316L is noted
+  at $422,500. The cover letter and email recommend it; the total ($1,645,915) stays on A36. Engineering note for Jason: 3,000 mg/L
+  chlorides favour 316L for pitting resistance (Lorand's March email made the same point).
+- **`MCE-LETEK-PFD-001_RevC_Process_Flow.pdf`** (from `make_pfd_revc.py` -> `pfd_revC.html`, headless Chromium): digester to stack for
+  the press base and the decanter option, stream table, equipment list, and a callout answering "why does the decanter have airflow":
+  the airflow is the dryer exhaust, which rises 77% with the water evaporated from the wetter decanter cake. Reviewed on three lenses
+  (numbers: no discrepancies; process: surplus biogas tee moved ahead of the skid per BGS-001, hot-gas link and stream 9 on the gas
+  line, fan draft control, quench water / polymer / skid condensate / scrubber shown; presentation: overflows fixed, title metadata).
+- Open for Jason: the quote does not list a damper or VFD on the XF-36, which the "60 HP fan covers both" claim relies on; the PFD shows
+  the stack as part of the ducting (not itemized in the quote); at typical press capture the exhaust (about 3,000 to 5,100 ACFM) falls
+  below the HE-36 minimum (6,175), so the cyclone is confirmed after the sample test.
