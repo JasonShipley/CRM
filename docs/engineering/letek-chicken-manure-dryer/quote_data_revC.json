@@ -53,7 +53,7 @@
    "name": "Biogas conditioning skid, 500 ppm inlet",
    "qty": 1,
    "unit": 550000.0,
-   "desc": "For 195 scfm (7,455 Nm3/day) of biogas at 500 ppm H2S or less (bulk H2S removal in the digester by others): iron-oxide polishing vessels to under 100 ppm, gas cooler and moisture knockout, booster blower to 2 psig, inlet and outlet flame arresters, pressure control, inlet and outlet gas analyzers (CH4, H2S, O2), local control panel linked to the burner BMS, and the first charge of iron-oxide media. Process design MCE-LETEK-BGS-001.\nBudget allowance from our component estimate for this design (accuracy about +/-30%); it will be firmed up with component quotations once the biogas analysis is available."
+   "desc": "For 195 scfm (7,455 Nm3/day) of biogas at 500 ppm H2S or less (bulk H2S removal in the digester by others): iron-oxide polishing vessels to under 100 ppm, gas cooler and moisture knockout, booster blower to 2 psig, inlet and outlet flame arresters, pressure control, inlet and outlet gas analyzers (CH4, H2S, O2), local control panel linked to the burner BMS, and the first charge of iron-oxide media. Process design MCE-LETEK-BGS-001.\nBudget allowance from our component estimate for this design (accuracy about +/-30%); it will be firmed up into a fixed price once the biogas analysis is available."
   },
   {
    "name": "Freight",

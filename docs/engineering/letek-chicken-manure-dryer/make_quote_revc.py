@@ -23,7 +23,7 @@ Dried product: 1,113 lb/hr (12.1 MT/day) at full capture
 Water removed: 2,040 lb/hr (245 gal/hr)
 Thermal duty: 3.57 MMBtu/hr (rigorous check 3.24); at 35% TS cake 2.8 MMBtu/hr
 Biogas (145.8 MMBtu/day, about 6.1 MMBtu/hr average) covers about 170% of the duty
-Exhaust: 6,342 ACFM at 230 F, 12 in WC static, 25 hp fan motor (about 18 bhp); drum inlet gas 900 F"""
+Exhaust: 6,342 ACFM at 230 F, 12 in WC static, about 18 bhp at the fan shaft (the 60 HP XF-36 fan on line 1 also covers the decanter case); drum inlet gas 900 F"""
 
 XD72 = """XD Series - Heavy Duty Direct Fired Rotary Thermal Conditioning System
 - Feed screw system with 2 HP motor; the dewatering unit discharges by chute directly onto the feed screw
@@ -72,7 +72,7 @@ lines = [
  dict(name='HE-39 Cyclone - 304 stainless construction adder', qty=1, unit=8000.0, desc="304 stainless construction of the cyclone for the wet, ammonia-laden dryer exhaust."),
  dict(name='FT-12 Airlock', qty=1, unit=12895.0, desc="Rotary airlock under the cyclone discharge; fines rejoin the dried product."),
  dict(name='Screw press dewatering system, 2 units, subject to sample test', qty=1, unit=312500.0, desc=PRESS),
- dict(name='Biogas conditioning skid, 500 ppm inlet', qty=1, unit=SKID or 0.0, desc=SKIDTXT + ("Budget allowance from our component estimate for this design (accuracy about +/-30%); it will be firmed up with component quotations once the biogas analysis is available." if SKID else "PRICE: budget allowance to follow.")),
+ dict(name='Biogas conditioning skid, 500 ppm inlet', qty=1, unit=SKID or 0.0, desc=SKIDTXT + ("Budget allowance from our component estimate for this design (accuracy about +/-30%); it will be firmed up into a fixed price once the biogas analysis is available." if SKID else "PRICE: budget allowance to follow.")),
  dict(name='Freight', qty=1, unit=0.0, desc="FOB Stuart, FL. Sea freight door to door Stuart - Miami - Progreso - Merida to be quoted for the final equipment list and billed at time of shipment; the April 2026 estimate for a comparable shipment was about $27,000."),
  dict(name='OPTION: decanter centrifuge in place of the screw press (line 7)', qty=1, unit=-48000.0, desc="If the sample test shows the solids are too fine for a screw press. A reconditioned decanter centrifuge in place of line 7, with the cyclone stepped up to an HE-47 in 304 stainless for the higher airflow: net change -$48,000 against the base total (decanter $262,500; a new decanter instead is about $562,500, net +$252,000).\nTrade-offs: cake about 20% TS instead of 30 to 35%, so the dryer duty rises to about 6.3 MMBtu/hr (biogas covers about 96%, the rest LPG) and exhaust to about 11,200 ACFM; polymer is more likely to be needed. A new decanter takes about twice the screw press lead time, roughly 40 weeks."),
  dict(name='OPTION: 316L stainless steel drum system (in lieu of line 1 A36)', qty=1, unit=422500.0, desc="316L drum shell and flights, feed screw, drop-out box and airlock in place of A36, for long service on digestate (ammonia, chlorides, pH about 8). Estimated shell life 30 to 35 years for 316L versus 7 to 10 years for 3/8 in A36. Adder over line 1."),

@@ -414,9 +414,19 @@ Until it is set, `make_quote_revc.py` prints the skid as TBD; the committed PDF 
 - A four-angle verification pass (arithmetic, cross-document consistency, customer-facing leakage, engineering) with a skeptic per
   angle found and these were fixed: the email's "equipment that appears in both" comparison reworded as a total-to-total comparison;
   line 7 no longer says the press bodies are coated (internal coating is recommended and priced after the sample test, since the
-  coating is **not** in the $312,500); "25 bhp" corrected to "25 hp fan motor (about 18 bhp)"; "our dewatering suppliers / both
+  coating is **not** in the $312,500); "25 bhp" corrected to "about 18 bhp at the fan shaft (the 60 HP XF-36 fan on line 1 also covers the decanter case)"; "our dewatering suppliers / both
   suppliers" replaced with neutral wording; the email now gives the decanter liquid solids range (1.2-3.3%) next to the press range.
 - Left for Jason (not changed): the quote is dated 16 Oct (expires 15 Dec), so it reaches LETEK with under 60 days' validity; the
   bought-in sell prices are exact multiples of 1.25 x a round vendor figure ($312,500, $262,500, $562,500), which a careful reader
   could back out; the 7 ft x 35 ft XD-72 size rests on the HubSpot catalog text (confirmed by Jason 16 Oct) while the calculator
   table and older notes say 6 ft.
+  Also open: the $8,000 HE-39 304 SS adder is an assumption; the cyclone pick should be run in the MCE cyclone calculator;
+  reconditioned vs new decanter is undecided; the Kyte draft (r-857105182561216181) is still unsent.
+- Second pass on the wording: the skid line now reads "budget allowance from our component estimate ... (accuracy about +/-30%);
+  it will be firmed up into a fixed price once the biogas analysis is available"; the cover letter says "30 to 35% TS cake" and
+  asks for a digestate sample for either dewatering route; the press body coating is recommended and priced after the sample test.
+- **Customer email drafted, not sent:** Gmail draft `r4823297210867381002`, a reply on the Bernardo thread (cc Santiago, Roberto,
+  jb, mike, magda) with the Rev C PDF attached (md5 `18770873b16afeccb43519369792ec4b`, checked identical to this folder's file).
+  The body states the $550,000 skid allowance, the $1,647,295 total, the Rev B comparison, the coating caveat, the liquid-fraction
+  ranges for both routes and the dried-product range. The flow pages (`LETEK_revC_*_Flow.pdf`) still label the drum 6 ft x 30 ft
+  and are **not** attached. Jason reviews and sends.
