@@ -2,8 +2,8 @@
  "ref": "20261016-LETEK-C",
  "issue_date": "Oct 16, 2026",
  "expires": "Dec 15, 2026",
- "subtotal": "$1,572,295.00",
- "skid": 475000.0,
+ "subtotal": "$1,647,295.00",
+ "skid": 550000.0,
  "comments": "Bernardo, thank you for the data and the call on 29 September. This Rev C budgetary proposal is sized on your confirmed basis: 128.7 MT/day of liquid digestate at 8% TS, with the grit and sand stream handled separately. We recommend a screw press ahead of the dryer. Our dewatering suppliers expect 30 to 35% TS cake from a screw press on this feed and about 20% from a decanter centrifuge. At 30% TS the dryer duty is about 3.6 MMBtu/hr, so your biogas covers it with a wide margin and LPG is only needed at start-up or with the digester down. That lets us drop from the XD-96 to the XD-72 drum, delete the storage hopper and transfer screw (the press discharges straight onto the dryer feed screw), and size the cyclone to the smaller airflow. The 10 MMBtu/hr dual-fuel burner stays, so the dryer can still run on LPG alone. The biogas conditioning skid is carried as a budget allowance from our component estimate, to be firmed up once the biogas analysis is available. The decanter centrifuge is priced as an option in case the sample test shows the solids are too fine for a press. Both suppliers need a sample of your digestate to confirm cake solids, solids capture and polymer; the press line is quoted subject to that test. Dried product is 12.1 MT/day at full solids capture. A press without polymer typically captures 60 to 80% of the solids, which would give about 7.3 to 9.7 MT/day; polymer raises capture. The liquid fraction from the dewatering step is described after the line items so you can size its treatment to the NOM-001 limits; that treatment is by others.",
  "terms": "50% down with order, 30% on approval drawings, 15% before shipment, 5% on start-up. Budgetary proposal, valid 60 days. Delivery 18-22 weeks after approval drawings, to be confirmed by production at time of order. Installation, foundations, utilities, permits, biogas H2S bulk removal in the digester, LPG supply, digestate feed tank and its mixer, treatment and disposal of the liquid fraction, and any exhaust scrubber required by the air permit are by others. Prices in US dollars, FOB Stuart, FL, exclusive of taxes and duties.",
  "lines": [
@@ -52,7 +52,7 @@
   {
    "name": "Biogas conditioning skid, 500 ppm inlet",
    "qty": 1,
-   "unit": 475000.0,
+   "unit": 550000.0,
    "desc": "For 195 scfm (7,455 Nm3/day) of biogas at 500 ppm H2S or less (bulk H2S removal in the digester by others): iron-oxide polishing vessels to under 100 ppm, gas cooler and moisture knockout, booster blower to 2 psig, inlet and outlet flame arresters, pressure control, inlet and outlet gas analyzers (CH4, H2S, O2), local control panel linked to the burner BMS, and the first charge of iron-oxide media. Process design MCE-LETEK-BGS-001.\nBudget allowance from our component estimate for this design (accuracy about +/-30%); it will be firmed up with component quotations once the biogas analysis is available."
   },
   {

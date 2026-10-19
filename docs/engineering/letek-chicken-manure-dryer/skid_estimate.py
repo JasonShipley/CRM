@@ -3,10 +3,10 @@ MCE engineering estimate from typical budget costs per component, not vendor quo
 Equipment list and sizes are from BGS-001 Rev A (vessels and cooler unchanged at 500 ppm; media life ~179 days).
 The vessels are bought from a tank shop (their fab labor is in the vendor price); MCE builds the skid, so its shop
 hours are carried separately at SHOP_RATE. The skid is MCE-fabricated equipment: sell = cost / (1 - MARGIN), MARGIN 30%.
-SHOP_RATE=<$/hr> (burdened) is required for a sell price; without it the script prints the build-up only."""
+SHOP_RATE defaults to $95/hr burdened (Jason, 19 Oct 2026); SHOP_RATE=<$/hr> overrides it."""
 import os
 MARGIN = 0.30
-SHOP_RATE = float(os.environ['SHOP_RATE']) if os.environ.get('SHOP_RATE') else None
+SHOP_RATE = float(os.environ.get('SHOP_RATE') or 95)
 
 BUYOUT = [
     ('FA-1/FA-2', '4 in bidirectional deflagration flame arresters, 316 SS, with temperature switches (2)', 9000),
