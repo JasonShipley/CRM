@@ -481,3 +481,7 @@ Until it is set, `make_quote_revc.py` prints the skid as TBD; the committed PDF 
 - Open for Jason: the quote does not list a damper or VFD on the XF-36, which the "60 HP fan covers both" claim relies on; the PFD shows
   the stack as part of the ducting (not itemized in the quote); at typical press capture the exhaust (about 3,000 to 5,100 ACFM) falls
   below the HE-36 minimum (6,175), so the cyclone is confirmed after the sample test.
+- **Customer email re-drafted again, not sent:** Gmail draft `r4396802979256566143` (same thread and cc list) with the updated quote
+  PDF (19,690 bytes, md5 `eba354c15b7019beab40038bb97c3198`, verified byte-identical); the body adds the 304 SS recommendation
+  (US$358,000 option, 316L US$422,500) and says options are not in the total. The previous draft `r-5318734246569194976` is deleted.
+  The PFD is not attached; Jason to decide.
