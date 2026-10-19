@@ -12,7 +12,7 @@ from reportlab.lib.styles import ParagraphStyle
 from reportlab.platypus import BaseDocTemplate, PageTemplate, Frame, Paragraph, Spacer, Table, TableStyle, Image as RLImage, KeepTogether, PageBreak
 from reportlab.lib.enums import TA_RIGHT
 HERE = Path(__file__).parent; REPO = HERE.parents[2]
-REF = '20261016-LETEK-C'; ISSUE = 'Oct 16, 2026'; EXPIRES = 'Dec 15, 2026'
+REF = '20261019-LETEK-C'; ISSUE = 'Oct 19, 2026'; EXPIRES = 'Dec 18, 2026'
 import skid_estimate
 SKID = float(os.environ['SKID']) if os.environ.get('SKID') else (float(skid_estimate.sell) if skid_estimate.sell else None)
 
@@ -74,7 +74,7 @@ lines = [
  dict(name='Screw press dewatering system, 2 units, subject to sample test', qty=1, unit=312500.0, desc=PRESS),
  dict(name='Biogas conditioning skid, 500 ppm inlet', qty=1, unit=SKID or 0.0, desc=SKIDTXT + ("Budget allowance from our component estimate for this design (accuracy about +/-30%); it will be firmed up into a fixed price once the biogas analysis is available." if SKID else "PRICE: budget allowance to follow.")),
  dict(name='Freight', qty=1, unit=0.0, desc="FOB Stuart, FL. Sea freight door to door Stuart - Miami - Progreso - Merida to be quoted for the final equipment list and billed at time of shipment; the April 2026 estimate for a comparable shipment was about $27,000."),
- dict(name='OPTION: decanter centrifuge in place of the screw press (line 7)', qty=1, unit=-48000.0, desc="If the sample test shows the solids are too fine for a screw press. A reconditioned decanter centrifuge in place of line 7, with the cyclone stepped up to an HE-47 in 304 stainless for the higher airflow: net change -$48,000 against the base total (decanter $262,500; a new decanter instead is about $562,500, net +$252,000).\nTrade-offs: cake about 20% TS instead of 30 to 35%, so the dryer duty rises to about 6.3 MMBtu/hr (biogas covers about 96%, the rest LPG) and exhaust to about 11,200 ACFM; polymer is more likely to be needed. A new decanter takes about twice the screw press lead time, roughly 40 weeks."),
+ dict(name='OPTION: decanter centrifuge in place of the screw press (line 7)', qty=1, unit=-48000.0, desc="If the sample test shows the solids are too fine for a screw press. A reconditioned decanter centrifuge in place of line 7, with the cyclone stepped up to an HE-47 in 304 stainless for the higher airflow: net change -$48,000 against the base total (reconditioned decanter $262,500).\nTrade-offs: cake about 20% TS instead of 30 to 35%, so the dryer duty rises to about 6.3 MMBtu/hr (biogas covers about 96%, the rest LPG) and exhaust to about 11,200 ACFM; polymer is more likely to be needed. Availability and lead time are confirmed when a specific reconditioned unit is selected."),
  dict(name='OPTION: 316L stainless steel drum system (in lieu of line 1 A36)', qty=1, unit=422500.0, desc="316L drum shell and flights, feed screw, drop-out box and airlock in place of A36, for long service on digestate (ammonia, chlorides, pH about 8). Estimated shell life 30 to 35 years for 316L versus 7 to 10 years for 3/8 in A36. Adder over line 1."),
 ]
 
@@ -88,11 +88,11 @@ comments = ("Bernardo, thank you for the data and the call on 29 September. This
 "That lets us drop from the XD-96 to the XD-72 drum, delete the storage hopper and transfer screw (the press discharges straight onto the dryer feed screw), "
 "and size the cyclone to the smaller airflow. The 10 MMBtu/hr dual-fuel burner stays, so the dryer can still run on LPG alone. "
 "The biogas conditioning skid is carried as a budget allowance from our component estimate, to be firmed up once the biogas analysis is available. "
-"The decanter centrifuge is priced as an option in case the sample test shows the solids are too fine for a press. "
+"A reconditioned decanter centrifuge is priced as an option in case the sample test shows the solids are too fine for a press. "
 "A sample of your digestate is needed to confirm cake solids, solids capture and polymer for either route; the press line is quoted subject to that test. "
 "Dried product is 12.1 MT/day at full solids capture. A press without polymer typically captures 60 to 80% of the solids, which would give about 7.3 to 9.7 MT/day; polymer raises capture. "
 "The liquid fraction from the dewatering step is described after the line items so you can size its treatment to the NOM-001 limits; that treatment is by others.")
-terms = ("50% down with order, 30% on approval drawings, 15% before shipment, 5% on start-up. Budgetary proposal, valid 60 days. "
+terms = ("50% down with order, 30% on approval drawings, 15% before shipment, 5% on start-up. Payment terms are as stated on this quote and on the invoice. Past-due balances may be reported to business credit bureaus, including Dun & Bradstreet and Experian. Budgetary proposal, valid 60 days. "
 "Delivery 18-22 weeks after approval drawings, to be confirmed by production at time of order. Installation, foundations, utilities, permits, biogas H2S bulk removal in the digester, "
 "LPG supply, digestate feed tank and its mixer, treatment and disposal of the liquid fraction, and any exhaust scrubber required by the air permit are by others. "
 "Prices in US dollars, FOB Stuart, FL, exclusive of taxes and duties.")
