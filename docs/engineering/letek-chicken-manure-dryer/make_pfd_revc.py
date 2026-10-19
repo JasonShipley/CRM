@@ -187,7 +187,7 @@ ROWS = ''.join([
  row(12, 'Cyclone fines (rejoin product)', 'included in stream 10', 'included in stream 10'),
  row(13, 'Exhaust to stack', f"{f(P['acfm'])} ACFM at about 230 F; 12 in WC fan static, about {P['bhp']:.0f} bhp", f"{f(D['acfm'])} ACFM; about {D['bhp']:.0f} bhp"),
  row('', '<b>Dryer duty</b> (design / rigorous check)', f"{P['duty']:.2f} / {P['rig']:.2f} MMBtu/hr", f"{D['duty']:.2f} / {D['rig']:.2f} MMBtu/hr", 'sum'),
- row('', '<b>Cyclone</b> (MCE cyclone calculator)', f"{P['cyclone']}, range 6,175 to 7,600 CFM", f"{D['cyclone']}, range 10,825 to 12,600 CFM", 'sum'),
+ row('', '<b>Cyclone</b> (MCE cyclone calculator)', f"{P['cyclone']} budget pick, range 6,175 to 7,600 CFM; final pick after the sample test", f"{D['cyclone']} budget pick, range 10,825 to 12,600 CFM; final pick after the sample test", 'sum'),
 ])
 
 EQUIP = [
