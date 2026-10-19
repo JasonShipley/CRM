@@ -462,3 +462,7 @@ Until it is set, `make_quote_revc.py` prints the skid as TBD; the committed PDF 
   sized for 140 MT/day at 15% TS pressed to 30% (6,430 lb/hr cake, 4,161 lb/hr water, 12,934 ACFM). The 23 Sep email said that
   at 8% TS "a smaller drum (6 ft x 40 ft) would carry the load ... roughly US$100,000" less. Rev C carries the XD-72 Mk.2, 7 ft x 35 ft,
   $489,000 (-$100,500).
+- **Customer email re-drafted, not sent:** Gmail draft `r-5318734246569194976` (reply on the Bernardo thread, same cc list) with
+  the 20261019 PDF attached (19,563 bytes, md5 `7282991d7052344be075b446e95607ce`, byte-identical to this folder's file). Body: ref
+  20261019-LETEK-C, reconditioned decanter, total US$1,645,915, about US$257,000 below Rev B excluding the skid. The 16 Oct draft
+  `r4823297210867381002` is deleted. The subject is still the thread's Rev B subject. Jason reviews and sends.
