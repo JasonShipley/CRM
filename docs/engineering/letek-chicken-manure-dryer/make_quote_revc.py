@@ -75,7 +75,7 @@ lines = [
  dict(name='Biogas conditioning skid, 500 ppm inlet', qty=1, unit=SKID or 0.0, desc=SKIDTXT + ("Budget allowance from our component estimate for this design (accuracy about +/-30%); it will be firmed up into a fixed price once the biogas analysis is available." if SKID else "PRICE: budget allowance to follow.")),
  dict(name='Freight', qty=1, unit=0.0, desc="FOB Stuart, FL. Sea freight door to door Stuart - Miami - Progreso - Merida to be quoted for the final equipment list and billed at time of shipment; the April 2026 estimate for a comparable shipment was about $27,000."),
  dict(name='OPTION: decanter centrifuge in place of the screw press (line 7)', qty=1, unit=-46620.0, desc="If the sample test shows the solids are too fine for a screw press. A reconditioned decanter centrifuge in place of line 7, with the cyclone stepped up to an HE-47 in 304 stainless for the higher airflow (HE-47 range 10,825 to 12,600 CFM): net change -$46,620 against the base total (reconditioned decanter $262,500).\nTrade-offs: cake about 20% TS instead of 30 to 35%, so the dryer duty rises to about 6.3 MMBtu/hr (biogas covers about 96%, the rest LPG) and exhaust to about 11,200 ACFM; polymer is more likely to be needed. Availability and lead time are confirmed when a specific reconditioned unit is selected."),
- dict(name='OPTION: 316L stainless steel drum system (in lieu of line 1 A36)', qty=1, unit=422500.0, desc="316L drum shell and flights, feed screw, drop-out box and airlock in place of A36, for long service on digestate (ammonia, chlorides, pH about 8). Estimated shell life 30 to 35 years for 316L versus 7 to 10 years for 3/8 in A36. Adder over line 1."),
+ dict(name='OPTION (RECOMMENDED): 304 stainless steel drum system (in lieu of line 1 A36)', qty=1, unit=358000.0, desc="304 stainless drum shell and flights, feed screw, drop-out box and airlock in place of A36. Recommended for this digestate (ammonia, chlorides, pH about 8); estimated shell life of 3/8 in A36 on this service is 7 to 10 years. 316L construction is available at $422,500 in place of this option. Adder over line 1."),
 ]
 
 def money(v): return '${:,.2f}'.format(v)
@@ -89,6 +89,7 @@ comments = ("Bernardo, thank you for the data and the call on 29 September. This
 "and size the cyclone to the smaller airflow. The 10 MMBtu/hr dual-fuel burner stays, so the dryer can still run on LPG alone. "
 "The biogas conditioning skid is carried as a budget allowance from our component estimate, to be firmed up once the biogas analysis is available. "
 "A reconditioned decanter centrifuge is priced as an option in case the sample test shows the solids are too fine for a press. "
+"For this digestate we recommend the 304 stainless steel drum system, priced as an option over the A36 drum. "
 "A sample of your digestate is needed to confirm cake solids, solids capture and polymer for either route; the press line is quoted subject to that test. "
 "Dried product is 12.1 MT/day at full solids capture. A press without polymer typically captures 60 to 80% of the solids, which would give about 7.3 to 9.7 MT/day; polymer raises capture. "
 "The liquid fraction from the dewatering step is described after the line items so you can size its treatment to the NOM-001 limits; that treatment is by others.")
@@ -152,7 +153,7 @@ for l in lines:
     opt = l['name'].startswith('OPTION'); n += 1
     up = 'TBD' if not l['unit'] else ('-' if l['unit'] < 0 else '') + '${:,.2f}'.format(abs(l['unit']))
     nt = up if l['unit'] else 'TBD'
-    if opt: nt += '<br/><font size=7 color="#555555">not in total</font>'
+    if opt: nt = '$0.00<br/><font size=7 color="#555555">option, not in total</font>'
     desc = '<br/>'.join(esc(x) for x in l['desc'].splitlines() if x.strip())
     rows.append([Paragraph(str(n), base), Paragraph('<b>%s</b><br/>%s' % (esc(l['name']), desc), base), Paragraph(str(l['qty']), right), Paragraph(up, right), Paragraph(nt, right)])
 tot_label = 'Total (USD, FOB Stuart, FL)' + ('' if SKID else ', excluding the biogas skid allowance (line 8)')

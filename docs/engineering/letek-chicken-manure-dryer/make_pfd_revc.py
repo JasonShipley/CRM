@@ -187,7 +187,7 @@ EQUIP = [
  ('SP-101/102', 'Dewatering, base', '2 screw presses with chopper feed pumps and controls, subject to a sample test. Option: reconditioned decanter centrifuge.'),
  ('SC-101', 'Dryer feed screw', '2 HP. The dewatering unit discharges by chute onto the feed screw (no storage hopper).'),
  ('B-101', 'Dual-fuel burner', '10 MMBtu/hr, LPG + biogas, two NFPA 86 trains, automatic changeover to LPG on loss of biogas.'),
- ('D-101', 'XD-72 Mk.2 rotary drum', '7 ft x 35 ft, co-current single pass, A36 (316L option), 20 HP drive. Design gas capacity about 13,470 ACFM.'),
+ ('D-101', 'XD-72 Mk.2 rotary drum', '7 ft x 35 ft, co-current single pass, A36 (304 SS option recommended), 20 HP drive. Design gas capacity about 13,470 ACFM.'),
  ('DB-101 / RV-101', 'Drop-out box and product airlock', 'Heavy duty drop-out box; airlock 1.5 HP.'),
  ('CY-101 / RV-102', 'Cyclone and fines airlock', 'HE-36 in 304 SS (HE-47 with the decanter); FT-12 airlock. Fines rejoin the product.'),
  ('F-101', 'Exhaust fan', 'XF-36, 60 HP, 12 in WC; ducting up to 60 ft. Air permit scrubber, if required, by others.'),
