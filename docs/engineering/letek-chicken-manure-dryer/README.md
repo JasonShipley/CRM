@@ -430,3 +430,35 @@ Until it is set, `make_quote_revc.py` prints the skid as TBD; the committed PDF 
   The body states the $550,000 skid allowance, the $1,647,295 total, the Rev B comparison, the coating caveat, the liquid-fraction
   ranges for both routes and the dried-product range. The flow pages (`LETEK_revC_*_Flow.pdf`) still label the drum 6 ft x 30 ft
   and are **not** attached. Jason reviews and sends.
+
+### 19 Oct (later): re-dated, reconditioned decanter, cyclone checked in MCE's cyclone calculators
+
+- **Re-dated** to ref **20261019-LETEK-C** (issued 19 Oct, expires 18 Dec, so 60 days from today). The 20261016 PDF is removed;
+  it was never sent. Jason's standard payment-terms sentence (credit-bureau reporting, from the quote-builder rules) is added to the terms.
+- **Decanter option = reconditioned unit only** (Jason, 19 Oct). The new-decanter price and its 40-week lead time are removed; the
+  option now says availability and lead time are confirmed when a specific reconditioned unit is selected.
+- **Cyclone check.** Run on MCE's Drive calculators: `cyclone-cfm-calculator.html` (1hLlrt2b..., 29 Sep) and
+  `cyclone-collector-sizing-website.html` (1zNNqFZb...), driven headless in Playwright, plus the `cyclone-sizing.md` method and the
+  2022 MCS HE brochure. Three independent skeptic reviews agreed.
+
+  | Case | ACFM at 230 F | Calculators pick | Inlet velocity | Rev C before |
+  |---|---:|---|---:|---|
+  | Screw press (base) | 6,342 | **HE-36** "Optimal" (6,175 / 6,875 / 7,600 CFM) | 3,332 fpm | HE-39: 17% below its 7,625 min, ~2,880 fpm |
+  | Decanter option | 11,242 | **HE-47** "Optimal" (10,825 / 11,700 / 12,600) | 3,568 fpm | HE-47, confirmed |
+  | Drum max (fan capacity) | 13,470 | Above the HE line; H68 at 3 in WG (1% headroom) or H74 | | |
+
+  The HMB calculator's 3,300 fpm inlet-area figure is a pre-sizing line only (its own note says the model comes from the cyclone
+  calculator); applying it rejected the HE-36 by 1% and, applied consistently, would also have rejected the HE-47. HE ratings are
+  ~4,000 fpm at max, ~3,600-3,730 at opt, ~3,200-3,460 at min, stated at 70 F with no pressure-drop or efficiency data.
+- **Quote changed:** line 4 is now the **HE-36** (HubSpot $13,570, 25.5 x 10.75 in inlet), line 5 the HE-36 304 SS adder at **$8,000
+  (still an assumption: no 304 adder is listed for HE-33/36/39; HE-43 $8,000, HE-47 $9,000, HE-51 $12,000, HE-60 $15,000)**. The
+  decanter option steps HE-36 + $8,000 to HE-47 + $9,000 (+$3,380), so the option is **-$46,620**. **Total $1,645,915**; excluding the
+  skid, $256,857 below Rev B.
+- Engineering flags: 6,342 ACFM is 2.7% above the HE-36 2022 minimum but 4.6% below the 1986 MAC minimum (6,650); with 60-80%
+  press capture the real exhaust is lower still. The XF-36 60 HP fan can pull more than the HE-47's 12,600 CFM in the decanter case,
+  so cap airflow with the damper/VFD or go to an H68/H74 if the option is taken. Rev B's "HE-74 rated to 30,500 CFM" is the H74
+  (13,275 / 16,263 CFM at 2 / 3 in WG); no MCE source supports 30,500.
+- **What Rev B said about the drum:** Rev B (sent 17 Sep) quoted the XD-96 Mk.2, 8 ft x 40 ft A36, $589,500 (XF-40 60 HP fan),
+  sized for 140 MT/day at 15% TS pressed to 30% (6,430 lb/hr cake, 4,161 lb/hr water, 12,934 ACFM). The 23 Sep email said that
+  at 8% TS "a smaller drum (6 ft x 40 ft) would carry the load ... roughly US$100,000" less. Rev C carries the XD-72 Mk.2, 7 ft x 35 ft,
+  $489,000 (-$100,500).
