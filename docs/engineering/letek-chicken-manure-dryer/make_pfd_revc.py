@@ -1,14 +1,13 @@
 """LETEK Rev C process flow diagram (MCE-LETEK-PFD-001 Rev C): whole plant from digester to stack, screw press base and
-decanter option, with the stream table. Writes pfd_revC.html and prints MCE-LETEK-PFD-001_RevC_Process_Flow.pdf with headless
-Chromium. Dryer streams are the MCE Dryer HMB Calculator runs (case_letek_revC_press30.json, case_letek_revC_decanter20.json,
+decanter option, with the stream table. Writes pfd_revC.html (browser view) and MCE-LETEK-PFD-001_RevC_Process_Flow.pdf (reportlab + svglib,
+standard fonts, small enough to e-mail). Dryer streams are the MCE Dryer HMB Calculator runs (case_letek_revC_press30.json, case_letek_revC_decanter20.json,
 full solids capture); liquid fraction ranges, biogas and equipment match quote 20261019-LETEK-C."""
-import base64, io, pathlib, subprocess
+import base64, io, pathlib
 from PIL import Image
 
 HERE = pathlib.Path(__file__).resolve().parent
 REPO = HERE.parents[2]
 DOC = 'MCE-LETEK-PFD-001'; REV = 'C'; DATE = 'Oct 19, 2026'; QREF = '20261019-LETEK-C'
-CHROME = '/opt/pw-browsers/chromium-1194/chrome-linux/chrome'
 
 # Basis: 128.7 MT/day at 8% TS
 FEED_LBHR = 128.7 * 2204.62 / 24          # 11,822 lb/hr
@@ -36,14 +35,14 @@ for c in CASE.values():
 P, D = CASE['press'], CASE['dec']
 assert abs((P['cake'] - PRODUCT) - P['evap']) < 2 and abs((D['cake'] - PRODUCT) - D['evap']) < 2   # water balance closes
 
-im = Image.open(REPO/'renderer'/'assets'/'mce-logo.png').convert('RGBA'); im.thumbnail((520, 520))
+im = Image.open(REPO/'renderer'/'assets'/'mce-logo.png').convert('RGBA'); im.thumbnail((320, 320))
 buf = io.BytesIO(); im.save(buf, 'PNG'); LOGO = base64.b64encode(buf.getvalue()).decode()
 
 def sm(n, x, y):  # stream marker
     return (f'<g class="sm"><rect x="{x-8}" y="{y-8}" width="16" height="16" transform="rotate(45 {x} {y})"/>'
             f'<text x="{x}" y="{y+3.5}">{n}</text></g>')
 
-SVG = f"""<svg viewBox="0 0 1040 520" xmlns="http://www.w3.org/2000/svg" font-family="Inter, Liberation Sans, Arial, sans-serif">
+SVG = f"""<svg viewBox="0 0 1040 520" xmlns="http://www.w3.org/2000/svg" font-family="Liberation Sans, Arial, Helvetica, sans-serif">
 <defs>
  <marker id="ak" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#141617"/></marker>
  <marker id="ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#1F6FB2"/></marker>
@@ -166,7 +165,9 @@ SVG = f"""<svg viewBox="0 0 1040 520" xmlns="http://www.w3.org/2000/svg" font-fa
 </g>
 </svg>"""
 
+STREAM_ROWS = []
 def row(n, desc, a, b, cls=''):
+    STREAM_ROWS.append((n, desc, a, b, cls))
     return f'<tr class="{cls}"><td class="n">{n}</td><td>{desc}</td><td>{a}</td><td>{b}</td></tr>'
 
 ROWS = ''.join([
@@ -206,11 +207,20 @@ EQUIP = [
 ]
 EQ = ''.join(f'<tr><td class="tagc">{t}</td><td><b>{n}</b></td><td>{d}</td></tr>' for t, n, d in EQUIP)
 
+KEY_HEAD = ['', 'Cake to dryer', 'Water evaporated', 'Dryer duty', 'Biogas available vs duty', 'Exhaust (stream 11)', 'Fan shaft power', 'Cyclone', 'Liquid fraction (typical capture)']
+KEY = [[f'<b>{c["name"]}</b>', f"{f(c['cake'])} lb/hr, {c['ts']:.0%} TS", f"{f(c['evap'])} lb/hr", f"{c['duty']:.2f} MMBtu/hr", f"about {c['cover']:.0%}",
+        f"<b>{f(c['acfm'])} ACFM</b>", f"about {c['bhp']:.0f} bhp", c['cyclone'], f"{c['liq_mtd']} MT/day"] for c in (P, D)]
+NOTE = ("Basis: 128.7 MT/day of liquid digestate at 8% TS, 24 h/day; grit and sand handled separately. Dryer streams are from the MCE Dryer HMB Calculator "
+        "(MCE-HMB-2026-002 Rev C) at full solids capture, the largest dryer load; air and LPG figures are on its propane basis. At typical press capture "
+        "(60 to 80%) and 30 to 35% TS cake the exhaust is about 3,000 to 5,100 ACFM; the cyclone and fan control are confirmed after the sample test, which "
+        "also sets cake solids, solids capture and polymer demand. Liquid fraction composition is given in the proposal.")
+KEYROWS = ''.join('<tr>' + ''.join(f'<td>{c}</td>' for c in r) + '</tr>' for r in KEY)
+
 HTML = f"""<!doctype html><html lang="en"><head><meta charset="utf-8"><title>MCE-LETEK-PFD-001 Rev C - Process Flow Diagram</title>
 <style>
 @page {{ size: 11in 8.5in; margin: 0.35in 0.4in; }}
 * {{ box-sizing: border-box; }}
-body {{ margin: 0; font-family: Inter, 'Liberation Sans', Arial, sans-serif; color: #141617; font-size: 9.5px; line-height: 1.35; }}
+body {{ margin: 0; font-family: 'Liberation Sans', Arial, Helvetica, sans-serif; color: #141617; font-size: 9.5px; line-height: 1.35; }}
 .page {{ page-break-after: always; }} .page:last-child {{ page-break-after: auto; }}
 .hd {{ display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #141617; padding-bottom: 6px; margin-bottom: 8px; }}
 .hd img {{ height: 40px; }}
@@ -236,10 +246,7 @@ td.tagc {{ font-weight: 700; color: #E35A00; white-space: nowrap; width: 96px; }
   <div class="meta">{DOC} Rev {REV} - {DATE} - for budgetary proposal {QREF}</div></div></div>
  {SVG}
  <h2>Key numbers by dewatering route (dryer at full solids capture)</h2>
- <table class="key"><thead><tr><th></th><th>Cake to dryer</th><th>Water evaporated</th><th>Dryer duty</th><th>Biogas available vs duty</th><th>Exhaust (stream 11)</th><th>Fan shaft power</th><th>Cyclone</th><th>Liquid fraction (typical capture)</th></tr></thead><tbody>
- <tr><td><b>Screw press (base)</b></td><td>{f(P['cake'])} lb/hr, 30% TS</td><td>{f(P['evap'])} lb/hr</td><td>{P['duty']:.2f} MMBtu/hr</td><td>about {P['cover']:.0%}</td><td><b>{f(P['acfm'])} ACFM</b></td><td>about {P['bhp']:.0f} bhp</td><td>{P['cyclone']}</td><td>{P['liq_mtd']} MT/day</td></tr>
- <tr><td><b>Decanter (option)</b></td><td>{f(D['cake'])} lb/hr, 20% TS</td><td>{f(D['evap'])} lb/hr</td><td>{D['duty']:.2f} MMBtu/hr</td><td>about {D['cover']:.0%}</td><td><b>{f(D['acfm'])} ACFM</b></td><td>about {D['bhp']:.0f} bhp</td><td>{D['cyclone']}</td><td>{D['liq_mtd']} MT/day</td></tr>
- </tbody></table>
+ <table class="key"><thead><tr>{''.join(f'<th>{h}</th>' for h in KEY_HEAD)}</tr></thead><tbody>{KEYROWS}</tbody></table>
  <div class="ft"><span>Midwest Custom Engineering, Inc. - 6526 S Kanner Hwy #215, Stuart, FL 34997 - usemce.com</span><span>{DOC} Rev {REV} - page 1 of 2</span></div>
 </section>
 <section class="page">
@@ -250,17 +257,100 @@ td.tagc {{ font-weight: 700; color: #E35A00; white-space: nowrap; width: 96px; }
  <table><thead><tr><th>#</th><th style="width:24%">Stream</th><th>Screw press, 30% TS cake (base)</th><th>Decanter, 20% TS cake (option)</th></tr></thead><tbody>{ROWS}</tbody></table>
  <h2>Equipment</h2>
  <table><tbody>{EQ}</tbody></table>
- <div class="notes">
-  <p>Basis: 128.7 MT/day of liquid digestate at 8% TS, 24 h/day; grit and sand handled separately. Dryer streams are from the MCE Dryer HMB Calculator (MCE-HMB-2026-002 Rev C) at full solids
-  capture, the largest dryer load; air and LPG figures are on its propane basis. At typical press capture (60 to 80%) and 30 to 35% TS cake the exhaust is about 3,000 to 5,100 ACFM; the cyclone and fan control are confirmed after the sample test, which also sets cake solids, solids capture and polymer demand.
-  Liquid fraction composition is given in the proposal.</p>
- </div>
+ <div class="notes"><p>{NOTE}</p></div>
  <div class="ft"><span>Midwest Custom Engineering, Inc. - 6526 S Kanner Hwy #215, Stuart, FL 34997 - usemce.com</span><span>{DOC} Rev {REV} - page 2 of 2</span></div>
 </section>
 </body></html>"""
 
 (HERE/'pfd_revC.html').write_text(HTML)
 OUT = HERE/f'{DOC}_Rev{REV}_Process_Flow.pdf'
-subprocess.run([CHROME, '--headless', '--no-sandbox', '--disable-gpu', '--no-pdf-header-footer', f'--print-to-pdf={OUT}',
-                (HERE/'pfd_revC.html').as_uri()], check=True, capture_output=True)
+
+# PDF: the same SVG drawn by reportlab with the standard Helvetica fonts (nothing embedded, small enough to e-mail).
+# svglib ignores SVG markers and font weights, so arrowheads are drawn explicitly and bold classes map to Helvetica-Bold.
+import re
+from reportlab import rl_config
+rl_config.useA85 = 0   # binary streams: about 20% smaller than ASCII85
+from svglib.svglib import svg2rlg
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import letter, landscape
+from reportlab.lib.styles import ParagraphStyle
+from reportlab.lib.units import inch
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Table, TableStyle, Spacer, PageBreak, Image as RLImage
+
+ARROW = {'ak': '#141617', 'ab': '#1F6FB2', 'ao': '#E35A00'}
+def arrowheads(svg):
+    def add(m):
+        tag, mid = m.group(0), m.group(1)
+        pts, x, y = [], 0.0, 0.0
+        for cmd, nums in re.findall(r'([MLHV])\s*([-\d.\s]+)', re.search(r' d="([^"]+)"', tag).group(1)):
+            v = [float(t) for t in nums.split()]
+            if cmd in 'ML': x, y = v[0], v[1]
+            elif cmd == 'H': x = v[0]
+            else: y = v[0]
+            pts.append((x, y))
+        (x0, y0), (x1, y1) = pts[-2], pts[-1]
+        L = ((x1 - x0) ** 2 + (y1 - y0) ** 2) ** 0.5 or 1
+        ux, uy = (x1 - x0) / L, (y1 - y0) / L
+        bx, by = x1 - 7 * ux, y1 - 7 * uy
+        tri = f'<path d="M{x1:.1f} {y1:.1f} L{bx - 3.5 * uy:.1f} {by + 3.5 * ux:.1f} L{bx + 3.5 * uy:.1f} {by - 3.5 * ux:.1f}Z" fill="{ARROW[mid]}" stroke="none"/>'
+        return tag.replace(f' marker-end="url(#{mid})"', '') + tri
+    return re.sub(r'<path[^>]* marker-end="url\(#(\w+)\)"[^>]*/>', add, svg)
+
+svg = arrowheads(SVG).replace('font-family="Liberation Sans, Arial, Helvetica, sans-serif"', 'font-family="Helvetica"')
+svg = svg.replace('font-weight:600', 'font-family:Helvetica-Bold').replace('font-weight:700', 'font-family:Helvetica-Bold')
+tmp = HERE/'.pfd_revC_tmp.svg'; tmp.write_text(svg); drawing = svg2rlg(str(tmp)); tmp.unlink()
+
+PAGE = landscape(letter); LM = 0.4*inch; TM = 0.35*inch; W = PAGE[0] - 2*LM
+INK = colors.HexColor('#141617'); ORANGE = colors.HexColor('#E35A00'); GREY = colors.HexColor('#575D5E')
+HEAD = colors.HexColor('#E4E4E4'); RULE = colors.HexColor('#C8C7C7'); SUMBG = colors.HexColor('#FFF1E8')
+base = ParagraphStyle('b', fontName='Helvetica', fontSize=7.2, leading=9, textColor=INK)
+bold = ParagraphStyle('bb', parent=base, fontName='Helvetica-Bold')
+tagst = ParagraphStyle('t', parent=bold, textColor=ORANGE)
+bar = ParagraphStyle('bar', parent=bold, fontSize=8.2, leading=10, textColor=colors.white)
+note = ParagraphStyle('n', parent=base, fontSize=6.8, leading=8.6, textColor=GREY)
+h1 = ParagraphStyle('h1', fontName='Helvetica-Bold', fontSize=13, leading=15, alignment=2, textColor=INK)
+sub = ParagraphStyle('s', fontName='Helvetica-Bold', fontSize=8, leading=10, alignment=2, textColor=ORANGE)
+meta = ParagraphStyle('m', fontName='Helvetica', fontSize=7, leading=9, alignment=2, textColor=GREY)
+_flat = Image.new('RGB', im.size, 'white'); _flat.paste(im, mask=im.split()[3]); _flat.thumbnail((240, 240))   # logo flattened onto white as JPEG for the PDF
+im_buf = io.BytesIO(); _flat.save(im_buf, 'JPEG', quality=88)
+
+def header(title, subtitle):
+    im_buf.seek(0)
+    logo = RLImage(io.BytesIO(im_buf.read()), width=1.45*inch, height=1.45*inch*im.size[1]/im.size[0])
+    t = Table([[logo, [Paragraph(title.upper(), h1), Paragraph(subtitle.upper(), sub),
+                       Paragraph(f'{DOC} Rev {REV} - {DATE} - for budgetary proposal {QREF}', meta)]]], colWidths=[2*inch, W - 2*inch])
+    t.setStyle(TableStyle([('VALIGN', (0, 0), (-1, -1), 'MIDDLE'), ('LINEBELOW', (0, 0), (-1, 0), 2.2, INK), ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
+                           ('LEFTPADDING', (0, 0), (-1, -1), 0), ('RIGHTPADDING', (0, 0), (-1, -1), 0)]))
+    return [t, Spacer(1, 6)]
+def section(text):
+    t = Table([[Paragraph(text.upper(), bar)]], colWidths=[W])
+    t.setStyle(TableStyle([('BACKGROUND', (0, 0), (-1, -1), GREY), ('TOPPADDING', (0, 0), (-1, -1), 1.5), ('BOTTOMPADDING', (0, 0), (-1, -1), 2.5)]))
+    return [Spacer(1, 3), t, Spacer(1, 2)]
+def grid(rows, widths, head=True, shade=()):
+    t = Table(rows, colWidths=widths, repeatRows=1 if head else 0)
+    st = [('VALIGN', (0, 0), (-1, -1), 'TOP'), ('LINEBELOW', (0, 0), (-1, -1), 0.4, RULE), ('TOPPADDING', (0, 0), (-1, -1), 1.6),
+          ('BOTTOMPADDING', (0, 0), (-1, -1), 2), ('LEFTPADDING', (0, 0), (-1, -1), 4), ('RIGHTPADDING', (0, 0), (-1, -1), 4)]
+    if head: st += [('BACKGROUND', (0, 0), (-1, 0), HEAD), ('LINEBELOW', (0, 0), (-1, 0), 1.1, INK)]
+    st += [('BACKGROUND', (0, r), (-1, r), SUMBG) for r in shade]
+    t.setStyle(TableStyle(st)); return t
+def footer(c, doc):
+    c.saveState(); c.setFont('Helvetica', 6.5); c.setFillColor(GREY); c.setStrokeColor(RULE); c.setLineWidth(0.6)
+    c.line(LM, 0.42*inch, PAGE[0] - LM, 0.42*inch)
+    c.drawString(LM, 0.3*inch, 'Midwest Custom Engineering, Inc. - 6526 S Kanner Hwy #215, Stuart, FL 34997 - usemce.com')
+    c.drawRightString(PAGE[0] - LM, 0.3*inch, f'{DOC} Rev {REV} - page {doc.page} of 2'); c.restoreState()
+
+sc = W / drawing.width; drawing.scale(sc, sc); drawing.width *= sc; drawing.height *= sc
+P_ = lambda t, st=base: Paragraph(str(t), st)
+S = header('Process flow diagram', 'LETEK DCG - chicken manure digestate drying - 128.7 MT/day') + [drawing]
+S += section('Key numbers by dewatering route (dryer at full solids capture)')
+S += [grid([[P_(h, bold) for h in KEY_HEAD]] + [[P_(c) for c in r] for r in KEY], [1.15*inch] + [(W - 1.15*inch) / 8] * 8)]
+S += [PageBreak()] + header('Stream table and equipment', 'Screw press base and decanter option') + section('Streams')
+rows = [[P_('#', bold), P_('Stream', bold), P_('Screw press, 30% TS cake (base)', bold), P_('Decanter, 20% TS cake (option)', bold)]]
+rows += [[P_(n, bold), P_(d), P_(a), P_(b)] for n, d, a, b, _ in STREAM_ROWS]
+S += [grid(rows, [0.3*inch, 2.35*inch, (W - 2.65*inch) / 2, (W - 2.65*inch) / 2], shade=[i + 1 for i, r in enumerate(STREAM_ROWS) if r[4] == 'sum'])]
+S += section('Equipment') + [grid([[P_(t, tagst), P_(n, bold), P_(d)] for t, n, d in EQUIP], [1.05*inch, 1.9*inch, W - 2.95*inch], head=False)]
+S += [Spacer(1, 4), Paragraph(NOTE, note)]
+doc = SimpleDocTemplate(str(OUT), pagesize=PAGE, leftMargin=LM, rightMargin=LM, topMargin=TM, bottomMargin=0.55*inch,
+                        title=f'{DOC} Rev {REV} - Process Flow Diagram', author='Midwest Custom Engineering, Inc.')
+doc.build(S, onFirstPage=footer, onLaterPages=footer)
 print('written', OUT.name, OUT.stat().st_size, 'bytes')

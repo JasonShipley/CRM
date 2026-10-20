@@ -5,6 +5,8 @@ The biogas skid allowance comes from skid_estimate.py; SKID=<dollars> overrides 
 import json, io, os
 from pathlib import Path
 from PIL import Image
+from reportlab import rl_config
+rl_config.useA85 = 0   # binary streams: about 20% smaller than ASCII85
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.units import inch
 from reportlab.lib import colors
