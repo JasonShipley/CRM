@@ -19,24 +19,22 @@ import skid_estimate
 
 HERE = Path(__file__).parent; REPO = HERE.parents[2]
 REF = '20261019-LETEK-C'; ISSUE = 'October 19, 2026'
-SUBTITLE = 'CHICKEN MANURE DIGESTATE DRYING SYSTEM — 128.7 MT/DAY — MERIDA, YUCATAN'
+SUBTITLE = '128.7 MT/DAY CHICKEN MANURE DIGESTATE DRYING SYSTEM — MERIDA, YUCATAN'
 SKID = float(os.environ['SKID']) if os.environ.get('SKID') else (float(skid_estimate.sell) if skid_estimate.sell else None)
 
 SUMMARY = [
  ('PREPARED FOR', ['LETEK DCG', 'Attn: Bernardo Urquiza', 'Bosques de las Lomas, Mexico City, Mexico']),
  ('PROJECT', ['Dewatering and drying system for chicken manure digestate, 128.7 MT/day at 8% TS',
-              'Screw press dewatering, XD-72 rotary drum dryer, biogas conditioning', '480V/60Hz electrical', 'Ship to: Merida, Yucatan']),
+              'Screw press dewatering, XD-72 rotary drum dryer, biogas conditioning', '480V/3-phase/60Hz electrical', 'Ship to: Merida, Yucatan']),
  ('REFERENCE', [REF + ' (Rev C, supersedes 20260917-LETEK-B)',
                 'Basis: Bernardo Urquiza (LETEK) process data of Sep 17 and Oct 13, 2026 and our call of Sep 29, 2026',
                 'Validity: 60 days from date of issue · Currency: USD', 'FOB origin, MCE Stuart, FL or Newkirk, OK shop (per shop load)']),
 ]
-INTRO = ("Midwest Custom Engineering is pleased to quote Rev C of the budgetary proposal for drying LETEK's chicken manure digestate, sized on the "
- "confirmed basis of 128.7 MT/day of liquid digestate at 8% TS, with the grit and sand stream handled separately. Two screw presses dewater the "
- "digestate to 30 to 35% TS cake, which drops straight onto the feed screw of an XD-72 rotary drum dryer (7 ft x 35 ft) fired by a 10 MMBtu/hr "
- "dual-fuel burner. At 30% TS the drying duty is about 3.6 MMBtu/hr, which your biogas covers with a wide margin; LPG is needed only at start-up "
- "or with the digester down. The exhaust passes a stainless cyclone and a 60 HP fan on a VFD, and a biogas conditioning skid is carried as a budget "
- "allowance. A reconditioned decanter centrifuge, 304 and 316L stainless drum systems (304 recommended) and a stainless exhaust stack are priced as "
- "options. The press line is quoted subject to a test of a sample of your digestate.")
+INTRO = ("Midwest Custom Engineering is pleased to quote the dewatering and drying system for 128.7 MT/day of chicken manure digestate at 8% TS "
+ "\u2014 two screw presses, an XD-72 rotary drum dryer with a 10 MMBtu/hr dual-fuel burner, a stainless cyclone and an exhaust fan on a VFD, "
+ "controls, and a biogas conditioning skid carried as a budget allowance \u2014 with a reconditioned decanter centrifuge, 304 and 316L stainless "
+ "drum systems (304 recommended) and a stainless exhaust stack offered as options. This is Rev C of the budgetary proposal; the press line is "
+ "quoted subject to a test of a sample of your digestate.")
 
 DESIGN = [
  ('Process', 'Liquid digestate › screw press › rotary drum dryer › dried product', 'Liquid fraction to LETEK treatment (NOM-001); biogas conditioned for the burner'),
@@ -44,14 +42,14 @@ DESIGN = [
  ('Dewatered cake', '3,153 lb/hr at 30% TS', 'Sized at full solids capture; 30 to 35% TS expected from the presses, about 20% from a decanter'),
  ('Dried product', '1,113 lb/hr (12.1 MT/day) at 15% moisture', 'About 7.3 to 9.7 MT/day at typical press capture without polymer; polymer raises capture'),
  ('Water evaporated', '2,040 lb/hr (245 gal/hr)', '3,616 lb/hr with the decanter option'),
- ('Thermal duty', '3.57 MMBtu/hr', 'Rigorous check 3.24; 2.8 at 35% TS cake; 6.3 with the decanter option'),
+ ('Thermal duty', '3.57 MMBtu/hr', 'Design value, conservative; detailed heat balance gives 3.24. 2.8 at 35% TS cake; 6.3 with the decanter option'),
  ('Fuel', 'Biogas, with LPG back-up', 'Biogas 145.8 MMBtu/day (about 6.1 MMBtu/hr average) covers about 170% of the duty'),
- ('Exhaust', '6,342 ACFM at 230 F, 12 in WC', 'About 18 bhp at the fan shaft; 60 HP XF-36 fan on a VFD (item 4) also covers the decanter case; drum inlet gas 900 F'),
- ('Electrical', '480V / 3-phase / 60Hz', 'Site voltage to be confirmed'),
+ ('Exhaust', '6,342 ACFM at 230°F, 12" WC', 'About 18 bhp at the fan shaft; 60 HP XF-36 fan on a VFD (item 4) also covers the decanter case; drum inlet gas 900°F'),
+ ('Electrical', '480V/3-phase/60Hz', 'Site voltage to be confirmed'),
 ]
-LIQ_HEAD = ['', 'SCREW PRESS (BASE)', 'DECANTER (OPTION A)']
+LIQ_HEAD = ['LIQUID FRACTION (TREATMENT BY OTHERS)', 'SCREW PRESS (BASE)', 'DECANTER (OPTION A)']
 LIQ = [
- ['Liquid fraction flow', '101 to 111 MT/day (4.2 to 4.6 m3/h)', '82 to 93 MT/day (3.4 to 3.9 m3/h)'],
+ ['Liquid fraction flow', '101 to 111 MT/day (4.2 to 4.6 m³/h)', '82 to 93 MT/day (3.4 to 3.9 m³/h)'],
  ['Solids capture assumed', '60 to 80%, no polymer', '70 to 90%'],
  ['Total solids in the liquid', '2.0 to 3.8%', '1.2 to 3.3%'],
  ['Ammoniacal nitrogen', 'about 3,500 mg/L', 'about 3,500 mg/L'],
@@ -68,7 +66,7 @@ SECTIONS = [
  ('2A. DEWATERING', 'Dewatering', [
   dict(n=1, name='Screw Press Dewatering System – 2 Units, Subject to Sample Test', qty=1, unit=312500.0, bullets=[
    'Two screw presses in parallel, sized for about 35,000 gal/day of digestate at 8% TS, 0.5 mm screen, direct fed by the chopper pump',
-   'Chopper feed pump and press drives on VFDs, basic control package; about 50 hp connected for the presses and pumps',
+   'Chopper feed pump and press drives on VFDs, basic control package; about 50 HP connected for the presses and pumps',
    'Expected cake 30 to 35% TS; lead time about 20 weeks',
    'Stainless steel throughout except the cast iron press bodies, which are kept for rigidity (stainless bodies flex and wear the screens and screws)',
    'Internal protective coating of the press bodies recommended for the chloride and ammonia in this digestate; confirmed and priced after the sample test',
@@ -82,9 +80,9 @@ SECTIONS = [
    'Heavy duty drop-out box for dry product; airlock with 1.5 HP motor, drive and control devices, mild steel',
    'Drum drive on a structural base with 20 HP motor; full tooth chain sprocket; forged steel drum tracks; front and rear trunnion bases with hardened trunnion wheels and thrust wheel assembly',
    'Front and rear water deluge nozzles for fire suppression; inlet and discharge seals',
-   'XF-36 exhaust fan, arrangement #9F, AR 235 rotor, 60 HP TEFC inverter-duty 230-460V/3/60 (VFD, item 4), V-belt drive, 21" inlet, vibration isolation sleeve, inspection door, drain port',
+   'XF-36 exhaust fan, arrangement #9F, AR 235 rotor, 60 HP TEFC inverter-duty 230/460V/3-phase/60Hz (VFD, item 4), V-belt drive, 21" inlet, vibration isolation sleeve, inspection door, drain port',
    'Ducting, transitions and elbows up to 60 lineal feet, A36',
-   'Basic burner management panel; electrical and control instrumentation for MCE equipment; motor control cabinet, 3 phase, 60 Hz, 480 V',
+   'Basic burner management panel; electrical and control instrumentation for MCE equipment; motor control cabinet, 480V/3-phase/60Hz',
    'Manual quench nozzles; automated fire suppression quoted on request; the standard burner and valve train are replaced by the dual-fuel burner (item 3)',
    "Commissioning: 1 man-week; installation instructions for the buyer's contractors; start-up and operator training"]),
   dict(n=3, name='Dual-Fuel Burner Upgrade, 10 MMBtu/hr, LPG + Biogas', qty=1, unit=170000.0, bullets=[
@@ -95,15 +93,15 @@ SECTIONS = [
    'Burner management panel, NEMA 4X fiberglass enclosure, two self-checking UV flame safeguards, high-temperature limits, combustion E-stop',
    'One week of combustion start-up and tuning on site']),
   dict(n=4, name='Exhaust Fan VFD, 60 HP', qty=1, unit=10395.0, bullets=[
-   'Variable frequency drive for the XF-36 exhaust fan: 480 V/3/60, variable-torque rated, NEMA 12 enclosure in the MCC with filtered forced-air cooling',
+   'Variable frequency drive for the XF-36 exhaust fan: 480V/3-phase/60Hz, variable-torque rated, NEMA 12 enclosure in the MCC with filtered forced-air cooling',
    'Lockable main breaker, control transformer, door keypad, Ethernet/Modbus link to the PLC',
    'Fan speed trimmed on drum outlet draft, so the exhaust airflow follows the drying load and can be capped at the cyclone maximum in the decanter case',
    'Programming included in item 8']),
   dict(n=5, name='HE-36 Cyclone', qty=1, unit=13570.0, bullets=[
-   'Dryer exhaust collector, budget selection for 6,342 ACFM at 230 F (HE-36 operating range 6,175 to 7,600 CFM)',
+   'Dryer exhaust collector, budget selection for 6,342 ACFM at 230°F (HE-36 operating range 6,175 to 7,600 CFM)',
    "Final cyclone picked with MCE's cyclone sizing calculator after the sample test, once cake solids and solids capture, and so the exhaust flow, are confirmed",
-   '36 in diameter, 25.5 x 10.75 in tangential inlet, 10 in flanged discharge, mount pads and inspection port; fines rejoin the dried product']),
-  dict(n=6, name='HE-36 Cyclone – 304 Stainless Construction Adder', qty=1, unit=8000.0, bullets=[
+   '36" diameter, 25.5" x 10.75" tangential inlet, 10" flanged discharge, mount pads and inspection port; fines rejoin the dried product']),
+  dict(n=6, name='HE-36 Cyclone – 304 Stainless Construction', qty=1, unit=8000.0, bullets=[
    '304 stainless construction of the cyclone for the wet, ammonia-laden dryer exhaust']),
   dict(n=7, name='FT-12 Airlock', qty=1, unit=12895.0, bullets=[
    'Rotary airlock under the cyclone discharge; fines rejoin the dried product']),
@@ -117,7 +115,7 @@ SECTIONS = [
  ]),
  ('2D. BIOGAS CONDITIONING', 'Biogas Conditioning', [
   dict(n=9, name='Biogas Conditioning Skid, 500 ppm Inlet – Budget Allowance', qty=1, unit=SKID or 0.0, bullets=[
-   'For 195 scfm (7,455 Nm3/day) of biogas at 500 ppm H2S or less (bulk H2S removal in the digester by others)',
+   'For 195 scfm (7,455 Nm³/day) of biogas at 500 ppm H2S or less (bulk H2S removal in the digester by others)',
    'Iron-oxide polishing vessels to under 100 ppm, gas cooler and moisture knockout, booster blower to 2 psig',
    'Inlet and outlet flame arresters, pressure control, inlet and outlet gas analyzers (CH4, H2S, O2)',
    'Local control panel linked to the burner BMS; first charge of iron-oxide media; process design MCE-LETEK-BGS-001',
@@ -126,22 +124,22 @@ SECTIONS = [
  ]),
 ]
 OPTIONS = [
- dict(opt='A', name='Reconditioned Decanter Centrifuge, in lieu of the screw presses (item 1)', qty=1, unit=262500.0, net=-46620.0, bullets=[
+ dict(opt='A', name='Reconditioned Decanter Centrifuge and HE-47 304 SS Cyclone, in lieu of the screw presses and HE-36 cyclone (items 1, 5 and 6)', qty=1, unit=287450.0, net=-46620.0, bullets=[
   'If the sample test shows the solids are too fine for a screw press',
-  'Includes the cyclone step-up to an HE-47 in 304 stainless for the higher airflow (HE-47 range 10,825 to 12,600 CFM)',
+  'Reconditioned decanter centrifuge $262,500; HE-47 cyclone in 304 stainless for the higher airflow (range 10,825 to 12,600 CFM) $24,950',
   'Cake about 20% TS instead of 30 to 35%: dryer duty about 6.3 MMBtu/hr (biogas covers about 96%, the rest LPG) and exhaust about 11,200 ACFM; polymer is more likely to be needed',
   'Availability and lead time confirmed when a specific reconditioned unit is selected']),
  dict(opt='B', name='RECOMMENDED: 304 Stainless Steel Drum System, in lieu of the A36 drum system (item 2)', qty=1, unit=847000.0, net=358000.0, bullets=[
   '304 stainless drum shell and flights, feed screw, drop-out box and airlock in place of A36',
-  'Our recommended balance of cost and service life for this digestate (ammonia, chlorides, pH about 8); estimated shell life of 3/8 in A36 on this service is 7 to 10 years',
+  'Our recommended balance of cost and service life for this digestate (ammonia, chlorides, pH about 8); estimated shell life of 3/8" A36 on this service is 7 to 10 years',
   'Stainless pricing subject to mill prices at order']),
  dict(opt='C', name='316L Stainless Steel Drum System, in lieu of the A36 drum system (item 2) – alternative to Option B', qty=1, unit=911500.0, net=422500.0, bullets=[
   'Same scope as Option B, in 316L: the molybdenum gives better resistance to chloride pitting (about 3,000 mg/L chlorides in this digestate)',
   '$64,500 more than Option B; stainless pricing subject to mill prices at order']),
  dict(opt='D', name='Exhaust Stack, 304 Stainless', qty=1, unit=23500.0, net=23500.0, bullets=[
-  '24 in OD, 10 ga welded-seam flanged sections; discharge about 35 ft above grade (final height set at approval drawings once the cyclone is selected)',
+  '24" OD, 10 ga welded-seam flanged sections; discharge about 35 ft above grade (final height set at approval drawings once the cyclone is selected)',
   'Fan outlet transition and side-inlet tee; base stand with base plate and condensate drain; open vertical discharge',
-  'Two 4 in sampling ports at 90 degrees located to EPA Method 1, plus a thermocouple port; guy ring with three guy wires and turnbuckles; stainless bolting',
+  'Two 4" sampling ports at 90° located to EPA Method 1, plus a thermocouple port; guy ring with three guy wires and turnbuckles; stainless bolting',
   'Sized for both the press and decanter cases (about 2,100 to 3,700 fpm exit velocity); foundation, anchors, sampling platform and ladder, and installation by others']),
 ]
 BY_OTHERS = [
@@ -151,17 +149,17 @@ BY_OTHERS = [
  'Dried product storage and bagging; quench and fire water supply',
  'Exhaust scrubber, if the air permit requires one; exhaust stack unless Option D is taken',
  'Buildings, concrete and foundations, and structural support for the equipment',
- 'Installation, millwright, electrical and start-up labor; utilities',
+ 'Installation, millwright and electrical labor, and site labor for start-up beyond the MCE commissioning, combustion start-up and programming in items 2, 3 and 8; utilities',
  'Permits, including the air permit',
 ]
 FREIGHT = [
  ('Freight', 'FOB origin, MCE Stuart, FL or Newkirk, OK shop (assigned at order based on shop load and demand); freight door to door to Merida quoted at time '
              'of shipment, or shipped freight collect. The April 2026 estimate for a comparable shipment from Stuart was about $27,000.'),
  ('Delivery', '18 to 22 weeks after approval drawings, to be confirmed by production at time of order.'),
- ('Sample test', 'The screw press line is conditional on a test of a sample of the digestate (about 20 litres); the same sample can be analysed for the NOM-001 parameters.'),
+ ('Sample test', 'The screw press line is conditional on a test of a sample of the digestate (about 20 litres); the same test confirms cake solids, solids capture and polymer for the decanter route (Option A), and the sample can be analysed for the NOM-001 parameters.'),
  ('Approval drawings', 'General arrangement drawings and plant layout issued for LETEK approval before fabrication.'),
  ('Installation', 'By others. Included: 1 man-week of dryer commissioning (item 2), one week of combustion start-up (item 3) and 1 man-week of on-site '
-                  'programming (item 8); additional days at $1,350/day plus expenses.'),
+                  'programming (item 8; additional programming days at $1,350/day plus expenses). Additional commissioning or start-up days quoted on request.'),
 ]
 TERMS = ("Payment: 50% down with order, 30% on approval drawings, 15% before shipment, 5% on start-up. Payment terms are as stated on this quote and on "
  "the invoice. Past-due balances may be reported to business credit bureaus, including Dun & Bradstreet and Experian. Prices are in US dollars and "
@@ -177,13 +175,13 @@ json.dump(dict(ref=REF, issue_date=ISSUE, total=money(TOTAL), total_with_option_
                freight=FREIGHT, terms=TERMS), open(HERE/'quote_data_revC.json', 'w'), indent=1)
 
 # ---- page furniture (MCE Equipment Proposal template) ----
-OUT = HERE/'MCE_Proposal_-_LETEK_DCG_-_Chicken_Manure_Digestate_Dryer_-_RC.pdf'
+OUT = HERE/'MCE_Proposal_-_LETEK_DCG_-_Merida_128.7MTD_Digestate_Dryer_RevC.pdf'
 PW, PH = letter; LM = 0.5*inch; W = PW - 2*LM
 INK = colors.HexColor('#1A1A1A'); BAR = colors.HexColor('#262626'); ORANGE = colors.HexColor('#F26A10')
 GREY = colors.HexColor('#666666'); LIGHT = colors.HexColor('#9A9A9A'); RULE = colors.HexColor('#D9D9D9'); BOX = colors.HexColor('#F2F2F2')
 body = ParagraphStyle('body', fontName='Helvetica', fontSize=8.4, leading=11.6, textColor=INK)
 bold = ParagraphStyle('bold', parent=body, fontName='Helvetica-Bold')
-bul = ParagraphStyle('bul', parent=body, fontSize=8.1, leading=10.6, leftIndent=11, bulletIndent=2, spaceBefore=1.2)
+bul = ParagraphStyle('bul', parent=body, fontSize=8.4, leading=12, leftIndent=11, bulletIndent=2, spaceBefore=0.8, bulletFontSize=6)
 lab = ParagraphStyle('lab', fontName='Helvetica-Bold', fontSize=6.6, leading=8, textColor=GREY)
 labr = ParagraphStyle('labr', parent=lab, alignment=TA_RIGHT); labc = ParagraphStyle('labc', parent=lab, alignment=TA_CENTER)
 num = ParagraphStyle('num', parent=body, alignment=TA_RIGHT); numc = ParagraphStyle('numc', parent=body, alignment=TA_CENTER)
@@ -216,7 +214,11 @@ def page(c, doc):
     c.drawRightString(PW - LM, 0.31*inch, 'Stuart, FL · 772-200-4060 · midwestcustomengineering.com')
     c.restoreState()
 
-def esc(t): return str(t).replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+import re
+def esc(t):   # escape, keep 'item 5' / 'Option B' together, and draw the process arrows from the base-14 Symbol font
+    t = str(t).replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+    t = re.sub(r'\b(items?|Options?) (?=[0-9A-D]\b)', r'\1&nbsp;', t)
+    return t.replace(' › ', ' <font name="Symbol">\u2192</font> ')
 def bar(left, right=''):
     t = Table([['', Paragraph(esc(left), bar_l), Paragraph(esc(right), bar_r)]], colWidths=[0.06*inch, W*0.6, W*0.4 - 0.06*inch], rowHeights=[0.25*inch])
     t.setStyle(TableStyle([('BACKGROUND', (0, 0), (0, 0), ORANGE), ('BACKGROUND', (1, 0), (-1, 0), BAR), ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
@@ -239,16 +241,17 @@ S += [summ, Spacer(1, 10), Paragraph(esc(INTRO), body), Spacer(1, 10)]
 
 S += [bar('1. DESIGN BASIS', 'MCE Dryer HMB Calculator, MCE-HMB-2026-002 Rev C')]
 S += [ruled([[Paragraph(x, lab) for x in ('PARAMETER', 'DESIGN VALUE', 'NOTES')]] +
-            [[Paragraph(esc(p), bold), Paragraph(esc(v), bold), Paragraph(esc(n), body)] for p, v, n in DESIGN], [1.45*inch, 2.25*inch, W - 3.7*inch]), Spacer(1, 10)]
-S += [KeepTogether([bar('LIQUID FRACTION FROM THE DEWATERING STEP', 'Treatment to NOM-001 by others'),
-       ruled([[Paragraph(x, lab) for x in LIQ_HEAD]] + [[Paragraph(esc(r[0]), bold)] + [Paragraph(esc(x), body) for x in r[1:]] for r in LIQ],
-             [2.3*inch, (W - 2.3*inch)/2, (W - 2.3*inch)/2], pad=3.5), Spacer(1, 3), Paragraph(esc(LIQNOTE), small)]), Spacer(1, 10)]
+            [[Paragraph(esc(p), bold), Paragraph(esc(v), bold), Paragraph(esc(n), body)] for p, v, n in DESIGN], [1.45*inch, 2.25*inch, W - 3.7*inch]), Spacer(1, 8)]
+liq = ruled([[Paragraph(x, lab) for x in LIQ_HEAD]] + [[Paragraph(esc(r[0]), bold)] + [Paragraph(esc(x), body) for x in r[1:]] for r in LIQ]
+            + [[Paragraph(esc(LIQNOTE), small), '', '']], [2.3*inch, (W - 2.3*inch)/2, (W - 2.3*inch)/2], pad=3.5)
+liq.setStyle(TableStyle([('SPAN', (0, -1), (-1, -1))]))
+S += [liq, Spacer(1, 10)]
 
-IW = [0.42*inch, W - 3.42*inch, 0.5*inch, 1.25*inch, 1.25*inch]
+IW = [0.42*inch, W - 2.96*inch, 0.5*inch, 1.02*inch, 1.02*inch]   # template column geometry
 for title, short, its in SECTIONS:
-    rows = [[Paragraph(x, s) for x, s in (('ITEM', lab), ('DESCRIPTION', lab), ('QTY', labc), ('UNIT PRICE', labr), ('EXTENDED', labr))]]
+    rows = [[Paragraph(x, s) for x, s in (('ITEM', lab), ('DESCRIPTION', lab), ('QTY', labr), ('UNIT PRICE', labr), ('EXTENDED', labr))]]
     for it in its:
-        rows.append([Paragraph(str(it['n']), bold), cell(it['name'], it['bullets']), Paragraph(str(it['qty']), numc),
+        rows.append([Paragraph(str(it['n']), bold), cell(it['name'], it['bullets']), Paragraph(str(it['qty']), num),
                      Paragraph(money(it['unit']), num), Paragraph(money(it['qty'] * it['unit']), num)])
     need = ruled(rows[:2], IW, pad=6).wrap(W, PH)[1] + 0.4*inch          # keep the bar with the header and first item
     S += [CondPageBreak(need), bar(title, 'USD · taxes and freight excluded'), ruled(rows, IW, pad=6), Spacer(1, 10)]
@@ -259,18 +262,16 @@ trows.append([Paragraph('<b>Total — priced lines as quoted</b>', body), Paragr
 tt = Table(trows, colWidths=[3.25*inch, 1.4*inch], hAlign='RIGHT')
 tt.setStyle(TableStyle([('LINEBELOW', (0, 0), (-1, -2), 0.6, RULE), ('LINEABOVE', (0, -1), (-1, -1), 0.9, INK), ('TOPPADDING', (0, 0), (-1, -1), 6),
                         ('BOTTOMPADDING', (0, 0), (-1, -1), 7), ('LEFTPADDING', (0, 0), (-1, -1), 6), ('RIGHTPADDING', (0, 0), (-1, -1), 6)]))
-S += [KeepTogether([tt, Spacer(1, 4), Paragraph(f'Base scope with the A36 drum. Options and freight are not included in this total; with the recommended '
-                                                 f'304 stainless drum system (Option B) the total is {money(REC_TOTAL)}.', note)]), Spacer(1, 14)]
+S += [KeepTogether([tt, Spacer(1, 4), Paragraph(f'Options and freight are not included in this total. With the recommended 304 stainless drum system (Option B): {money(REC_TOTAL)}.', note)]), Spacer(1, 14)]
 
-orows = [[Paragraph(x, s) for x, s in (('OPT', lab), ('DESCRIPTION', lab), ('QTY', labc), ('UNIT PRICE', labr), ('NET ADDER', labr))]]
+orows = [[Paragraph(x, s) for x, s in (('OPT', lab), ('DESCRIPTION', lab), ('QTY', labr), ('UNIT PRICE', labr), ('NET ADDER', labr))]]
 for o in OPTIONS:
-    orows.append([Paragraph(o['opt'], bold), cell(o['name'], o['bullets']), Paragraph(str(o['qty']), numc), Paragraph(money(o['unit']), num), Paragraph(money(o['net']), num)])
+    orows.append([Paragraph(o['opt'], bold), cell(o['name'], o['bullets']), Paragraph(str(o['qty']), num), Paragraph(money(o['unit']), num), Paragraph(money(o['net']), num)])
 S += [CondPageBreak(ruled(orows[:2], IW, pad=6).wrap(W, PH)[1] + 0.4*inch), bar('OPTIONS AND ADDERS', 'Not included in the total'), ruled(orows, IW, pad=6), Spacer(1, 10)]
 
 S += [KeepTogether([bar('3. FURNISHED BY OTHERS'), Spacer(1, 4)] + [Paragraph(esc(b), bul, bulletText='•') for b in BY_OTHERS]), Spacer(1, 12)]
-S += [KeepTogether([bar('4. FREIGHT, DELIVERY AND SCHEDULE'),
-       ruled([[Paragraph('ITEM', lab), Paragraph('BASIS', lab)]] + [[Paragraph(esc(a), bold), Paragraph(esc(b), body)] for a, b in FREIGHT], [2.85*inch, W - 2.85*inch])]),
-      Spacer(1, 12)]
+S += [CondPageBreak(1.6*inch), bar('4. FREIGHT, DELIVERY AND SCHEDULE'),
+       ruled([[Paragraph('ITEM', lab), Paragraph('BASIS', lab)]] + [[Paragraph(esc(a), bold), Paragraph(esc(b), body)] for a, b in FREIGHT], [2.85*inch, W - 2.85*inch]), Spacer(1, 12)]
 sig = Table([[Paragraph('PREPARED BY', lab), Paragraph('FOR LETEK DCG', lab)],
              [[Paragraph('<b>Jason Shipley</b>', body), Paragraph('President, Midwest Custom Engineering, Inc.', body),
                Paragraph('jason@usemce.com · 772-200-4060 · cell 620-200-9109', body)],

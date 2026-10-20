@@ -525,7 +525,7 @@ Until it is set, `make_quote_revc.py` prints the skid as TBD; the committed PDF 
 
 Jason: the quote must follow the MCE proposal template (reference: MCE-Q-2610-NBO3-R3, Pollock SD soy plant, Oct 14, 2026).
 `make_proposal_revc.py` replaces `make_quote_revc.py` (removed) and writes
-**`MCE_Proposal_-_LETEK_DCG_-_Chicken_Manure_Digestate_Dryer_-_RC.pdf`** (7 pages, about 30 KB) and `quote_data_revC.json`:
+**`MCE_Proposal_-_LETEK_DCG_-_Merida_128.7MTD_Digestate_Dryer_RevC.pdf`** (7 pages, about 31 KB) and `quote_data_revC.json`:
 black header band with orange rule, Proposal Summary (prepared for / project / reference), intro, 1. Design Basis, the liquid
 fraction table, 2A Dewatering (item 1), 2B Dryer System (items 2-7), 2C Controls (item 8), 2D Biogas Conditioning (item 9),
 section totals ($1,656,310), Options and Adders with unit price and net adder (A reconditioned decanter $262,500 / -$46,620;
@@ -533,3 +533,9 @@ B 304 SS drum recommended $847,000 / +$358,000; C 316L $911,500 / +$422,500; D 3
 4. Freight, Delivery and Schedule (FOB origin; freight moved here from the line items), 5. Commercial Terms and sign-off.
 Same prices and content as the 20261019-LETEK-C quote; reportlab with standard Helvetica (the template's Liberation Sans is
 metrically the same) so nothing is embedded. Item numbers changed: VFD item 4, controls item 8, skid item 9.
+- Template check (three reviewers): content parity and all numbers confirmed. Fixed: template column geometry (prices at 1.02 in,
+  QTY right-aligned), template bullet size, liquid fraction table folded into section 1, one-line totals note, Option A shown the
+  template way (decanter $262,500 + HE-47 304 SS cyclone $24,950 = $287,450 in lieu of items 1, 5 and 6; net -$46,620), item 6
+  no longer called an adder, process arrows (Symbol font), units in the template style, the $1,350/day rate tied to programming,
+  start-up labour wording, sample test confirming the decanter route too, subtitle and file name in the template pattern.
+  Reference kept as 20261019-LETEK-C for continuity with Rev B (template scheme would be MCE-Q-2610-LETEK-Rn; Jason's call).

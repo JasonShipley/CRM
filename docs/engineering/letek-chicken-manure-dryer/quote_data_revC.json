@@ -18,7 +18,7 @@
    [
     "Dewatering and drying system for chicken manure digestate, 128.7 MT/day at 8% TS",
     "Screw press dewatering, XD-72 rotary drum dryer, biogas conditioning",
-    "480V/60Hz electrical",
+    "480V/3-phase/60Hz electrical",
     "Ship to: Merida, Yucatan"
    ]
   ],
@@ -32,7 +32,7 @@
    ]
   ]
  ],
- "intro": "Midwest Custom Engineering is pleased to quote Rev C of the budgetary proposal for drying LETEK's chicken manure digestate, sized on the confirmed basis of 128.7 MT/day of liquid digestate at 8% TS, with the grit and sand stream handled separately. Two screw presses dewater the digestate to 30 to 35% TS cake, which drops straight onto the feed screw of an XD-72 rotary drum dryer (7 ft x 35 ft) fired by a 10 MMBtu/hr dual-fuel burner. At 30% TS the drying duty is about 3.6 MMBtu/hr, which your biogas covers with a wide margin; LPG is needed only at start-up or with the digester down. The exhaust passes a stainless cyclone and a 60 HP fan on a VFD, and a biogas conditioning skid is carried as a budget allowance. A reconditioned decanter centrifuge, 304 and 316L stainless drum systems (304 recommended) and a stainless exhaust stack are priced as options. The press line is quoted subject to a test of a sample of your digestate.",
+ "intro": "Midwest Custom Engineering is pleased to quote the dewatering and drying system for 128.7 MT/day of chicken manure digestate at 8% TS \u2014 two screw presses, an XD-72 rotary drum dryer with a 10 MMBtu/hr dual-fuel burner, a stainless cyclone and an exhaust fan on a VFD, controls, and a biogas conditioning skid carried as a budget allowance \u2014 with a reconditioned decanter centrifuge, 304 and 316L stainless drum systems (304 recommended) and a stainless exhaust stack offered as options. This is Rev C of the budgetary proposal; the press line is quoted subject to a test of a sample of your digestate.",
  "design": [
   [
    "Process",
@@ -62,7 +62,7 @@
   [
    "Thermal duty",
    "3.57 MMBtu/hr",
-   "Rigorous check 3.24; 2.8 at 35% TS cake; 6.3 with the decanter option"
+   "Design value, conservative; detailed heat balance gives 3.24. 2.8 at 35% TS cake; 6.3 with the decanter option"
   ],
   [
    "Fuel",
@@ -71,25 +71,25 @@
   ],
   [
    "Exhaust",
-   "6,342 ACFM at 230 F, 12 in WC",
-   "About 18 bhp at the fan shaft; 60 HP XF-36 fan on a VFD (item 4) also covers the decanter case; drum inlet gas 900 F"
+   "6,342 ACFM at 230\u00b0F, 12\" WC",
+   "About 18 bhp at the fan shaft; 60 HP XF-36 fan on a VFD (item 4) also covers the decanter case; drum inlet gas 900\u00b0F"
   ],
   [
    "Electrical",
-   "480V / 3-phase / 60Hz",
+   "480V/3-phase/60Hz",
    "Site voltage to be confirmed"
   ]
  ],
  "liquid": [
   [
-   "",
+   "LIQUID FRACTION (TREATMENT BY OTHERS)",
    "SCREW PRESS (BASE)",
    "DECANTER (OPTION A)"
   ],
   [
    "Liquid fraction flow",
-   "101 to 111 MT/day (4.2 to 4.6 m3/h)",
-   "82 to 93 MT/day (3.4 to 3.9 m3/h)"
+   "101 to 111 MT/day (4.2 to 4.6 m\u00b3/h)",
+   "82 to 93 MT/day (3.4 to 3.9 m\u00b3/h)"
   ],
   [
    "Solids capture assumed",
@@ -135,7 +135,7 @@
      "unit": 312500.0,
      "bullets": [
       "Two screw presses in parallel, sized for about 35,000 gal/day of digestate at 8% TS, 0.5 mm screen, direct fed by the chopper pump",
-      "Chopper feed pump and press drives on VFDs, basic control package; about 50 hp connected for the presses and pumps",
+      "Chopper feed pump and press drives on VFDs, basic control package; about 50 HP connected for the presses and pumps",
       "Expected cake 30 to 35% TS; lead time about 20 weeks",
       "Stainless steel throughout except the cast iron press bodies, which are kept for rigidity (stainless bodies flex and wear the screens and screws)",
       "Internal protective coating of the press bodies recommended for the chloride and ammonia in this digestate; confirmed and priced after the sample test",
@@ -160,9 +160,9 @@
       "Heavy duty drop-out box for dry product; airlock with 1.5 HP motor, drive and control devices, mild steel",
       "Drum drive on a structural base with 20 HP motor; full tooth chain sprocket; forged steel drum tracks; front and rear trunnion bases with hardened trunnion wheels and thrust wheel assembly",
       "Front and rear water deluge nozzles for fire suppression; inlet and discharge seals",
-      "XF-36 exhaust fan, arrangement #9F, AR 235 rotor, 60 HP TEFC inverter-duty 230-460V/3/60 (VFD, item 4), V-belt drive, 21\" inlet, vibration isolation sleeve, inspection door, drain port",
+      "XF-36 exhaust fan, arrangement #9F, AR 235 rotor, 60 HP TEFC inverter-duty 230/460V/3-phase/60Hz (VFD, item 4), V-belt drive, 21\" inlet, vibration isolation sleeve, inspection door, drain port",
       "Ducting, transitions and elbows up to 60 lineal feet, A36",
-      "Basic burner management panel; electrical and control instrumentation for MCE equipment; motor control cabinet, 3 phase, 60 Hz, 480 V",
+      "Basic burner management panel; electrical and control instrumentation for MCE equipment; motor control cabinet, 480V/3-phase/60Hz",
       "Manual quench nozzles; automated fire suppression quoted on request; the standard burner and valve train are replaced by the dual-fuel burner (item 3)",
       "Commissioning: 1 man-week; installation instructions for the buyer's contractors; start-up and operator training"
      ]
@@ -187,7 +187,7 @@
      "qty": 1,
      "unit": 10395.0,
      "bullets": [
-      "Variable frequency drive for the XF-36 exhaust fan: 480 V/3/60, variable-torque rated, NEMA 12 enclosure in the MCC with filtered forced-air cooling",
+      "Variable frequency drive for the XF-36 exhaust fan: 480V/3-phase/60Hz, variable-torque rated, NEMA 12 enclosure in the MCC with filtered forced-air cooling",
       "Lockable main breaker, control transformer, door keypad, Ethernet/Modbus link to the PLC",
       "Fan speed trimmed on drum outlet draft, so the exhaust airflow follows the drying load and can be capped at the cyclone maximum in the decanter case",
       "Programming included in item 8"
@@ -199,14 +199,14 @@
      "qty": 1,
      "unit": 13570.0,
      "bullets": [
-      "Dryer exhaust collector, budget selection for 6,342 ACFM at 230 F (HE-36 operating range 6,175 to 7,600 CFM)",
+      "Dryer exhaust collector, budget selection for 6,342 ACFM at 230\u00b0F (HE-36 operating range 6,175 to 7,600 CFM)",
       "Final cyclone picked with MCE's cyclone sizing calculator after the sample test, once cake solids and solids capture, and so the exhaust flow, are confirmed",
-      "36 in diameter, 25.5 x 10.75 in tangential inlet, 10 in flanged discharge, mount pads and inspection port; fines rejoin the dried product"
+      "36\" diameter, 25.5\" x 10.75\" tangential inlet, 10\" flanged discharge, mount pads and inspection port; fines rejoin the dried product"
      ]
     },
     {
      "n": 6,
-     "name": "HE-36 Cyclone \u2013 304 Stainless Construction Adder",
+     "name": "HE-36 Cyclone \u2013 304 Stainless Construction",
      "qty": 1,
      "unit": 8000.0,
      "bullets": [
@@ -252,7 +252,7 @@
      "qty": 1,
      "unit": 550000.0,
      "bullets": [
-      "For 195 scfm (7,455 Nm3/day) of biogas at 500 ppm H2S or less (bulk H2S removal in the digester by others)",
+      "For 195 scfm (7,455 Nm\u00b3/day) of biogas at 500 ppm H2S or less (bulk H2S removal in the digester by others)",
       "Iron-oxide polishing vessels to under 100 ppm, gas cooler and moisture knockout, booster blower to 2 psig",
       "Inlet and outlet flame arresters, pressure control, inlet and outlet gas analyzers (CH4, H2S, O2)",
       "Local control panel linked to the burner BMS; first charge of iron-oxide media; process design MCE-LETEK-BGS-001",
@@ -265,13 +265,13 @@
  "options": [
   {
    "opt": "A",
-   "name": "Reconditioned Decanter Centrifuge, in lieu of the screw presses (item 1)",
+   "name": "Reconditioned Decanter Centrifuge and HE-47 304 SS Cyclone, in lieu of the screw presses and HE-36 cyclone (items 1, 5 and 6)",
    "qty": 1,
-   "unit": 262500.0,
+   "unit": 287450.0,
    "net": -46620.0,
    "bullets": [
     "If the sample test shows the solids are too fine for a screw press",
-    "Includes the cyclone step-up to an HE-47 in 304 stainless for the higher airflow (HE-47 range 10,825 to 12,600 CFM)",
+    "Reconditioned decanter centrifuge $262,500; HE-47 cyclone in 304 stainless for the higher airflow (range 10,825 to 12,600 CFM) $24,950",
     "Cake about 20% TS instead of 30 to 35%: dryer duty about 6.3 MMBtu/hr (biogas covers about 96%, the rest LPG) and exhaust about 11,200 ACFM; polymer is more likely to be needed",
     "Availability and lead time confirmed when a specific reconditioned unit is selected"
    ]
@@ -284,7 +284,7 @@
    "net": 358000.0,
    "bullets": [
     "304 stainless drum shell and flights, feed screw, drop-out box and airlock in place of A36",
-    "Our recommended balance of cost and service life for this digestate (ammonia, chlorides, pH about 8); estimated shell life of 3/8 in A36 on this service is 7 to 10 years",
+    "Our recommended balance of cost and service life for this digestate (ammonia, chlorides, pH about 8); estimated shell life of 3/8\" A36 on this service is 7 to 10 years",
     "Stainless pricing subject to mill prices at order"
    ]
   },
@@ -306,9 +306,9 @@
    "unit": 23500.0,
    "net": 23500.0,
    "bullets": [
-    "24 in OD, 10 ga welded-seam flanged sections; discharge about 35 ft above grade (final height set at approval drawings once the cyclone is selected)",
+    "24\" OD, 10 ga welded-seam flanged sections; discharge about 35 ft above grade (final height set at approval drawings once the cyclone is selected)",
     "Fan outlet transition and side-inlet tee; base stand with base plate and condensate drain; open vertical discharge",
-    "Two 4 in sampling ports at 90 degrees located to EPA Method 1, plus a thermocouple port; guy ring with three guy wires and turnbuckles; stainless bolting",
+    "Two 4\" sampling ports at 90\u00b0 located to EPA Method 1, plus a thermocouple port; guy ring with three guy wires and turnbuckles; stainless bolting",
     "Sized for both the press and decanter cases (about 2,100 to 3,700 fpm exit velocity); foundation, anchors, sampling platform and ladder, and installation by others"
    ]
   }
@@ -320,7 +320,7 @@
   "Dried product storage and bagging; quench and fire water supply",
   "Exhaust scrubber, if the air permit requires one; exhaust stack unless Option D is taken",
   "Buildings, concrete and foundations, and structural support for the equipment",
-  "Installation, millwright, electrical and start-up labor; utilities",
+  "Installation, millwright and electrical labor, and site labor for start-up beyond the MCE commissioning, combustion start-up and programming in items 2, 3 and 8; utilities",
   "Permits, including the air permit"
  ],
  "freight": [
@@ -334,7 +334,7 @@
   ],
   [
    "Sample test",
-   "The screw press line is conditional on a test of a sample of the digestate (about 20 litres); the same sample can be analysed for the NOM-001 parameters."
+   "The screw press line is conditional on a test of a sample of the digestate (about 20 litres); the same test confirms cake solids, solids capture and polymer for the decanter route (Option A), and the sample can be analysed for the NOM-001 parameters."
   ],
   [
    "Approval drawings",
@@ -342,7 +342,7 @@
   ],
   [
    "Installation",
-   "By others. Included: 1 man-week of dryer commissioning (item 2), one week of combustion start-up (item 3) and 1 man-week of on-site programming (item 8); additional days at $1,350/day plus expenses."
+   "By others. Included: 1 man-week of dryer commissioning (item 2), one week of combustion start-up (item 3) and 1 man-week of on-site programming (item 8; additional programming days at $1,350/day plus expenses). Additional commissioning or start-up days quoted on request."
   ]
  ],
  "terms": "Payment: 50% down with order, 30% on approval drawings, 15% before shipment, 5% on start-up. Payment terms are as stated on this quote and on the invoice. Past-due balances may be reported to business credit bureaus, including Dun & Bradstreet and Experian. Prices are in US dollars and exclude taxes, duties, freight and installation. This is a budgetary proposal, valid 60 days from the date of issue; stainless options are subject to mill prices at order. Warranty per MCE standard terms and conditions."
