@@ -544,3 +544,26 @@ metrically the same) so nothing is embedded. Item numbers changed: VFD item 4, c
   (30,917 bytes, md5 `c756bde9ba2adbd6168b6503aff0b43c`) and `MCE-LETEK-PFD-001_RevC_Process_Flow.pdf` (19,906 bytes, md5
   `02804ec4227f702e2838e06193be8024`). Body opens with the apology for missing the 16 Oct date, points to the PFD, says FOB origin.
   All earlier LETEK drafts on the thread are deleted; this is the only one. Jason reviews and sends.
+
+### 20 Oct (late): Bernardo's six questions on Rev C
+
+Rev C was sent 20 Oct 13:53Z (msg `1a15997017029f52`, Shane added on cc). Bernardo replied 18:11Z (msg `1a15a82e53c0997e`):
+"This proposal addresses all requirements very well", with six questions. Reply drafted, **not sent**: Gmail draft
+`r-6964077735073504615` (reply on thread `19d2bcbd8389b240`, same cc list incl. Shane; no attachments). Research by a
+four-track workflow, then an independent fact check of the draft (three wording fixes applied). Answers as drafted:
+1. Item 6 ($8,000) is the 304 SS construction of item 5 (mild-steel HE-36, $13,570); both in the base, $21,570 combined.
+2. Service life: 304 about 15-20 yr, 316L about 25-30 yr, set by the feed end (Cl concentrates to ~10,000-16,000 mg/L in
+   the cake water at a 62-67 C wet bulb). Flights 3-6 yr (304) / 5-10 yr (316L); 304 feed-end shell repair ~yr 10-15.
+   Lower than Lorand's 9 Apr figures (20-25 / 30-35), which predate the chloride data. 304 for a ~15-yr model, 316L
+   (Option C, +$64,500) for 20+ yr. Ferric chloride H2S dosing would add ~500-1,100 mg/L Cl.
+3. Civil and installation: planning figure ~US$960k (range $565k-$1.34M, ~58% of base), seven-line breakdown;
+   excludes IVA, permits, duties, freight and section 3 items. Replaces the March "equipment price again" rule.
+4. Sample test: ~US$1,100-2,600 (Mexican lab for 2 samples, press bench test expected free, courier, likely USDA
+   permit $303). Decanter pilot ~$15-20k plus ~$65k refundable deposit, only if lab tests leave doubt.
+5. Sized for 24 h/day. Dewatering the same on both routes. XD-72 at 47% airflow on press cake (13 h/day possible with
+   margin, needs a 13-18 m3 cake bin and gas storage/LPG below ~14 h); 84% on decanter cake (runs continuously, small
+   LPG top-up). Recommend 24 h/day.
+6. XD-60 Mk.2 (5x30, $422,500, -$66,500) fits the press case at 92% airflow; limit 28.5% TS, 31% TS for the 15% margin;
+   loses the decanter fallback. Keep the XD-72 until the sample test.
+Open items for Jason are listed in the session handoff (NCS bench-test terms, 304 vs 316L wording, hybrid drum not offered,
+XD-72 stainless adders vs MCE rule, March XD-60 rating 2,432 vs calculator 2,210 lb/hr).
