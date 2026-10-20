@@ -539,3 +539,8 @@ metrically the same) so nothing is embedded. Item numbers changed: VFD item 4, c
   no longer called an adder, process arrows (Symbol font), units in the template style, the $1,350/day rate tied to programming,
   start-up labour wording, sample test confirming the decanter route too, subtitle and file name in the template pattern.
   Reference kept as 20261019-LETEK-C for continuity with Rev B (template scheme would be MCE-Q-2610-LETEK-Rn; Jason's call).
+- **Final customer email, not sent:** Gmail draft `r2010191784580250004` (reply on the Bernardo thread, same cc list) with two
+  attachments verified byte-identical to this folder: `MCE_Proposal_-_LETEK_DCG_-_Merida_128.7MTD_Digestate_Dryer_RevC.pdf`
+  (30,917 bytes, md5 `c756bde9ba2adbd6168b6503aff0b43c`) and `MCE-LETEK-PFD-001_RevC_Process_Flow.pdf` (19,906 bytes, md5
+  `02804ec4227f702e2838e06193be8024`). Body opens with the apology for missing the 16 Oct date, points to the PFD, says FOB origin.
+  All earlier LETEK drafts on the thread are deleted; this is the only one. Jason reviews and sends.
