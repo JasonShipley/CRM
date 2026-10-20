@@ -512,3 +512,9 @@ Until it is set, `make_quote_revc.py` prints the skid as TBD; the committed PDF 
   so the transition is a catalog proxy.
 - **Cyclone**: line 5 now reads as a budget selection; the final cyclone is picked after the sample test.
 - Line numbers moved: VFD is line 4, so the press is line 8, skid 9, freight 10, options 11-14.
+- Final check (two reviewers): numbers and line references all consistent (total $1,656,310; $246,462 below Rev B excluding the
+  skid; with the recommended 304 drum $2,014,310). Fixed from the customer read: stainless options titled as adders to line 1 with
+  316L as the alternative to option 12, total labelled base scope with A36 drum, 304 rationale stated, VFD described as following the
+  drying load (not as holding the cyclone range), PFD scrubber note separated from the stack.
+- **Customer email re-drafted, not sent:** Gmail draft `r-7750580543205676565` with the final quote PDF (22,263 bytes, md5
+  `3b5e694f1e287cae819a67da1bb8f2a3`, verified byte-identical). Previous draft `r4396802979256566143` deleted. PFD not attached.
