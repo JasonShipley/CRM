@@ -518,3 +518,4 @@ Until it is set, `make_quote_revc.py` prints the skid as TBD; the committed PDF 
   drying load (not as holding the cyclone range), PFD scrubber note separated from the stack.
 - **Customer email re-drafted, not sent:** Gmail draft `r-7750580543205676565` with the final quote PDF (22,263 bytes, md5
   `3b5e694f1e287cae819a67da1bb8f2a3`, verified byte-identical). Previous draft `r4396802979256566143` deleted. PFD not attached.
+- **FOB origin** (Jason, 20 Oct: may ship from Oklahoma): freight line, total row and terms now say FOB origin (MCE shop, Stuart, FL or Newkirk, OK); freight quoted separately.

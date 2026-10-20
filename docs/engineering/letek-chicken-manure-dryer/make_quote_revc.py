@@ -74,7 +74,7 @@ lines = [
  dict(name='FT-12 Airlock', qty=1, unit=12895.0, desc="Rotary airlock under the cyclone discharge; fines rejoin the dried product."),
  dict(name='Screw press dewatering system, 2 units, subject to sample test', qty=1, unit=312500.0, desc=PRESS),
  dict(name='Biogas conditioning skid, 500 ppm inlet', qty=1, unit=SKID or 0.0, desc=SKIDTXT + ("Budget allowance from our component estimate for this design (accuracy about +/-30%); it will be firmed up into a fixed price once the biogas analysis is available." if SKID else "PRICE: budget allowance to follow.")),
- dict(name='Freight', qty=1, unit=0.0, desc="FOB Stuart, FL. Sea freight door to door Stuart - Miami - Progreso - Merida to be quoted for the final equipment list and billed at time of shipment; the April 2026 estimate for a comparable shipment was about $27,000."),
+ dict(name='Freight', qty=1, unit=0.0, desc="FOB origin (MCE shop, Stuart, FL or Newkirk, OK). Freight door to door to Merida to be quoted for the final equipment list and billed at time of shipment; the April 2026 estimate for a comparable shipment from Stuart was about $27,000."),
  dict(name='OPTION: decanter centrifuge in place of the screw press (line 8)', qty=1, unit=-46620.0, desc="If the sample test shows the solids are too fine for a screw press. A reconditioned decanter centrifuge in place of line 8, with the cyclone stepped up to an HE-47 in 304 stainless for the higher airflow (HE-47 range 10,825 to 12,600 CFM): net change -$46,620 against the base total (reconditioned decanter $262,500).\nTrade-offs: cake about 20% TS instead of 30 to 35%, so the dryer duty rises to about 6.3 MMBtu/hr (biogas covers about 96%, the rest LPG) and exhaust to about 11,200 ACFM; polymer is more likely to be needed. Availability and lead time are confirmed when a specific reconditioned unit is selected."),
  dict(name='OPTION (RECOMMENDED): 304 stainless steel drum system, adder to line 1', qty=1, unit=358000.0, desc="304 stainless drum shell and flights, feed screw, drop-out box and airlock in place of A36. Recommended for this digestate (ammonia, chlorides, pH about 8); estimated shell life of 3/8 in A36 on this service is 7 to 10 years. 304 is our recommended balance of cost and service life for this digestate; 316L (option 13) adds margin against chloride pitting. Adder over line 1. Stainless pricing is subject to mill prices at order."),
  dict(name='OPTION: 316L stainless steel drum system, adder to line 1 (alternative to option 12)', qty=1, unit=422500.0, desc="Same scope as the 304 option, in 316L: drum shell and flights, feed screw, drop-out box and airlock. The molybdenum in 316L gives better resistance to chloride pitting (this digestate carries about 3,000 mg/L chlorides). $64,500 more than the 304 option. Adder over line 1, in place of the 304 option. Stainless pricing is subject to mill prices at order."),
@@ -99,7 +99,7 @@ comments = ("Bernardo, thank you for the data and the call on 29 September. This
 terms = ("50% down with order, 30% on approval drawings, 15% before shipment, 5% on start-up. Payment terms are as stated on this quote and on the invoice. Past-due balances may be reported to business credit bureaus, including Dun & Bradstreet and Experian. Budgetary proposal, valid 60 days. "
 "Delivery 18-22 weeks after approval drawings, to be confirmed by production at time of order. Installation, foundations, utilities, permits, biogas H2S bulk removal in the digester, "
 "LPG supply, digestate feed tank and its mixer, treatment and disposal of the liquid fraction, and any exhaust scrubber required by the air permit are by others. "
-"Prices in US dollars, FOB Stuart, FL, exclusive of taxes and duties.")
+"Prices in US dollars, FOB origin (MCE shop, Stuart, FL or Newkirk, OK), exclusive of taxes and duties.")
 
 LIQ = [
  ['', 'Screw press (base)', 'Decanter (option)'],
@@ -159,7 +159,7 @@ for l in lines:
     if opt: nt = '$0.00<br/><font size=7 color="#555555">option, not in total</font>'
     desc = '<br/>'.join(esc(x) for x in l['desc'].splitlines() if x.strip())
     rows.append([Paragraph(str(n), base), Paragraph('<b>%s</b><br/>%s' % (esc(l['name']), desc), base), Paragraph(str(l['qty']), right), Paragraph(up, right), Paragraph(nt, right)])
-tot_label = 'Total (USD, FOB Stuart, FL), base scope with A36 drum; options not included' + ('' if SKID else ', excluding the biogas skid allowance (line 9)')
+tot_label = 'Total (USD, FOB origin), base scope with A36 drum; options not included' + ('' if SKID else ', excluding the biogas skid allowance (line 9)')
 rows.append(['', Paragraph('<b>%s</b>' % tot_label, right), '', '', Paragraph('<b>%s</b>' % money(subtotal), right)])
 t = Table(rows, colWidths=[0.3*inch, W-3.1*inch, 0.45*inch, 1.15*inch, 1.2*inch], repeatRows=1)
 t.setStyle(TableStyle([('VALIGN', (0, 0), (-1, -1), 'TOP'), ('LINEBELOW', (0, 0), (-1, 0), 0.8, NAVY), ('LINEBELOW', (0, 1), (-1, -2), 0.3, colors.HexColor('#cccccc')),
