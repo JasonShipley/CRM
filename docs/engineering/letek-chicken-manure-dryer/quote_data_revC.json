@@ -1,102 +1,90 @@
 {
  "ref": "20261019-LETEK-C",
- "issue_date": "Oct 19, 2026",
- "expires": "Dec 18, 2026",
- "subtotal": "$1,656,310.00",
+ "issue_date": "October 19, 2026",
+ "total": "$1,656,310.00",
+ "total_with_option_B": "$2,014,310.00",
  "skid": 550000.0,
- "comments": "Bernardo, thank you for the data and the call on 29 September. This Rev C budgetary proposal is sized on your confirmed basis: 128.7 MT/day of liquid digestate at 8% TS, with the grit and sand stream handled separately. We recommend a screw press ahead of the dryer. We expect 30 to 35% TS cake from a screw press on this feed and about 20% from a decanter centrifuge. At 30% TS the dryer duty is about 3.6 MMBtu/hr, so your biogas covers it with a wide margin and LPG is only needed at start-up or with the digester down. That lets us drop from the XD-96 to the XD-72 drum, delete the storage hopper and transfer screw (the press discharges straight onto the dryer feed screw), and size the cyclone to the smaller airflow (the final cyclone is selected after the sample test). The exhaust fan runs on a VFD, so its airflow follows the drying load. The 10 MMBtu/hr dual-fuel burner stays, so the dryer can still run on LPG alone. The biogas conditioning skid is carried as a budget allowance from our component estimate, to be firmed up once the biogas analysis is available. A reconditioned decanter centrifuge is priced as an option in case the sample test shows the solids are too fine for a press. For this digestate we recommend the 304 stainless steel drum system, priced as an option over the A36 drum; 316L is priced as an alternative with more margin against chloride pitting, and an exhaust stack is also priced as an option. A sample of your digestate is needed to confirm cake solids, solids capture and polymer for either route; the press line is quoted subject to that test. Dried product is 12.1 MT/day at full solids capture. A press without polymer typically captures 60 to 80% of the solids, which would give about 7.3 to 9.7 MT/day; polymer raises capture. The liquid fraction from the dewatering step is described after the line items so you can size its treatment to the NOM-001 limits; that treatment is by others.",
- "terms": "50% down with order, 30% on approval drawings, 15% before shipment, 5% on start-up. Payment terms are as stated on this quote and on the invoice. Past-due balances may be reported to business credit bureaus, including Dun & Bradstreet and Experian. Budgetary proposal, valid 60 days. Delivery 18-22 weeks after approval drawings, to be confirmed by production at time of order. Installation, foundations, utilities, permits, biogas H2S bulk removal in the digester, LPG supply, digestate feed tank and its mixer, treatment and disposal of the liquid fraction, and any exhaust scrubber required by the air permit are by others. Prices in US dollars, FOB origin (MCE shop, Stuart, FL or Newkirk, OK), exclusive of taxes and duties.",
- "lines": [
-  {
-   "name": "XD-72 Mk.2 Rotary Thermal Conditioning System",
-   "qty": 1,
-   "unit": 489000.0,
-   "desc": "XD Series - Heavy Duty Direct Fired Rotary Thermal Conditioning System\n- Feed screw system with 2 HP motor; the dewatering unit discharges by chute directly onto the feed screw\n- Co-current single pass rotary dehydration drum (7' dia x 35' long), A36 steel (304 or 316L stainless priced as options 12 and 13; 304 recommended)\n- Heavy duty drop-out box for dry product\n- Airlock with 1.5 HP motor, drive and control devices, mild steel\n- Drum drive on a structural base with 20 HP motor and drive; full tooth chain sprocket\n- Forged steel drum tracks; front and rear trunnion bases with hardened trunnion wheels and thrust wheel assembly\n- Front and rear water deluge nozzles for fire suppression; inlet and discharge seals\n\nExhaust Fan\n- XF-36 fan, arrangement #9F, AR 235 rotor, 60 HP TEFC inverter-duty 230-460V/3/60 (VFD on line 4), V-belt drive, 21\" inlet, vibration isolation sleeve, inspection door, drain port\n\nDucting and Transition\n- Ducting, transitions and elbows up to 60 lineal feet, A36 construction\n\nControl System and Fire Prevention\n- Basic burner management system control panel; electrical and control instrumentation for MCE equipment\n- Motor control cabinet for seller's equipment, 3 phase, 60 Hz, 480 V\n- Manual quench nozzles; automated fire suppression quoted on request\n- The standard 435 MOP burner and valve train are replaced by the dual-fuel burner on line 2\n\nSystem Commissioning\n- 1 man-week; installation instructions for the buyer's contractors; start-up and operator training"
-  },
-  {
-   "name": "Dual-fuel burner upgrade, 10 MMBtu/hr, LPG + biogas",
-   "qty": 1,
-   "unit": 170000.0,
-   "desc": "10 MMBtu/hr maximum with 10:1 turndown. Normal fire is about 3.6 MMBtu/hr on screw press cake; the margin covers wetter cake, LPG-only operation when the digester is down, and the decanter option below.\n- Dual-burner system: one LPG burner and one biogas burner, each with stainless combustor sleeve, integral combustion blower and filter, and independent air and gas actuators with position feedback\n- Two NFPA 86 safety valve trains (LPG and flanged biogas) with dual safety shut-off valves, high and low gas pressure switches and gas meters; automatic changeover to LPG on loss of biogas\n- Parallel-positioning air/fuel control with separate LPG and biogas fuel profiles (runs in the PLC/HMI on line 3)\n- Burner management panel, NEMA 4X fiberglass enclosure, two self-checking UV flame safeguards, high-temperature limits, combustion E-stop\n- One week of combustion start-up and tuning on site"
-  },
-  {
-   "name": "Automation and Controls (PLC / HMI)",
-   "qty": 1,
-   "unit": 89950.0,
-   "desc": "Required with the dual-fuel burner: the PLC hosts the parallel-positioning fuel profiles for LPG and biogas, the automatic changeover logic, dryer temperature control and the operator HMI, and links to the dewatering unit, the biogas skid and the plant system."
-  },
-  {
-   "name": "Exhaust fan VFD, 60 HP",
-   "qty": 1,
-   "unit": 10395.0,
-   "desc": "Variable frequency drive for the 60 HP XF-36 exhaust fan: 480 V/3/60, variable-torque rated, NEMA 12 enclosure in the MCC with filtered forced-air cooling, lockable main breaker, control transformer, door keypad and Ethernet/Modbus link to the PLC. Fan speed is trimmed on drum outlet draft, so the exhaust airflow follows the drying load and can be capped at the cyclone maximum in the decanter case. Programming is included in line 3."
-  },
-  {
-   "name": "HE-36 Cyclone",
-   "qty": 1,
-   "unit": 13570.0,
-   "desc": "Dryer exhaust collector, budget selection for 6,342 ACFM at 230 F (HE-36 operating range 6,175 to 7,600 CFM). The final cyclone is picked with MCE's cyclone sizing calculator after the sample test, once cake solids and solids capture, and so the exhaust flow, are confirmed. 36 in diameter, 25.5 x 10.75 in tangential inlet, 10 in flanged discharge, mount pads and inspection port. Fines rejoin the dried product."
-  },
-  {
-   "name": "HE-36 Cyclone - 304 stainless construction adder",
-   "qty": 1,
-   "unit": 8000.0,
-   "desc": "304 stainless construction of the cyclone for the wet, ammonia-laden dryer exhaust."
-  },
-  {
-   "name": "FT-12 Airlock",
-   "qty": 1,
-   "unit": 12895.0,
-   "desc": "Rotary airlock under the cyclone discharge; fines rejoin the dried product."
-  },
-  {
-   "name": "Screw press dewatering system, 2 units, subject to sample test",
-   "qty": 1,
-   "unit": 312500.0,
-   "desc": "Two screw presses in parallel, sized for about 35,000 gal/day of digestate at 8% TS, 0.5 mm screen, direct fed by chopper pump. Includes the chopper feed pump and press drives on VFDs and a basic control package. About 50 hp connected for the presses and pumps. Expected cake 30 to 35% TS. Lead time about 20 weeks.\nMaterials: stainless steel components throughout except the cast iron press bodies, which are kept for rigidity (stainless bodies flex and wear the screens and screws). An internal protective coating of the press bodies is recommended for the chloride and ammonia in this digestate; it will be confirmed and priced after the sample test.\nA screw press needs some fiber structure in the solids to work. This line is conditional on a test of a sample of your digestate, which will confirm cake solids, solids capture and whether polymer is needed.\nGood mixing ahead of the presses is essential to separation; the feed tank and its mixer are by others, with the mixer sized after the sample test. Polymer make-up system, if the test shows it is needed, is quoted after the test."
-  },
-  {
-   "name": "Biogas conditioning skid, 500 ppm inlet",
-   "qty": 1,
-   "unit": 550000.0,
-   "desc": "For 195 scfm (7,455 Nm3/day) of biogas at 500 ppm H2S or less (bulk H2S removal in the digester by others): iron-oxide polishing vessels to under 100 ppm, gas cooler and moisture knockout, booster blower to 2 psig, inlet and outlet flame arresters, pressure control, inlet and outlet gas analyzers (CH4, H2S, O2), local control panel linked to the burner BMS, and the first charge of iron-oxide media. Process design MCE-LETEK-BGS-001.\nBudget allowance from our component estimate for this design (accuracy about +/-30%); it will be firmed up into a fixed price once the biogas analysis is available."
-  },
-  {
-   "name": "Freight",
-   "qty": 1,
-   "unit": 0.0,
-   "desc": "FOB origin (MCE shop, Stuart, FL or Newkirk, OK). Freight door to door to Merida to be quoted for the final equipment list and billed at time of shipment; the April 2026 estimate for a comparable shipment from Stuart was about $27,000."
-  },
-  {
-   "name": "OPTION: decanter centrifuge in place of the screw press (line 8)",
-   "qty": 1,
-   "unit": -46620.0,
-   "desc": "If the sample test shows the solids are too fine for a screw press. A reconditioned decanter centrifuge in place of line 8, with the cyclone stepped up to an HE-47 in 304 stainless for the higher airflow (HE-47 range 10,825 to 12,600 CFM): net change -$46,620 against the base total (reconditioned decanter $262,500).\nTrade-offs: cake about 20% TS instead of 30 to 35%, so the dryer duty rises to about 6.3 MMBtu/hr (biogas covers about 96%, the rest LPG) and exhaust to about 11,200 ACFM; polymer is more likely to be needed. Availability and lead time are confirmed when a specific reconditioned unit is selected."
-  },
-  {
-   "name": "OPTION (RECOMMENDED): 304 stainless steel drum system, adder to line 1",
-   "qty": 1,
-   "unit": 358000.0,
-   "desc": "304 stainless drum shell and flights, feed screw, drop-out box and airlock in place of A36. Recommended for this digestate (ammonia, chlorides, pH about 8); estimated shell life of 3/8 in A36 on this service is 7 to 10 years. 304 is our recommended balance of cost and service life for this digestate; 316L (option 13) adds margin against chloride pitting. Adder over line 1. Stainless pricing is subject to mill prices at order."
-  },
-  {
-   "name": "OPTION: 316L stainless steel drum system, adder to line 1 (alternative to option 12)",
-   "qty": 1,
-   "unit": 422500.0,
-   "desc": "Same scope as the 304 option, in 316L: drum shell and flights, feed screw, drop-out box and airlock. The molybdenum in 316L gives better resistance to chloride pitting (this digestate carries about 3,000 mg/L chlorides). $64,500 more than the 304 option. Adder over line 1, in place of the 304 option. Stainless pricing is subject to mill prices at order."
-  },
-  {
-   "name": "OPTION: exhaust stack, 304 stainless",
-   "qty": 1,
-   "unit": 23500.0,
-   "desc": "24 in OD 304 stainless discharge stack on the exhaust fan outlet: 10 ga welded-seam flanged sections, discharge about 35 ft above grade (final height set at approval drawings once the cyclone is selected). Includes the fan outlet transition and side-inlet tee, base stand with base plate and condensate drain, open vertical discharge, two 4 in sampling ports at 90 degrees located to EPA Method 1 plus a thermocouple port, guy ring with three guy wires and turnbuckles, and stainless bolting. Sized for both the press and decanter cases (about 2,100 to 3,700 fpm exit velocity).\nFoundation, anchor bolts, guy anchors, sampling platform and ladder, and installation by others."
-  }
+ "summary": [
+  [
+   "PREPARED FOR",
+   [
+    "LETEK DCG",
+    "Attn: Bernardo Urquiza",
+    "Bosques de las Lomas, Mexico City, Mexico"
+   ]
+  ],
+  [
+   "PROJECT",
+   [
+    "Dewatering and drying system for chicken manure digestate, 128.7 MT/day at 8% TS",
+    "Screw press dewatering, XD-72 rotary drum dryer, biogas conditioning",
+    "480V/60Hz electrical",
+    "Ship to: Merida, Yucatan"
+   ]
+  ],
+  [
+   "REFERENCE",
+   [
+    "20261019-LETEK-C (Rev C, supersedes 20260917-LETEK-B)",
+    "Basis: Bernardo Urquiza (LETEK) process data of Sep 17 and Oct 13, 2026 and our call of Sep 29, 2026",
+    "Validity: 60 days from date of issue \u00b7 Currency: USD",
+    "FOB origin, MCE Stuart, FL or Newkirk, OK shop (per shop load)"
+   ]
+  ]
+ ],
+ "intro": "Midwest Custom Engineering is pleased to quote Rev C of the budgetary proposal for drying LETEK's chicken manure digestate, sized on the confirmed basis of 128.7 MT/day of liquid digestate at 8% TS, with the grit and sand stream handled separately. Two screw presses dewater the digestate to 30 to 35% TS cake, which drops straight onto the feed screw of an XD-72 rotary drum dryer (7 ft x 35 ft) fired by a 10 MMBtu/hr dual-fuel burner. At 30% TS the drying duty is about 3.6 MMBtu/hr, which your biogas covers with a wide margin; LPG is needed only at start-up or with the digester down. The exhaust passes a stainless cyclone and a 60 HP fan on a VFD, and a biogas conditioning skid is carried as a budget allowance. A reconditioned decanter centrifuge, 304 and 316L stainless drum systems (304 recommended) and a stainless exhaust stack are priced as options. The press line is quoted subject to a test of a sample of your digestate.",
+ "design": [
+  [
+   "Process",
+   "Liquid digestate \u203a screw press \u203a rotary drum dryer \u203a dried product",
+   "Liquid fraction to LETEK treatment (NOM-001); biogas conditioned for the burner"
+  ],
+  [
+   "Feed",
+   "128.7 MT/day at 8% TS",
+   "About 34,000 gal/day, 24 h/day, 350 days/year; grit and sand handled separately"
+  ],
+  [
+   "Dewatered cake",
+   "3,153 lb/hr at 30% TS",
+   "Sized at full solids capture; 30 to 35% TS expected from the presses, about 20% from a decanter"
+  ],
+  [
+   "Dried product",
+   "1,113 lb/hr (12.1 MT/day) at 15% moisture",
+   "About 7.3 to 9.7 MT/day at typical press capture without polymer; polymer raises capture"
+  ],
+  [
+   "Water evaporated",
+   "2,040 lb/hr (245 gal/hr)",
+   "3,616 lb/hr with the decanter option"
+  ],
+  [
+   "Thermal duty",
+   "3.57 MMBtu/hr",
+   "Rigorous check 3.24; 2.8 at 35% TS cake; 6.3 with the decanter option"
+  ],
+  [
+   "Fuel",
+   "Biogas, with LPG back-up",
+   "Biogas 145.8 MMBtu/day (about 6.1 MMBtu/hr average) covers about 170% of the duty"
+  ],
+  [
+   "Exhaust",
+   "6,342 ACFM at 230 F, 12 in WC",
+   "About 18 bhp at the fan shaft; 60 HP XF-36 fan on a VFD (item 4) also covers the decanter case; drum inlet gas 900 F"
+  ],
+  [
+   "Electrical",
+   "480V / 3-phase / 60Hz",
+   "Site voltage to be confirmed"
+  ]
  ],
  "liquid": [
   [
    "",
-   "Screw press (base)",
-   "Decanter (option)"
+   "SCREW PRESS (BASE)",
+   "DECANTER (OPTION A)"
   ],
   [
    "Liquid fraction flow",
@@ -134,5 +122,228 @@
    "by laboratory analysis"
   ]
  ],
- "liquid_note": "Basis: 128.7 MT/day at 8% TS (10.3 MT/day of solids). Dissolved species (ammonia, chlorides) leave with the water at about the digestate concentration. Total nitrogen will be at least the ammoniacal nitrogen plus the organic nitrogen carried on the uncaptured solids. Polymer raises solids capture and lowers the solids in the liquid. The sample test will firm up these figures; we recommend the same sample be analysed for total N, COD, BOD, total P and oils and grease against the NOM-001 table."
+ "liquid_note": "Basis: 128.7 MT/day at 8% TS (10.3 MT/day of solids), 30 to 35% TS press cake. Dissolved species (ammonia, chlorides) leave with the water at about the digestate concentration. Total nitrogen will be at least the ammoniacal nitrogen plus the organic nitrogen carried on the uncaptured solids. Polymer raises solids capture and lowers the solids in the liquid. The sample test will firm up these figures; we recommend the same sample be analysed for total N, COD, BOD, total P and oils and grease against the NOM-001 table.",
+ "sections": [
+  [
+   "2A. DEWATERING",
+   "Dewatering",
+   [
+    {
+     "n": 1,
+     "name": "Screw Press Dewatering System \u2013 2 Units, Subject to Sample Test",
+     "qty": 1,
+     "unit": 312500.0,
+     "bullets": [
+      "Two screw presses in parallel, sized for about 35,000 gal/day of digestate at 8% TS, 0.5 mm screen, direct fed by the chopper pump",
+      "Chopper feed pump and press drives on VFDs, basic control package; about 50 hp connected for the presses and pumps",
+      "Expected cake 30 to 35% TS; lead time about 20 weeks",
+      "Stainless steel throughout except the cast iron press bodies, which are kept for rigidity (stainless bodies flex and wear the screens and screws)",
+      "Internal protective coating of the press bodies recommended for the chloride and ammonia in this digestate; confirmed and priced after the sample test",
+      "Conditional on a test of a sample of your digestate, which confirms cake solids, solids capture and whether polymer is needed",
+      "Good mixing ahead of the presses is essential: feed tank and mixer by others, mixer sized after the sample test; polymer make-up system, if needed, quoted after the test"
+     ]
+    }
+   ]
+  ],
+  [
+   "2B. DRYER SYSTEM",
+   "Dryer System",
+   [
+    {
+     "n": 2,
+     "name": "XD-72 Mk.2 Rotary Thermal Conditioning System",
+     "qty": 1,
+     "unit": 489000.0,
+     "bullets": [
+      "Heavy duty direct fired, co-current single pass rotary drum, 7 ft dia x 35 ft long, A36 steel (304 or 316L stainless priced as Options B and C; 304 recommended)",
+      "Feed screw with 2 HP motor; the dewatering unit discharges by chute directly onto the feed screw",
+      "Heavy duty drop-out box for dry product; airlock with 1.5 HP motor, drive and control devices, mild steel",
+      "Drum drive on a structural base with 20 HP motor; full tooth chain sprocket; forged steel drum tracks; front and rear trunnion bases with hardened trunnion wheels and thrust wheel assembly",
+      "Front and rear water deluge nozzles for fire suppression; inlet and discharge seals",
+      "XF-36 exhaust fan, arrangement #9F, AR 235 rotor, 60 HP TEFC inverter-duty 230-460V/3/60 (VFD, item 4), V-belt drive, 21\" inlet, vibration isolation sleeve, inspection door, drain port",
+      "Ducting, transitions and elbows up to 60 lineal feet, A36",
+      "Basic burner management panel; electrical and control instrumentation for MCE equipment; motor control cabinet, 3 phase, 60 Hz, 480 V",
+      "Manual quench nozzles; automated fire suppression quoted on request; the standard burner and valve train are replaced by the dual-fuel burner (item 3)",
+      "Commissioning: 1 man-week; installation instructions for the buyer's contractors; start-up and operator training"
+     ]
+    },
+    {
+     "n": 3,
+     "name": "Dual-Fuel Burner Upgrade, 10 MMBtu/hr, LPG + Biogas",
+     "qty": 1,
+     "unit": 170000.0,
+     "bullets": [
+      "10 MMBtu/hr maximum with 10:1 turndown; normal fire about 3.6 MMBtu/hr on press cake, with margin for wetter cake, LPG-only operation with the digester down, and the decanter option",
+      "Dual-burner system: one LPG burner and one biogas burner, each with stainless combustor sleeve, integral combustion blower and filter, and independent air and gas actuators with position feedback",
+      "Two NFPA 86 safety valve trains (LPG and flanged biogas) with dual safety shut-off valves, high and low gas pressure switches and gas meters; automatic changeover to LPG on loss of biogas",
+      "Parallel-positioning air/fuel control with separate LPG and biogas fuel profiles, run in the PLC/HMI (item 8)",
+      "Burner management panel, NEMA 4X fiberglass enclosure, two self-checking UV flame safeguards, high-temperature limits, combustion E-stop",
+      "One week of combustion start-up and tuning on site"
+     ]
+    },
+    {
+     "n": 4,
+     "name": "Exhaust Fan VFD, 60 HP",
+     "qty": 1,
+     "unit": 10395.0,
+     "bullets": [
+      "Variable frequency drive for the XF-36 exhaust fan: 480 V/3/60, variable-torque rated, NEMA 12 enclosure in the MCC with filtered forced-air cooling",
+      "Lockable main breaker, control transformer, door keypad, Ethernet/Modbus link to the PLC",
+      "Fan speed trimmed on drum outlet draft, so the exhaust airflow follows the drying load and can be capped at the cyclone maximum in the decanter case",
+      "Programming included in item 8"
+     ]
+    },
+    {
+     "n": 5,
+     "name": "HE-36 Cyclone",
+     "qty": 1,
+     "unit": 13570.0,
+     "bullets": [
+      "Dryer exhaust collector, budget selection for 6,342 ACFM at 230 F (HE-36 operating range 6,175 to 7,600 CFM)",
+      "Final cyclone picked with MCE's cyclone sizing calculator after the sample test, once cake solids and solids capture, and so the exhaust flow, are confirmed",
+      "36 in diameter, 25.5 x 10.75 in tangential inlet, 10 in flanged discharge, mount pads and inspection port; fines rejoin the dried product"
+     ]
+    },
+    {
+     "n": 6,
+     "name": "HE-36 Cyclone \u2013 304 Stainless Construction Adder",
+     "qty": 1,
+     "unit": 8000.0,
+     "bullets": [
+      "304 stainless construction of the cyclone for the wet, ammonia-laden dryer exhaust"
+     ]
+    },
+    {
+     "n": 7,
+     "name": "FT-12 Airlock",
+     "qty": 1,
+     "unit": 12895.0,
+     "bullets": [
+      "Rotary airlock under the cyclone discharge; fines rejoin the dried product"
+     ]
+    }
+   ]
+  ],
+  [
+   "2C. CONTROLS",
+   "Controls",
+   [
+    {
+     "n": 8,
+     "name": "Automation and Controls (PLC / HMI)",
+     "qty": 1,
+     "unit": 89950.0,
+     "bullets": [
+      "Required with the dual-fuel burner: the PLC hosts the parallel-positioning fuel profiles for LPG and biogas and the automatic changeover logic",
+      "PLC programming of infeed, outfeed and product conveyance, burner modulation (BMS) and dryer temperature control; links to the dewatering unit, fan VFD, biogas skid and plant system",
+      "21.5\" HMI with modeled equipment interface, data logging of temperatures and component hours, visualization, e-mailed PDF reports and mobile data access",
+      "On-site programming for 1 man-week; additional days at $1,350/day plus expenses"
+     ]
+    }
+   ]
+  ],
+  [
+   "2D. BIOGAS CONDITIONING",
+   "Biogas Conditioning",
+   [
+    {
+     "n": 9,
+     "name": "Biogas Conditioning Skid, 500 ppm Inlet \u2013 Budget Allowance",
+     "qty": 1,
+     "unit": 550000.0,
+     "bullets": [
+      "For 195 scfm (7,455 Nm3/day) of biogas at 500 ppm H2S or less (bulk H2S removal in the digester by others)",
+      "Iron-oxide polishing vessels to under 100 ppm, gas cooler and moisture knockout, booster blower to 2 psig",
+      "Inlet and outlet flame arresters, pressure control, inlet and outlet gas analyzers (CH4, H2S, O2)",
+      "Local control panel linked to the burner BMS; first charge of iron-oxide media; process design MCE-LETEK-BGS-001",
+      "Budget allowance from our component estimate for this design (accuracy about +/-30%); firmed up into a fixed price once the biogas analysis is available"
+     ]
+    }
+   ]
+  ]
+ ],
+ "options": [
+  {
+   "opt": "A",
+   "name": "Reconditioned Decanter Centrifuge, in lieu of the screw presses (item 1)",
+   "qty": 1,
+   "unit": 262500.0,
+   "net": -46620.0,
+   "bullets": [
+    "If the sample test shows the solids are too fine for a screw press",
+    "Includes the cyclone step-up to an HE-47 in 304 stainless for the higher airflow (HE-47 range 10,825 to 12,600 CFM)",
+    "Cake about 20% TS instead of 30 to 35%: dryer duty about 6.3 MMBtu/hr (biogas covers about 96%, the rest LPG) and exhaust about 11,200 ACFM; polymer is more likely to be needed",
+    "Availability and lead time confirmed when a specific reconditioned unit is selected"
+   ]
+  },
+  {
+   "opt": "B",
+   "name": "RECOMMENDED: 304 Stainless Steel Drum System, in lieu of the A36 drum system (item 2)",
+   "qty": 1,
+   "unit": 847000.0,
+   "net": 358000.0,
+   "bullets": [
+    "304 stainless drum shell and flights, feed screw, drop-out box and airlock in place of A36",
+    "Our recommended balance of cost and service life for this digestate (ammonia, chlorides, pH about 8); estimated shell life of 3/8 in A36 on this service is 7 to 10 years",
+    "Stainless pricing subject to mill prices at order"
+   ]
+  },
+  {
+   "opt": "C",
+   "name": "316L Stainless Steel Drum System, in lieu of the A36 drum system (item 2) \u2013 alternative to Option B",
+   "qty": 1,
+   "unit": 911500.0,
+   "net": 422500.0,
+   "bullets": [
+    "Same scope as Option B, in 316L: the molybdenum gives better resistance to chloride pitting (about 3,000 mg/L chlorides in this digestate)",
+    "$64,500 more than Option B; stainless pricing subject to mill prices at order"
+   ]
+  },
+  {
+   "opt": "D",
+   "name": "Exhaust Stack, 304 Stainless",
+   "qty": 1,
+   "unit": 23500.0,
+   "net": 23500.0,
+   "bullets": [
+    "24 in OD, 10 ga welded-seam flanged sections; discharge about 35 ft above grade (final height set at approval drawings once the cyclone is selected)",
+    "Fan outlet transition and side-inlet tee; base stand with base plate and condensate drain; open vertical discharge",
+    "Two 4 in sampling ports at 90 degrees located to EPA Method 1, plus a thermocouple port; guy ring with three guy wires and turnbuckles; stainless bolting",
+    "Sized for both the press and decanter cases (about 2,100 to 3,700 fpm exit velocity); foundation, anchors, sampling platform and ladder, and installation by others"
+   ]
+  }
+ ],
+ "by_others": [
+  "Anaerobic digester, bulk H2S removal in the digester, and the biogas and LPG supply to the skid and burner",
+  "Digestate feed tank and its mixer; polymer make-up system if the sample test shows it is needed (quoted after the test)",
+  "Treatment and disposal of the liquid fraction to the NOM-001 limits",
+  "Dried product storage and bagging; quench and fire water supply",
+  "Exhaust scrubber, if the air permit requires one; exhaust stack unless Option D is taken",
+  "Buildings, concrete and foundations, and structural support for the equipment",
+  "Installation, millwright, electrical and start-up labor; utilities",
+  "Permits, including the air permit"
+ ],
+ "freight": [
+  [
+   "Freight",
+   "FOB origin, MCE Stuart, FL or Newkirk, OK shop (assigned at order based on shop load and demand); freight door to door to Merida quoted at time of shipment, or shipped freight collect. The April 2026 estimate for a comparable shipment from Stuart was about $27,000."
+  ],
+  [
+   "Delivery",
+   "18 to 22 weeks after approval drawings, to be confirmed by production at time of order."
+  ],
+  [
+   "Sample test",
+   "The screw press line is conditional on a test of a sample of the digestate (about 20 litres); the same sample can be analysed for the NOM-001 parameters."
+  ],
+  [
+   "Approval drawings",
+   "General arrangement drawings and plant layout issued for LETEK approval before fabrication."
+  ],
+  [
+   "Installation",
+   "By others. Included: 1 man-week of dryer commissioning (item 2), one week of combustion start-up (item 3) and 1 man-week of on-site programming (item 8); additional days at $1,350/day plus expenses."
+  ]
+ ],
+ "terms": "Payment: 50% down with order, 30% on approval drawings, 15% before shipment, 5% on start-up. Payment terms are as stated on this quote and on the invoice. Past-due balances may be reported to business credit bureaus, including Dun & Bradstreet and Experian. Prices are in US dollars and exclude taxes, duties, freight and installation. This is a budgetary proposal, valid 60 days from the date of issue; stainless options are subject to mill prices at order. Warranty per MCE standard terms and conditions."
 }
