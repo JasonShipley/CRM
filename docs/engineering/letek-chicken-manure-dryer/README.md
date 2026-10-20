@@ -120,7 +120,7 @@ Comparison of the three stainless bases MCE has used on this job:
 |------------------------------------------------|------------------:|-------------------------------------:|
 | Phibro 2022 actual (same 8' x 40' drum)        | $1,529,000        | $939,500                             |
 | "316 doubles the price" (J. Shipley, Mar 2026) | $1,179,000        | $589,500                             |
-| L. Wilkinson quote to LETEK, 27 Mar 2026 (XD-72 basis, $489,000): 304 +$358,000, 316L +$422,500 | $911,500 (scaled) | $422,500 |
+| L. Wilkinson quote to LETEK, 27 Mar 2026 (set on the XD-60 Mk.2 5x30, HubSpot quote 20260326-112250190, not the XD-72): 304 +$358,000, 316L +$422,500 | $911,500 (scaled) | $422,500 |
 
 The Phibro number is the only one backed by a built job and it is 2022 pricing, so it is a floor, not a
 ceiling. The quote (line 3) and QBO estimate 6476 now carry the 316L drum system as an **option at the
@@ -485,3 +485,30 @@ Until it is set, `make_quote_revc.py` prints the skid as TBD; the committed PDF 
   PDF (19,690 bytes, md5 `eba354c15b7019beab40038bb97c3198`, verified byte-identical); the body adds the 304 SS recommendation
   (US$358,000 option, 316L US$422,500) and says options are not in the total. The previous draft `r-5318734246569194976` is deleted.
   The PFD is not attached; Jason to decide.
+
+### 20 Oct: 316L option, fan VFD, stack option (research workflow, read-only)
+
+- **Fan VFD in the base, line 4: $10,395.** No 60 HP VFD exists in the catalog (Ozark RC12 carried one as "price to follow").
+  Interpolated between QBO item 197 (50 HP, $8,995) and item 234 (75 HP, $12,495), the same NEMA 12 MCC scope quoted on Midwest Soy
+  and Link Feed: 8,995 + 10 x 140 = $10,395. Cross-check: Atlanta Motion's 2 May 2025 panel ($19,750 net, 142.5 HP of drives) split
+  by HP gives $8,316 net / 0.8 = $10,395. XF-36 motor now "inverter-duty" at no adder (Midwest Soy precedent). Programming is inside
+  line 3. **Total $1,656,310.** Not priced: line reactor, dV/dt filter (motor leads under ~100 ft assumed). Get a vendor quote before
+  release; Craft Automation's 6 Oct VFD quote (Gmail attachment CQ261005024) could not be read.
+- **316L option, line 13: $422,500** (in lieu of the 304 option, $64,500 more). The March pair was set on the **XD-60 Mk.2 (5x30)**
+  quote, not the XD-72, by MCE's rule 316L adder = base catalog price, 304 = 84-85% of it; on the XD-72 that rule would give
+  316L $489,000 / 304 about $412,000 (difference about $76,000). Bottom-up check of the 316L-over-304 difference on the XD-72 scope
+  (shell and flights, feed screw, drop-out box, airlock): about 22,600 lb buy weight (3/8 in shell 11,925 lb x 1.167 + flights,
+  screw and box about 7,520 lb x 1.15, scaled from the Phibro 8x40 BOM) x a 316L premium of $1.40/lb (MCE 2026 placeholder) to
+  $2.18-2.49/lb (Phibro 2022 POs: 316L plate $4.67 vs 304L $2.18-2.49) = $32k-56k cost, **$45k-80k sell at /0.70**. $64,500 implies
+  $2.00/lb, mid-range; kept for consistency with what LETEK saw in March. Bottom-up, the 304 adder itself ($358,000, about $14/lb
+  sell on the scope weight) is generous. No 2026 316L purchase price is on file; stainless options now say "subject to mill prices
+  at order" (metal moved up 14 Oct).
+- **Stack option, line 14: $23,500** (Nolin Milling 2026 list as MCE cost / 0.70, as QBO stack packages 208/221/229): 24 in OD
+  10 ga 304 SS (Nolin p.50), about 35 ft (as drawn on SD-26-01): 3 x 10 ft $3,379 + SS tee $1,019 + square-to-round $519 + flange
+  ring $169 + SS bolts; MCE-fabricated base stand, two EPA Method 1 ports + thermocouple port and guy ring at $8.50/lb plus hours at
+  $95/hr; guy hardware allowance $600 (estimate). Cost $16,290 / 0.7 = $23,271, rounded up to $23,500 (30.7%). 2,065 fpm (press) to
+  3,660 fpm (decanter). Variants: 45 ft (clears an HE-74 top) $28,500; carbon steel about $13,000 (45 ft) but not recommended for the
+  wet NH3 exhaust. Open top (no rain hood) for the permit; foundation, anchors, sampling platform by others. XF-36 outlet size unknown,
+  so the transition is a catalog proxy.
+- **Cyclone**: line 5 now reads as a budget selection; the final cyclone is picked after the sample test.
+- Line numbers moved: VFD is line 4, so the press is line 8, skid 9, freight 10, options 11-14.

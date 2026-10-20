@@ -113,9 +113,9 @@ SVG = f"""<svg viewBox="0 0 1040 520" xmlns="http://www.w3.org/2000/svg" font-fa
 <text class="ts" x="940" y="378">fines rejoin</text><text class="ts" x="940" y="389">the product</text>
 <path class="gas" d="M934 100 V64 H970" marker-end="url(#ab)"/>
 <circle class="eq" cx="986" cy="64" r="15"/><path d="M993 64 L981 56 L981 72Z" fill="#141617"/>
-<text class="tag" x="972" y="94">F-101</text><text class="ts" x="963" y="105">XF-36, 60 HP</text><text class="ts" x="963" y="116">draft control</text>
+<text class="tag" x="972" y="94">F-101</text><text class="ts" x="963" y="105">XF-36, 60 HP</text><text class="ts" x="963" y="116">on VFD</text>
 <rect class="eq" x="1012" y="8" width="16" height="64"/><path class="gas" d="M1001 64 H1012" marker-end="url(#ab)"/>
-<text class="tag end" x="1008" y="20">ST-101</text><text class="ts end" x="1008" y="31">scrubber if the permit</text><text class="ts end" x="1008" y="41">requires (by others)</text>{sm(13, 1020, 84)}
+<text class="tag end" x="1008" y="20">ST-101 (option)</text><text class="ts end" x="1008" y="31">scrubber if the permit</text><text class="ts end" x="1008" y="41">requires (by others)</text>{sm(13, 1020, 84)}
 
 <!-- feed and dewatering -->
 <path class="ln" d="M60 80 V300" marker-end="url(#ak)"/>{sm(1, 60, 190)}
@@ -152,7 +152,7 @@ SVG = f"""<svg viewBox="0 0 1040 520" xmlns="http://www.w3.org/2000/svg" font-fa
 <text class="t" x="426" y="413">into the drum takes {f(D['inlet'])} instead of {f(P['inlet'])} SCFM of hot gas, mostly</text>
 <text class="t" x="426" y="427">make-up air. Exhaust rises {D['acfm']/P['acfm']-1:.0%}, like the water, from {f(P['acfm'])} to</text>
 <text class="t" x="426" y="441">{f(D['acfm'])} ACFM, so the cyclone steps up from an {P['cyclone']} to an {D['cyclone']}.</text>
-<text class="t" x="426" y="455">The 7 ft drum and 60 HP fan cover both, with the fan on draft control.</text>
+<text class="t" x="426" y="455">The 7 ft drum and 60 HP fan cover both, with the fan on its VFD.</text>
 
 <!-- legend -->
 <g transform="translate(414 480)">
@@ -198,8 +198,8 @@ EQUIP = [
  ('D-101', 'XD-72 Mk.2 rotary drum', '7 ft x 35 ft, co-current single pass, A36 (304 SS option recommended), 20 HP drive. Design gas capacity about 13,470 ACFM.'),
  ('DB-101 / RV-101', 'Drop-out box and product airlock', 'Heavy duty drop-out box; airlock 1.5 HP.'),
  ('CY-101 / RV-102', 'Cyclone and fines airlock', 'HE-36 in 304 SS (HE-47 with the decanter); FT-12 airlock. Fines rejoin the product.'),
- ('F-101', 'Exhaust fan', 'XF-36, 60 HP, 12 in WC, on drum draft control so the exhaust stays in the cyclone range; ducting up to 60 ft.'),
- ('ST-101', 'Exhaust stack', 'Discharge stack on the fan outlet, part of the ducting. Exhaust scrubber, if the air permit requires one, by others.'),
+ ('F-101', 'Exhaust fan and VFD', 'XF-36, 60 HP inverter-duty, 12 in WC, on a 60 HP VFD trimmed on drum outlet draft, so the exhaust stays in the cyclone range; ducting up to 60 ft.'),
+ ('ST-101', 'Exhaust stack (option)', '24 in OD 304 SS, 10 ga, discharge about 35 ft above grade, EPA Method 1 sampling ports, guyed. Exhaust scrubber, if the air permit requires one, by others.'),
  ('BGS-001', 'Biogas conditioning skid', 'For 195 scfm at 500 ppm H2S or less: iron oxide vessels, gas cooler and knockout, blower, flame arresters, analyzers, control panel.'),
  ('', 'Automation', 'PLC / HMI with LPG and biogas fuel profiles, dryer temperature control, links to dewatering, skid and plant.'),
 ]
@@ -251,8 +251,8 @@ td.tagc {{ font-weight: 700; color: #E35A00; white-space: nowrap; width: 96px; }
  <table><tbody>{EQ}</tbody></table>
  <div class="notes">
   <p>Basis: 128.7 MT/day of liquid digestate at 8% TS, 24 h/day; grit and sand handled separately. Dryer streams are from the MCE Dryer HMB Calculator (MCE-HMB-2026-002 Rev C) at full solids
-  capture, the largest dryer load; air and LPG figures are on its propane basis. At typical press capture (60 to 80%) and 30 to 35% TS cake the exhaust is about 3,000 to 5,100 ACFM; the fan draft
-  control holds the cyclone flow, and the cyclone and fan control are confirmed after the sample test, which also sets cake solids, solids capture and polymer demand.
+  capture, the largest dryer load; air and LPG figures are on its propane basis. At typical press capture (60 to 80%) and 30 to 35% TS cake the exhaust is about 3,000 to 5,100 ACFM; the fan VFD
+  holds the cyclone flow, and the cyclone and fan control are confirmed after the sample test, which also sets cake solids, solids capture and polymer demand.
   Liquid fraction composition is given in the proposal.</p>
  </div>
  <div class="ft"><span>Midwest Custom Engineering, Inc. - 6526 S Kanner Hwy #215, Stuart, FL 34997 - usemce.com</span><span>{DOC} Rev {REV} - page 2 of 2</span></div>

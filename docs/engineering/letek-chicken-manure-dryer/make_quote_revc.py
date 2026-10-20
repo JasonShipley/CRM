@@ -23,7 +23,7 @@ Dried product: 1,113 lb/hr (12.1 MT/day) at full capture
 Water removed: 2,040 lb/hr (245 gal/hr)
 Thermal duty: 3.57 MMBtu/hr (rigorous check 3.24); at 35% TS cake 2.8 MMBtu/hr
 Biogas (145.8 MMBtu/day, about 6.1 MMBtu/hr average) covers about 170% of the duty
-Exhaust: 6,342 ACFM at 230 F, 12 in WC static, about 18 bhp at the fan shaft (the 60 HP XF-36 fan on line 1 also covers the decanter case); drum inlet gas 900 F"""
+Exhaust: 6,342 ACFM at 230 F, 12 in WC static, about 18 bhp at the fan shaft (the 60 HP XF-36 fan on line 1, speed-controlled by the VFD on line 4, also covers the decanter case); drum inlet gas 900 F"""
 
 XD72 = """XD Series - Heavy Duty Direct Fired Rotary Thermal Conditioning System
 - Feed screw system with 2 HP motor; the dewatering unit discharges by chute directly onto the feed screw
@@ -35,7 +35,7 @@ XD72 = """XD Series - Heavy Duty Direct Fired Rotary Thermal Conditioning System
 - Front and rear water deluge nozzles for fire suppression; inlet and discharge seals
 
 Exhaust Fan
-- XF-36 fan, arrangement #9F, AR 235 rotor, 60 HP TEFC 230-460V/3/60, V-belt drive, 21" inlet, vibration isolation sleeve, inspection door, drain port
+- XF-36 fan, arrangement #9F, AR 235 rotor, 60 HP TEFC inverter-duty 230-460V/3/60 (VFD on line 4), V-belt drive, 21" inlet, vibration isolation sleeve, inspection door, drain port
 
 Ducting and Transition
 - Ducting, transitions and elbows up to 60 lineal feet, A36 construction
@@ -68,14 +68,17 @@ lines = [
  dict(name='XD-72 Mk.2 Rotary Thermal Conditioning System', qty=1, unit=489000.0, desc=XD72),
  dict(name='Dual-fuel burner upgrade, 10 MMBtu/hr, LPG + biogas', qty=1, unit=170000.0, desc=BURNER),
  dict(name='Automation and Controls (PLC / HMI)', qty=1, unit=89950.0, desc="Required with the dual-fuel burner: the PLC hosts the parallel-positioning fuel profiles for LPG and biogas, the automatic changeover logic, dryer temperature control and the operator HMI, and links to the dewatering unit, the biogas skid and the plant system."),
+ dict(name='Exhaust fan VFD, 60 HP', qty=1, unit=10395.0, desc="Variable frequency drive for the 60 HP XF-36 exhaust fan: 480 V/3/60, variable-torque rated, NEMA 12 enclosure in the MCC with filtered forced-air cooling, lockable main breaker, control transformer, door keypad and Ethernet/Modbus link to the PLC. Fan speed is trimmed on drum outlet draft, which holds the exhaust flow within the cyclone range for both the press and decanter cases. Programming is included in line 3."),
  dict(name='HE-36 Cyclone', qty=1, unit=13570.0, desc="Dryer exhaust collector, budget selection for 6,342 ACFM at 230 F (HE-36 operating range 6,175 to 7,600 CFM). The final cyclone is picked with MCE's cyclone sizing calculator after the sample test, once cake solids and solids capture, and so the exhaust flow, are confirmed. 36 in diameter, 25.5 x 10.75 in tangential inlet, 10 in flanged discharge, mount pads and inspection port. Fines rejoin the dried product."),
  dict(name='HE-36 Cyclone - 304 stainless construction adder', qty=1, unit=8000.0, desc="304 stainless construction of the cyclone for the wet, ammonia-laden dryer exhaust."),
  dict(name='FT-12 Airlock', qty=1, unit=12895.0, desc="Rotary airlock under the cyclone discharge; fines rejoin the dried product."),
  dict(name='Screw press dewatering system, 2 units, subject to sample test', qty=1, unit=312500.0, desc=PRESS),
  dict(name='Biogas conditioning skid, 500 ppm inlet', qty=1, unit=SKID or 0.0, desc=SKIDTXT + ("Budget allowance from our component estimate for this design (accuracy about +/-30%); it will be firmed up into a fixed price once the biogas analysis is available." if SKID else "PRICE: budget allowance to follow.")),
  dict(name='Freight', qty=1, unit=0.0, desc="FOB Stuart, FL. Sea freight door to door Stuart - Miami - Progreso - Merida to be quoted for the final equipment list and billed at time of shipment; the April 2026 estimate for a comparable shipment was about $27,000."),
- dict(name='OPTION: decanter centrifuge in place of the screw press (line 7)', qty=1, unit=-46620.0, desc="If the sample test shows the solids are too fine for a screw press. A reconditioned decanter centrifuge in place of line 7, with the cyclone stepped up to an HE-47 in 304 stainless for the higher airflow (HE-47 range 10,825 to 12,600 CFM): net change -$46,620 against the base total (reconditioned decanter $262,500).\nTrade-offs: cake about 20% TS instead of 30 to 35%, so the dryer duty rises to about 6.3 MMBtu/hr (biogas covers about 96%, the rest LPG) and exhaust to about 11,200 ACFM; polymer is more likely to be needed. Availability and lead time are confirmed when a specific reconditioned unit is selected."),
- dict(name='OPTION (RECOMMENDED): 304 stainless steel drum system (in lieu of line 1 A36)', qty=1, unit=358000.0, desc="304 stainless drum shell and flights, feed screw, drop-out box and airlock in place of A36. Recommended for this digestate (ammonia, chlorides, pH about 8); estimated shell life of 3/8 in A36 on this service is 7 to 10 years. 316L construction is available at $422,500 in place of this option. Adder over line 1."),
+ dict(name='OPTION: decanter centrifuge in place of the screw press (line 8)', qty=1, unit=-46620.0, desc="If the sample test shows the solids are too fine for a screw press. A reconditioned decanter centrifuge in place of line 8, with the cyclone stepped up to an HE-47 in 304 stainless for the higher airflow (HE-47 range 10,825 to 12,600 CFM): net change -$46,620 against the base total (reconditioned decanter $262,500).\nTrade-offs: cake about 20% TS instead of 30 to 35%, so the dryer duty rises to about 6.3 MMBtu/hr (biogas covers about 96%, the rest LPG) and exhaust to about 11,200 ACFM; polymer is more likely to be needed. Availability and lead time are confirmed when a specific reconditioned unit is selected."),
+ dict(name='OPTION (RECOMMENDED): 304 stainless steel drum system (in lieu of line 1 A36)', qty=1, unit=358000.0, desc="304 stainless drum shell and flights, feed screw, drop-out box and airlock in place of A36. Recommended for this digestate (ammonia, chlorides, pH about 8); estimated shell life of 3/8 in A36 on this service is 7 to 10 years. Adder over line 1. Stainless pricing is subject to mill prices at order."),
+ dict(name='OPTION: 316L stainless steel drum system (in lieu of line 1 A36)', qty=1, unit=422500.0, desc="Same scope as the 304 option, in 316L: drum shell and flights, feed screw, drop-out box and airlock. The molybdenum in 316L gives better resistance to chloride pitting (this digestate carries about 3,000 mg/L chlorides). $64,500 more than the 304 option. Adder over line 1, in place of the 304 option. Stainless pricing is subject to mill prices at order."),
+ dict(name='OPTION: exhaust stack, 304 stainless', qty=1, unit=23500.0, desc="24 in OD 304 stainless discharge stack on the exhaust fan outlet: 10 ga welded-seam flanged sections, discharge about 35 ft above grade (final height set at approval drawings once the cyclone is selected). Includes the fan outlet transition and side-inlet tee, base stand with base plate and condensate drain, open vertical discharge, two 4 in sampling ports at 90 degrees located to EPA Method 1 plus a thermocouple port, guy ring with three guy wires and turnbuckles, and stainless bolting. Sized for both the press and decanter cases (about 2,100 to 3,700 fpm exit velocity).\nFoundation, anchor bolts, guy anchors, sampling platform and ladder, and installation by others."),
 ]
 
 def money(v): return '${:,.2f}'.format(v)
@@ -86,10 +89,10 @@ comments = ("Bernardo, thank you for the data and the call on 29 September. This
 "We recommend a screw press ahead of the dryer. We expect 30 to 35% TS cake from a screw press on this feed and about 20% from a decanter centrifuge. "
 "At 30% TS the dryer duty is about 3.6 MMBtu/hr, so your biogas covers it with a wide margin and LPG is only needed at start-up or with the digester down. "
 "That lets us drop from the XD-96 to the XD-72 drum, delete the storage hopper and transfer screw (the press discharges straight onto the dryer feed screw), "
-"and size the cyclone to the smaller airflow. The 10 MMBtu/hr dual-fuel burner stays, so the dryer can still run on LPG alone. "
+"and size the cyclone to the smaller airflow (the final cyclone is selected after the sample test). The exhaust fan runs on a VFD, so its airflow follows the drying load. The 10 MMBtu/hr dual-fuel burner stays, so the dryer can still run on LPG alone. "
 "The biogas conditioning skid is carried as a budget allowance from our component estimate, to be firmed up once the biogas analysis is available. "
 "A reconditioned decanter centrifuge is priced as an option in case the sample test shows the solids are too fine for a press. "
-"For this digestate we recommend the 304 stainless steel drum system, priced as an option over the A36 drum. "
+"For this digestate we recommend the 304 stainless steel drum system, priced as an option over the A36 drum; 316L and an exhaust stack are also priced as options. "
 "A sample of your digestate is needed to confirm cake solids, solids capture and polymer for either route; the press line is quoted subject to that test. "
 "Dried product is 12.1 MT/day at full solids capture. A press without polymer typically captures 60 to 80% of the solids, which would give about 7.3 to 9.7 MT/day; polymer raises capture. "
 "The liquid fraction from the dewatering step is described after the line items so you can size its treatment to the NOM-001 limits; that treatment is by others.")
@@ -156,7 +159,7 @@ for l in lines:
     if opt: nt = '$0.00<br/><font size=7 color="#555555">option, not in total</font>'
     desc = '<br/>'.join(esc(x) for x in l['desc'].splitlines() if x.strip())
     rows.append([Paragraph(str(n), base), Paragraph('<b>%s</b><br/>%s' % (esc(l['name']), desc), base), Paragraph(str(l['qty']), right), Paragraph(up, right), Paragraph(nt, right)])
-tot_label = 'Total (USD, FOB Stuart, FL)' + ('' if SKID else ', excluding the biogas skid allowance (line 8)')
+tot_label = 'Total (USD, FOB Stuart, FL)' + ('' if SKID else ', excluding the biogas skid allowance (line 9)')
 rows.append(['', Paragraph('<b>%s</b>' % tot_label, right), '', '', Paragraph('<b>%s</b>' % money(subtotal), right)])
 t = Table(rows, colWidths=[0.3*inch, W-3.1*inch, 0.45*inch, 1.15*inch, 1.2*inch], repeatRows=1)
 t.setStyle(TableStyle([('VALIGN', (0, 0), (-1, -1), 'TOP'), ('LINEBELOW', (0, 0), (-1, 0), 0.8, NAVY), ('LINEBELOW', (0, 1), (-1, -2), 0.3, colors.HexColor('#cccccc')),
@@ -165,7 +168,7 @@ S += [t]
 lt = Table([[Paragraph(('<b>%s</b>' if i == 0 or j == 0 else '%s') % esc(c), base) for j, c in enumerate(r)] for i, r in enumerate(LIQ)], colWidths=[2.3*inch, (W-2.3*inch)/2, (W-2.3*inch)/2])
 lt.setStyle(TableStyle([('VALIGN', (0, 0), (-1, -1), 'TOP'), ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#e8eef5')), ('LINEBELOW', (0, 0), (-1, -1), 0.3, colors.HexColor('#cccccc'))]))
 S += [KeepTogether([Paragraph('Liquid fraction from the dewatering step (treatment by others)', h), lt, Spacer(1, 3), Paragraph(esc(LIQNOTE), small)])]
-S += [Paragraph('Terms', h), Paragraph(esc(terms), base), Spacer(1, 10),
-      Paragraph('Accepted for LETEK DCG: ______________________________   Name: ____________________   Date: ____________', base)]
+S += [KeepTogether([Paragraph('Terms', h), Paragraph(esc(terms), base), Spacer(1, 10),
+      Paragraph('Accepted for LETEK DCG: ______________________________   Name: ____________________   Date: ____________', base)])]
 doc.build(S)
 print('subtotal', money(subtotal), '| skid', SKID); print('written', OUT.name, OUT.stat().st_size, 'bytes')
