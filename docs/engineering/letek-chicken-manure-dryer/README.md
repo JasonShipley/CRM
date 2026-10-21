@@ -567,3 +567,26 @@ four-track workflow, then an independent fact check of the draft (three wording 
    loses the decanter fallback. Keep the XD-72 until the sample test.
 Open items for Jason are listed in the session handoff (NCS bench-test terms, 304 vs 316L wording, hybrid drum not offered,
 XD-72 stainless adders vs MCE rule, March XD-60 rating 2,432 vs calculator 2,210 lb/hr).
+
+### 21 Oct: feed-end flight replacement cost (Bernardo follow-up)
+
+Jason sent the six-question reply unchanged (20 Oct 19:46Z, msg `1a15ada070b9fc1c`). Bernardo (23:31Z, msg `1a15ba8514657a48`):
+"You've clarified everything very well", plus one question: the estimated cost to replace the feed-end lifting flights in 304
+and 316L. Reply drafted, **not sent**: Gmail draft `r1991540766504095113` (same cc list, no attachments). Estimate built by a
+nine-agent workflow (four research tracks, estimate, three review lenses, revision); arithmetic re-run and reproduced.
+Per event, budgetary (all engineering estimates; no MCE re-flight precedent and no XD-72 drawing on file):
+- Scope: inlet flights, slurry ring and lifting-flight rows 1-3 (first ~11.5 ft, 33% of L), 7 ga weld-in with gussets, scaled
+  from MCE's 8x40 316L drum weldment 104400910-B (Drive `1tHYo0QDDrS1ST2a_6t4hmctVm8g1-Ey6`): 881 lb net (~400 kg).
+- Kit: 881 lb x $8.50/lb fabricated stainless (Jason, Gmail `1a145ca3981349e1`) / 0.70 = $10,703 + crating/passivation $1,657
+  = ~$12,400 (304); 316L premium ~$2,000 at $1.40/lb buy weight / 0.70 = ~$14,400.
+- Freight to Merida $2,500-5,000 (sea LCL estimate at cost/0.8, incl. broker handling); site consumables ~$2,500.
+- MCE supervisor 10 site + 2 travel days at $1,350/day (Rev C additional-day rate) + expenses = ~$20,800.
+- LETEK local contractor (4 inside + attendant, 10 days) ~$15,000, estimate only.
+- Totals: 304 ~$54,400 installed (MCE scope ~$39,400); 316L ~$56,400 (~$41,400); stated range $40-90k. Downtime 10-12 days.
+  Half-length (rows 1-5): +~$16,000 and 3 days.
+- 20-yr per-year: 304 $8.2-16.3k, 316L $2.8-8.5k. Flights alone repay the $64,500 Option C difference in ~14 yr undiscounted,
+  not at 8-10%. The 23 Sep overhaul reserve included flights; the reply moves feed-end flights to their own line.
+Open for Jason: field day rate ($1,350 vs $3,200/tech-day on recent quotes; $1,350 is 29.6% on $95 x 10 h), spare-parts margin
+(cost/0.70 used; the 16 Oct Scherer email used cost/0.5), stale stainless prices (2022 POs and Jul 2026 placeholders; metal up
+14 Oct), unverified local-crew and freight figures, Mexico work status for an MCE supervisor, the reserve wording.
+Scratch working (not committed): scratchpad `bq/flights/` (scripts, field.md, geometry.md, material.md, prior.md, wf_result.json).
