@@ -1,7 +1,7 @@
 """JSON in / JSON out contract (mce.dryer.v1) for the quote app and the rotary-dryer-build agent.
 
     from mce_engineering.equipment.dryer_calc.api import run
-    response = run({"process": {"throughput": 1.5, "throughput_unit": "TPH"}, "fuel": {"fuel": "dry_wood"}})
+    response = run({"process": {"throughput": 1.5, "throughput_unit": "TPH"}, "fuel": {"fuel": "biomass"}})
 
 The request is the DryerRequest schema (docs/dryer_calc/input_schema.json); anything left
 out takes its documented default. The response always carries the sizing record index,

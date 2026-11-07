@@ -37,7 +37,7 @@ def test_calculator_pages(client):
 
 def test_save_record_then_list_and_download(client):
     rec = {"entries": {"j_Job": "Q-123", "j_Customer": "Test customer", "p_Throughput": 1.5, "p_TUnit": "TPH"},
-           "results": {"d_mf": 335.3683815, "d_BtuLb": 1784.579}}
+           "results": {"d_mf": 324.7573032, "d_BtuLb": 1728.1148}}
     r = client.post("/calc/dryer/api/dryer/workbook", json=rec).get_json()
     assert r["status"] == "ok" and r["record"]["index"] == "RD-000001", r
     assert r["crosscheck"]["summary"].startswith("matches the engine")
@@ -58,8 +58,12 @@ def test_excel_download(client):
     assert r.status_code == 200 and 'MCE_rotary_dryer_Q-9.xlsx' in r.headers["Content-Disposition"]
     wb = openpyxl.load_workbook(io.BytesIO(r.data))
     assert wb.sheetnames[0] == "Mass-Energy Balance"
+    assert {"Equipment", "Emissions", "Open Items", "Products"} <= set(wb.sheetnames)
 
 
 def test_engine_json_api(client):
     r = client.post("/calc/dryer/api/dryer", json={"save_record": False}).get_json()
     assert r["status"] == "ok" and r["outputs"]["drum"]["recommended"]["size"] == "4 ft dia x 30 ft long"
+    r = client.post("/calc/dryer/api/dryer", json={"save_record": False, "process": {"material": "carrots"},
+                                                   "fuel": {"fuel": "natural_gas"}}).get_json()
+    assert r["status"] == "ok" and r["outputs"]["emissions"]["pollutants"]["NOx"]["lb_hr"]["value"] > 0

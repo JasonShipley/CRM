@@ -143,7 +143,9 @@ def check_drum(d: float, length: float, duty: DrumDuty, rules: DrumRules, ut_ft_
 
 
 def select_drum(duty: DrumDuty, rules: DrumRules, diameters: list[float], lengths: list[float],
-                force: list[float] | None = None) -> dict:
+                force: list[float] | None = None, keep: tuple[float, float] | None = None) -> dict:
+    """Smallest standard drum that passes every check below the target velocity. keep = a drum to recommend
+    anyway (used when the shell loss makes two drums alternate); next size up and alternate are relative to it."""
     mu = air_viscosity_lb_ft_s(duty.exhaust_temp_F)
     ut = terminal_velocity_ft_s(duty.particle_in, duty.particle_density, duty.gas_density_exhaust, mu,
                                 duty.sphericity)
@@ -158,6 +160,8 @@ def select_drum(duty: DrumDuty, rules: DrumRules, diameters: list[float], length
     passing_all = sorted([c for c in cands if c["passes"]], key=lambda c: (c["volume_ft3"], c["diameter_ft"]))
     passing = [c for c in passing_all if not c["above_target_velocity"]]
     rec = passing[0] if passing else None
+    if keep:
+        rec = next(c for c in cands if (c["diameter_ft"], c["length_ft"]) == tuple(keep))
     nxt, alternate = None, None
     if rec:
         bigger = [c for c in passing if c["volume_ft3"] > rec["volume_ft3"] * 1.0001]
@@ -171,7 +175,8 @@ def select_drum(duty: DrumDuty, rules: DrumRules, diameters: list[float], length
                          key=lambda c: -c["volume_ft3"])[:3]
     else:
         smaller = sorted(cands, key=lambda c: (len(c["failed"]), c["volume_ft3"]))[:3]
-    return {**common, "mode": "selected", "recommended": rec, "next_size_up": nxt, "smaller_alternate": alternate,
+    return {**common, "mode": "kept" if keep else "selected", "recommended": rec, "next_size_up": nxt, "smaller_alternate": alternate,
             "candidates_checked": len(cands), "candidates_passing": len(passing),
             "smaller_failing": [{"size": f"{c['diameter_ft']:g} x {c['length_ft']:g} ft", "failed": c["failed"]}
                                 for c in smaller]}
+

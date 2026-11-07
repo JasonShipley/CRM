@@ -34,6 +34,7 @@ from openpyxl.utils import get_column_letter as CL
 from openpyxl.workbook.defined_name import DefinedName
 from openpyxl.worksheet.datavalidation import DataValidation
 
+from . import emissions as EM
 from . import properties as P
 from .combustion import GAS_STOICH, HF298, HFG25_KJ_KMOL
 from .presets import FUELS, MATERIALS, NEMA_HP, STANDARD_DRUM_DIAMETERS_FT, STANDARD_DRUM_LENGTHS_FT
@@ -65,7 +66,7 @@ BOX = Side(style="thin", color=STEEL)
 GRID = Border(left=THIN, right=THIN, top=THIN, bottom=THIN)
 
 FUEL_SHORT = {"natural_gas": "Natural Gas", "propane": "Propane", "no2_oil": "#2 Fuel Oil",
-              "biomass": "Biomass Fuel", "dry_wood": "Dried Biomass Fuel"}
+              "biomass": "Biomass Fuel"}
 GAS_COMPONENTS = ["CH4", "C2H6", "C3H8", "C4H10", "H2", "CO", "CO2", "N2", "O2", "H2S"]
 ULT = ["C", "H", "O", "N", "S", "ash"]
 SPECIES = ["N2", "O2", "Ar", "CO2", "H2O", "SO2"]
@@ -193,28 +194,6 @@ def build_data(bk: Book):
         r += 1
     r += 1
 
-    # materials table
-    ws.cell(r, 2, "Materials").font = _font(10, True, head=True)
-    r += 1
-    mcols = ["label", "cp", "bulk_density_dry", "particle_size_in", "particle_density", "sphericity", "ver_min",
-             "ver_max", "residence_target_min", "max_product_temp_F", "heat_sensitivity", "fire_risk", "sticky",
-             "is_wood", "key"]
-    for j, c in enumerate(mcols):
-        ws.cell(r, 2 + j, c).font = _font(8, True)
-    r += 1
-    r0 = r
-    for key, m in MATERIALS.items():
-        vals = [m["label"], m["cp"]["value"], m["bulk_density_dry"]["value"], m["particle_size_in"]["value"],
-                m["particle_density"]["value"], m["sphericity"]["value"], m["ver_range"]["value"][0],
-                m["ver_range"]["value"][1], m["residence_target_min"]["value"], m["max_product_temp_F"]["value"],
-                m["heat_sensitivity"]["value"], m["fire_risk"]["value"], "Yes" if m["sticky"]["value"] else "No",
-                "Yes" if m["is_wood"] else "No", key]
-        for j, v in enumerate(vals):
-            ws.cell(r, 2 + j, v)
-        r += 1
-    for j, c in enumerate(mcols):
-        bk.name(f"m_{c}", ws, f"${CL(2 + j)}${r0}:${CL(2 + j)}${r - 1}")
-    r += 1
     # fuels table
     ws.cell(r, 2, "Fuels (ultimate analysis dry mass %, gas composition mol %)").font = _font(10, True, head=True)
     r += 1
@@ -287,6 +266,101 @@ def build_data(bk: Book):
             if c.font is None or c.font.name != HEAD_FONT:
                 c.font = Font(name=BODY_FONT, size=c.font.size if c.font and c.font.size else 9,
                               bold=c.font.bold if c.font else False, color=c.font.color if c.font else None)
+    return ws
+
+
+# --------------------------------------------------------------------------------------- Products
+PCOLS = ["label", "key", "is_wood", "protein", "fat", "carbohydrate", "fiber", "ash", "cp", "bulk_density_dry",
+         "particle_size_in", "particle_density", "sphericity", "ver_min", "ver_max", "residence_target_min",
+         "max_product_temp_F", "product_temp_F", "mc_in", "mc_out", "heat_sensitivity", "fire_risk", "sticky", "source"]
+PHEAD = {"label": "Product", "key": "key", "is_wood": "Wood", "protein": "Protein % dry", "fat": "Fat % dry",
+         "carbohydrate": "Carbohydrate % dry", "fiber": "Fiber % dry", "ash": "Ash % dry",
+         "cp": "Cp dry solids BTU/lb-F", "bulk_density_dry": "Bulk density dry lb/ft3",
+         "particle_size_in": "Particle dia in", "particle_density": "Particle density lb/ft3",
+         "sphericity": "Sphericity", "ver_min": "VER low", "ver_max": "VER high",
+         "residence_target_min": "Residence min", "max_product_temp_F": "Max product F",
+         "product_temp_F": "Discharge F", "mc_in": "Typical MC in % wb", "mc_out": "Typical MC out % wb",
+         "heat_sensitivity": "Heat sensitivity", "fire_risk": "Fire risk", "sticky": "Sticky", "source": "Sources"}
+
+
+def build_products(bk: Book):
+    from .presets import CHOI_OKOS, T_CP_MEAN_C
+    ws = bk.sheet("Products")
+    ws.column_dimensions["A"].width = 2
+    ws.cell(1, 2, "PRODUCT LIBRARY").font = _font(14, True, head=True)
+    ws.cell(2, 2, "Picked on the Inputs sheet; every value can be overridden there. Cp is for the DRY solids (water is "
+                  "counted separately): wood by the USDA Wood Handbook equation, other products by Choi & Okos (1986) "
+                  "from the dry composition (ASHRAE Handbook Refrigeration Ch.19), at 130 F.").font = \
+        _font(8, italic=True, color=STEEL)
+    r = 4
+    ws.cell(r, 2, "Cp evaluation temperature").font = _font(9)
+    ws.cell(r, 3, T_CP_MEAN_C)
+    ws.cell(r, 4, "C (130 F)")
+    bk.name("k_TcpC", ws, _abs(3, r))
+    r += 1
+    ws.cell(r, 2, "kJ/kg-K to BTU/lb-F").font = _font(9)
+    ws.cell(r, 3, 0.238845897)
+    bk.name("k_CpConv", ws, _abs(3, r))
+    r += 2
+    ws.cell(r, 2, "Choi & Okos component cp = a + b t + c t^2 (kJ/kg-K, t in C)").font = _font(9, True)
+    r += 1
+    for j, h in enumerate(["component", "a", "b", "c"]):
+        ws.cell(r, 2 + j, h).font = _font(8, True)
+    r += 1
+    for comp, (a, b, c) in CHOI_OKOS.items():
+        ws.cell(r, 2, comp)
+        for j, val in enumerate((a, b, c)):
+            ws.cell(r, 3 + j, val)
+            bk.name(f"co_{comp[:4]}_{'abc'[j]}", ws, _abs(3 + j, r))
+        r += 1
+    r += 1
+    for j, c in enumerate(PCOLS):
+        cell = ws.cell(r, 2 + j, PHEAD[c])
+        cell.font = _font(8, True, WHITE)
+        cell.fill = _fill(BLACK)
+        cell.alignment = Alignment(wrap_text=True, vertical="top")
+    ws.row_dimensions[r].height = 36
+    r += 1
+    r0 = r
+    C = {c: 2 + j for j, c in enumerate(PCOLS)}
+    for key, m in MATERIALS.items():
+        comp = (m.get("composition") or {}).get("value") or {}
+        vals = {"label": m["label"], "key": key, "is_wood": "Yes" if m["is_wood"] else "No",
+                "bulk_density_dry": m["bulk_density_dry"]["value"], "particle_size_in": m["particle_size_in"]["value"],
+                "particle_density": m["particle_density"]["value"], "sphericity": m["sphericity"]["value"],
+                "ver_min": m["ver_range"]["value"][0], "ver_max": m["ver_range"]["value"][1],
+                "residence_target_min": m["residence_target_min"]["value"],
+                "max_product_temp_F": m["max_product_temp_F"]["value"], "product_temp_F": m["product_temp_F"]["value"],
+                "mc_in": m["mc_in"]["value"], "mc_out": m["mc_out"]["value"],
+                "heat_sensitivity": m["heat_sensitivity"]["value"], "fire_risk": m["fire_risk"]["value"],
+                "sticky": "Yes" if m["sticky"]["value"] else "No"}
+        for k in ("protein", "fat", "carbohydrate", "fiber", "ash"):
+            vals[k] = comp.get(k, 0.0)
+        src = [f"cp: {m['cp']['source']}"]
+        if comp:
+            src.append(f"composition: {m['composition']['source']}")
+        src.append("Other properties: MCE assumption, confirm unless noted in presets.py.")
+        vals["source"] = " ".join(src)
+        for k, val in vals.items():
+            ws.cell(r, C[k], val)
+        cc = {k: f"{CL(C[k])}{r}" for k in ("protein", "fat", "carbohydrate", "fiber", "ash", "is_wood")}
+        t = "k_TcpC"
+        terms = "+".join(f"{cc[k]}*(co_{k[:4]}_a+co_{k[:4]}_b*{t}+co_{k[:4]}_c*{t}^2)"
+                         for k in ("protein", "fat", "carbohydrate", "fiber", "ash"))
+        tot = f"({cc['protein']}+{cc['fat']}+{cc['carbohydrate']}+{cc['fiber']}+{cc['ash']})"
+        ws.cell(r, C["cp"], f'=IF(OR({cc["is_wood"]}="Yes",{tot}=0),(0.1031+0.003867*({t}+273.15))*k_CpConv,'
+                            f'({terms})/{tot}*k_CpConv)').number_format = "0.0000"
+        r += 1
+    for c in PCOLS:
+        bk.name(f"m_{c}", ws, f"${CL(C[c])}${r0}:${CL(C[c])}${r - 1}")
+    for c in range(3, 2 + len(PCOLS)):
+        ws.column_dimensions[CL(c)].width = 10
+    ws.column_dimensions["B"].width = 30
+    ws.column_dimensions[CL(C["source"])].width = 110
+    for row in ws.iter_rows(min_row=r0, max_row=r - 1):
+        for cell in row:
+            cell.font = _font(8)
+    ws.freeze_panes = ws.cell(r0, 3)
     return ws
 
 
@@ -371,18 +445,20 @@ def build_inputs(bk: Book, entries: dict[str, Any], job: dict[str, str]):
         w.add(nm, lab, job.get(nm, ""), text=True)
     mrow = "MATCH(p_Material,m_label,0)"
     w.section("Process")
-    w.add("p_Material", "Material", MATERIALS["wood_shavings"]["label"], src="pull-down", pick="m_label", text=True)
-    w.add("p_Throughput", "Throughput", 3000, "per unit below", 1, 400000, "Test case 1.5 TPH wet")
-    w.add("p_TUnit", "Throughput unit", "lb/hr", src="pull-down", pick="l_TUnit", text=True)
+    w.add("p_Material", "Product", MATERIALS["wood_shavings"]["label"], src="pull-down (Products sheet)", pick="m_label",
+          text=True)
+    w.add("p_Throughput", "Throughput", 1.5, "per unit below", 0.001, 400000, "Test case 1.5 TPH wet")
+    w.add("p_TUnit", "Throughput unit", "TPH", src="pull-down", pick="l_TUnit", text=True)
     w.add("p_TBasis", "Throughput basis", "wet_feed", src="wet_feed / dry_solids / product", pick="l_TBasis",
           text=True)
-    w.add("p_MCin", "Infeed moisture", 50, "% wet basis", 2, 75, "Test case")
-    w.add("p_MCout", "Product moisture", 10, "% wet basis", 0.5, 40, "SHEET Input F15")
+    w.add("p_MCin", "Infeed moisture", f"=INDEX(m_mc_in,{mrow})", "% wet basis", 2, 90, "product typical value")
+    w.add("p_MCout", "Product moisture", f"=INDEX(m_mc_out,{mrow})", "% wet basis", 0.5, 40, "product typical value")
     w.add("p_BmRatio", "Backmix ratio", 0, "lb / lb fresh wet feed", 0, 3, "SHEET Input A14")
     w.add("p_BmMC", "Backmix moisture", "=p_MCout", "% wet basis", 0.5, 40, "= product MC")
     w.add("p_BmT", "Backmix temperature", "=s_Tamb", "F", -20, 250, "= ambient (conservative)")
     w.add("p_FeedT", "Fresh feed temperature", "=s_Tamb", "F", -20, 200, "= ambient")
-    w.add("p_ProdT", "Product discharge temperature", 200, "F", 100, 400, "SHEET Input F14")
+    w.add("p_ProdT", "Product discharge temperature", f"=INDEX(m_product_temp_F,{mrow})", "F", 100, 400,
+          "product preset")
     w.add("p_Cp", "Material specific heat (dry)", f"=INDEX(m_cp,{mrow})", "BTU/lb-F", 0.2, 0.9, "material preset")
     w.add("p_RhoDry", "Bulk density, dry product", f"=INDEX(m_bulk_density_dry,{mrow})", "lb/ft3", 2, 120,
           "material preset")
@@ -402,13 +478,15 @@ def build_inputs(bk: Book, entries: dict[str, Any], job: dict[str, str]):
           "material preset")
     w.add("p_Fire", "Fire risk class", f"=INDEX(m_fire_risk,{mrow})", "", src="material preset", text=True)
     w.add("p_Hours", "Operating hours per year", 7500, "hr/yr", 100, 8760, "SHEET Input H31")
+    w.add("p_VOC", "Product VOC factor", 0, "lb VOC/oven-dry ton", 0, 20,
+          "0 = not estimated; AP-42 Ch.10.6 or a stack test (wood)")
     w.section("Site")
     w.add("s_Tamb", "Ambient temperature", 60, "F", -40, 120, "SHEET Input D4")
     w.add("s_W", "Ambient humidity ratio", 0.002, "lb H2O/lb dry air", 0, 0.03, "SHEET Input D6")
     w.add("s_Elev", "Elevation", 1200, "ft", -300, 10000, "SHEET Input A10")
     frow = "MATCH(f_Fuel,fu_label,0)"
     w.section("Fuel and burner")
-    w.add("f_Fuel", "Fuel", FUELS["dry_wood"]["label"], src="pull-down", pick="fu_label", text=True)
+    w.add("f_Fuel", "Fuel / burner", FUELS["biomass"]["label"], src="pull-down", pick="fu_label", text=True)
     w.add("f_HV", "Heating value", f"=INDEX(fu_heating_value,{frow})", "BTU/lb", 1000, 25000, "fuel preset")
     w.add("f_HVbasis", "Heating value basis", f"=INDEX(fu_heating_value_basis,{frow})", "", src="fuel preset",
           pick="l_HVbasis", text=True)
@@ -472,6 +550,7 @@ def build_inputs(bk: Book, entries: dict[str, Any], job: dict[str, str]):
           pick="l_SPbasis", text=True)
     w.add("a_FanEff", "Fan static efficiency", 0.571, "fraction", 0.3, 0.9, "SHEET factor 1.75 = 1/0.571")
     w.add("a_FanStatic", "Static pressure at fan inlet", 0, "in. w.c. gauge", -60, 10, "0 = site pressure")
+    w.add("a_Grain", "Collector outlet loading (stack PM)", 0.02, "gr/dscf", 0.001, 0.5, "MCE assumption, confirm")
     w.add("a_VFD", "Fan VFD or inlet damper", "Yes", "", src="No = motor sized for cold start", pick="l_YesNo",
           text=True)
     ws.freeze_panes = "C6"
@@ -514,6 +593,7 @@ class CalcWriter:
         return r
 
 
+N_CHECKS = 20
 LB2KG = "X*0.45359237"
 BTU2KW = "X*0.000293071"
 F2C = "(X-32)/1.8"
@@ -600,8 +680,9 @@ def build_gas_and_calc(bk: Book):
     w.section("c. Fuel and combustion (per lb fuel as fired)")
     w.put("d_FuelKind", "Fuel kind", "=INDEX(fu_kind,MATCH(f_Fuel,fu_label,0))", "", "@")
     w.put("d_IsGas", "Gas fuel (1/0)", '=IF(d_FuelKind="gas",1,0)', "", "0")
-    w.put("d_IsWood", "Wood fuel (1/0)", '=IF(OR(INDEX(fu_key,MATCH(f_Fuel,fu_label,0))="dry_wood",'
-                                         'INDEX(fu_key,MATCH(f_Fuel,fu_label,0))="biomass"),1,0)', "", "0")
+    w.put("d_IsWood", "Biomass (wood) fuel (1/0)", '=IF(INDEX(fu_key,MATCH(f_Fuel,fu_label,0))="biomass",1,0)', "", "0")
+    w.put("d_SelfFuel", "Burner fires the dried product (1/0)",
+          '=IF(AND(d_IsWood=1,INDEX(m_is_wood,MATCH(p_Material,m_label,0))="Yes"),1,0)', "", "0")
     w.put("d_M", "Fuel moisture (fraction)", "=IF(d_IsGas=1,0,f_MC/100)", "", "0.0000")
     w.put("d_UltSum", "Ultimate analysis sum (dry)", "=f_uC+f_uH+f_uO+f_uN+f_uS+f_uash", "%", "0.00",
           "must be 100 +/- 0.5")
@@ -831,9 +912,11 @@ def build_gas_and_calc(bk: Book):
     w.put("d_Forced", "Forced drum (1/0)", "=IF(AND(r_ForceD>0,r_ForceL>0),1,0)", "", "0")
     passes = {}
     for p, ua in (("A", "=0*d_UAon"), ("B", "=d_UAon*r_U*IF(d_Forced=1,PI()*r_ForceD*r_ForceL,dr_A_Shell)"),
-                  ("C", "=d_UAon*r_U*IF(d_Forced=1,PI()*r_ForceD*r_ForceL,dr_B_Shell)")):
+                  ("C", "=d_UAon*r_U*IF(d_Forced=1,PI()*r_ForceD*r_ForceL,dr_B_Shell)"),
+                  ("D", "=IF(d_DrumAlternates=1,d_UAon*r_U*PI()*dr_Z_D*dr_Z_L,d_UA_C)")):
         w.put(f"d_UA_{p}", f"Pass {p}: shell UA", ua, "BTU/hr-F", "#,##0.0",
-              {"A": "no shell loss", "B": "UA from the pass A drum", "C": "UA from the pass B drum"}[p])
+              {"A": "no shell loss", "B": "UA from the pass A drum", "C": "UA from the pass B drum",
+               "D": "final: = pass C, or the kept drum when the pass B and C drums alternate"}[p])
         w.put(f"d_C2_{p}", f"Pass {p}: drum constant", f"=d_C2base-d_UA_{p}*d_dT_shell", "BTU/hr", "#,##0.0")
         w.put(f"d_mf_{p}", f"Pass {p}: fuel", f"=(-d_C1*d_B2+d_C2_{p}*d_B1)/d_Det", "lb/hr", "#,##0.00")
         w.put(f"d_md_{p}", f"Pass {p}: dilution air", f"=(-d_A1*d_C2_{p}+d_A2*d_C1)/d_Det", "lb/hr", "#,##0.0")
@@ -847,12 +930,12 @@ def build_gas_and_calc(bk: Book):
               f"=(SUM(g_Ef)*d_mf_{p}+SUM(g_Ed)*d_md_{p}+SUM(g_E0))*k_R*(r_Texh+459.67)/d_Psite/60", "ACFM",
               "#,##0.0")
         passes[p] = True
-    w.put("d_mf", "FUEL", "=d_mf_C", "lb/hr", "#,##0.00", "final (pass C)", si=(LB2KG, "kg/h"))
-    w.put("d_md", "DILUTION (MAKE-UP) AIR", "=d_md_C", "lb/hr", "#,##0.0", "negative = inlet temperature not "
+    w.put("d_mf", "FUEL", "=d_mf_D", "lb/hr", "#,##0.00", "final (pass D)", si=(LB2KG, "kg/h"))
+    w.put("d_md", "DILUTION (MAKE-UP) AIR", "=d_md_D", "lb/hr", "#,##0.0", "negative = inlet temperature not "
                                                                          "reachable at this excess air",
           si=(LB2KG, "kg/h"))
     w.put("d_ResFurnace", "Furnace balance residual", "=d_A1*d_mf+d_B1*d_md+d_C1", "BTU/hr", "0.0E+00")
-    w.put("d_ResDrum", "Drum balance residual", "=d_A2*d_mf+d_B2*d_md+d_C2_C", "BTU/hr", "0.0E+00")
+    w.put("d_ResDrum", "Drum balance residual", "=d_A2*d_mf+d_B2*d_md+d_C2_D", "BTU/hr", "0.0E+00")
 
     # ---- psychrometrics
     w.section("Exhaust psychrometrics (IAPWS-IF97 Region 4)")
@@ -883,7 +966,7 @@ def build_gas_and_calc(bk: Book):
     # ---- losses and energy balance
     w.section("e. Losses and energy balance (LHV basis)")
     w.put("d_Qfuel", "Fuel input (LHV)", "=d_mf*d_LHV", "BTU/hr", "#,##0", si=(BTU2KW, "kW"))
-    w.put("d_Qshell", "Shell loss", '=IF(r_ShellMethod="UA",d_UA_C*d_dT_shell,r_ShellPct/100*d_Qfuel)', "BTU/hr",
+    w.put("d_Qshell", "Shell loss", '=IF(r_ShellMethod="UA",d_UA_D*d_dT_shell,r_ShellPct/100*d_Qfuel)', "BTU/hr",
           "#,##0", si=(BTU2KW, "kW"))
     w.put("d_Qfurnace", "Furnace loss (unburned + radiation)", "=(1-f_Eff)*d_Qfuel", "BTU/hr", "#,##0")
     w.put("d_Qrecduct", "Recycle duct loss", "=SUMPRODUCT(g_sRC,g_hTexh)-SUMPRODUCT(g_sRC,g_hTrec)", "BTU/hr", "#,##0")
@@ -921,14 +1004,14 @@ def build_gas_and_calc(bk: Book):
     w.put("d_AnnFuel", "Annual fuel", "=d_mf*p_Hours/2000", "tons/yr", "#,##0")
     w.put("d_AnnMMBtu", "Annual fuel energy (LHV)", "=d_BurnerOp*p_Hours", "MMBtu/yr", "#,##0")
     w.put("d_AnnProduct", "Annual product", "=d_Product*p_Hours/2000", "tons/yr", "#,##0")
-    w.put("d_NetProduct", "Net product after self-fueling", "=IF(d_IsWood=1,d_Product-d_mf,d_Product)", "lb/hr",
+    w.put("d_NetProduct", "Net product after self-fueling", "=IF(d_SelfFuel=1,d_Product-d_mf,d_Product)", "lb/hr",
           "#,##0", "wood or biomass fuel = dried product")
-    w.put("d_FracBurned", "Share of product burned", "=IF(d_IsWood=1,d_mf/d_Product,0)", "", "0.0%")
+    w.put("d_FracBurned", "Share of product burned", "=IF(d_SelfFuel=1,d_mf/d_Product,0)", "", "0.0%")
 
     # ---- drum (from Drum sheet)
     w.section("g. Drum (from the Drum sheet)")
-    w.put("d_DrumD", "Drum diameter", "=IF(d_Forced=1,r_ForceD,dr_C_D)", "ft", "0", si=("X*0.3048", "m"))
-    w.put("d_DrumL", "Drum length", "=IF(d_Forced=1,r_ForceL,dr_C_L)", "ft", "0", si=("X*0.3048", "m"))
+    w.put("d_DrumD", "Drum diameter", "=IF(d_Forced=1,r_ForceD,dr_D_D)", "ft", "0", si=("X*0.3048", "m"))
+    w.put("d_DrumL", "Drum length", "=IF(d_Forced=1,r_ForceL,dr_D_L)", "ft", "0", si=("X*0.3048", "m"))
     for nm, lab, key, fmt, unit in (("d_DrumVER", "VER", "VER", "0.00", "lb H2O/hr-ft3"),
                                     ("d_DrumVel", "Gas velocity (free area)", "Vel", "#,##0", "FPM"),
                                     ("d_DrumRes", "Residence time", "Theta", "0.0", "min"),
@@ -939,15 +1022,16 @@ def build_gas_and_calc(bk: Book):
                                     ("d_DrumLD", "L/D", "LD", "0.00", ""),
                                     ("d_DrumPass", "Passes all checks (1/0)", "PassAll", "0", ""),
                                     ("d_DrumGasTerm", "F&M gas drag term", "GasTerm", "0.00", "min")):
-        w.put(nm, lab, f"=IF(d_Forced=1,dr_F_{key},dr_C_{key})", unit, fmt)
+        w.put(nm, lab, f"=IF(d_Forced=1,dr_F_{key},dr_D_{key})", unit, fmt)
     w.put("d_DrumSize", "Recommended drum",
           '=IF(d_DrumD>0,TEXT(d_DrumD,"0")&" ft dia x "&TEXT(d_DrumL,"0")&" ft long","NONE PASSES")', "", "@")
     w.put("d_DrumNext", "Next size up",
-          '=IF(AND(d_Forced=0,dr_C_NextD>0),TEXT(dr_C_NextD,"0")&" ft x "&TEXT(dr_C_NextL,"0")&" ft","-")', "", "@")
+          '=IF(AND(d_Forced=0,dr_D_NextD>0),TEXT(dr_D_NextD,"0")&" ft x "&TEXT(dr_D_NextL,"0")&" ft","-")', "", "@")
     w.put("d_DrumAlt", "Smaller alternate (slightly over target velocity)",
-          '=IF(AND(d_Forced=0,dr_C_AltD>0),TEXT(dr_C_AltD,"0")&" ft x "&TEXT(dr_C_AltL,"0")&" ft","-")', "", "@")
-    w.put("d_DrumChanged", "Drum changed in the last pass (1/0)",
-          "=IF(AND(d_Forced=0,d_UAon=1,OR(dr_B_D<>dr_C_D,dr_B_L<>dr_C_L)),1,0)", "", "0")
+          '=IF(AND(d_Forced=0,dr_D_AltD>0),TEXT(dr_D_AltD,"0")&" ft x "&TEXT(dr_D_AltL,"0")&" ft","-")', "", "@")
+    w.put("d_DrumAlternates", "Pass B and C drums alternate (1/0)",
+          "=IF(AND(d_Forced=0,d_UAon=1,dr_B_D>0,dr_C_D>0,OR(dr_B_D<>dr_C_D,dr_B_L<>dr_C_L)),1,0)", "", "0",
+          "each drum's shell loss selects the other: the larger diameter is kept (pass D)")
 
     # ---- air system
     w.section("h. Air system")
@@ -1017,7 +1101,9 @@ def build_gas_and_calc(bk: Book):
         ("ck_Drum", '=IF(d_DrumD=0,"No standard drum passes every check: raise inlet temperature or split the '
                     'duty.",IF(d_DrumPass=0,"The forced drum fails a check.",""))'),
         ("ck_Long", '=IF(d_DrumL>r_Lnormal,"Drum is longer than the normal "&TEXT(r_Lnormal,"0")&" ft.","")'),
-        ("ck_Changed", '=IF(d_DrumChanged=1,"Drum changed in the last shell-loss pass: check the next size.","")'),
+        ("ck_Changed", '=IF(d_DrumAlternates=1,"Shell loss makes two drums alternate: the larger diameter is kept with '
+                       'its own shell loss.","")'),
+        ("ck_Kept", '=IF(AND(d_DrumAlternates=1,dr_D_PassAll=0),"The kept drum fails a check at its own gas flow.","")'),
         ("ck_Convey", '=IF(d_ConveyOK=0,"Air conveying check not met (gas ratio or duct velocity).","")'),
         ("ck_Fire", '=IF(AND(p_Fire="high",r_Tin>k_FireT),"High fire risk material above "&TEXT(k_FireT,"#,##0")&'
                     '" F inlet.","")'),
@@ -1026,6 +1112,10 @@ def build_gas_and_calc(bk: Book):
         ("ck_Range", '=IF(COUNTIF(Inputs!$I$1:$I$200,"OUT OF RANGE")>0,COUNTIF(Inputs!$I$1:$I$200,"OUT OF RANGE")'
                      '&" input(s) out of range on the Inputs sheet.","")'),
     ]
+    crit = "+".join(f'(em_{k}_pte>=em_Major)*1' for k in ("NOx", "CO", "SO2", "PM", "VOC"))
+    checks.append(("ck_PTE", f'=IF(({crit})>0,"Potential to emit is at or above "&TEXT(em_Major,"0")&" tpy for one or '
+                             f'more pollutants: see the Emissions sheet.","")'))
+    assert len(checks) == N_CHECKS, len(checks)
     ck0 = w.r
     for nm, f in checks:
         w.put(nm, nm.replace("ck_", "Check: "), f, "", "@")
@@ -1109,17 +1199,17 @@ def build_drum(bk: Book):
         bk.name(nm, ws, _abs(3, r))
         r += 1
     # terminal velocity: fixed-point iteration, one column per pass (each pass uses its own exhaust density)
-    ws.cell(r, 2, "Terminal velocity iteration (ft/s), pass A / B / C").font = _font(9, True)
+    ws.cell(r, 2, "Terminal velocity iteration (ft/s), pass A / B / C / D").font = _font(9, True)
     r += 1
     ws.cell(r, 2, "Exhaust gas density")
-    for j, p in enumerate("ABC"):
+    for j, p in enumerate("ABCD"):
         ws.cell(r, 3 + 2 * j, f"=d_GoutMass_{p}/60/d_ACFM_{p}").number_format = "0.00000"
         bk.name(f"dr_RhoG_{p}", ws, _abs(3 + 2 * j, r))
     r += 1
     it0 = r
     for i in range(40):
         rr = it0 + i
-        for j, p in enumerate("ABC"):
+        for j, p in enumerate("ABCD"):
             uc, cc = CL(3 + 2 * j), CL(4 + 2 * j)
             rho = f"dr_RhoG_{p}"
             if i == 0:
@@ -1129,14 +1219,16 @@ def build_drum(bk: Book):
             re = f"MAX({rho}*{uc}{rr}*dr_dft/dr_Mu,1E-12)"
             ws.cell(rr, 4 + 2 * j, f"=24/{re}*(1+dr_HA*{re}^dr_HB)+dr_HC/(1+dr_HD/{re})")
         ws.row_dimensions[rr].hidden = i not in (0, 39)
-    for j, p in enumerate("ABC"):
+    for j, p in enumerate("ABCD"):
         bk.name(f"dr_Ut_{p}", ws, _abs(3 + 2 * j, it0 + 39))
     ws.cell(it0 + 39, 2, "Terminal velocity, converged (ft/s)")
     r = it0 + 41
     sizes = [(d, l) for d in STANDARD_DRUM_DIAMETERS_FT for l in STANDARD_DRUM_LENGTHS_FT]
-    for p in ("A", "B", "C"):
+    nL = len(STANDARD_DRUM_LENGTHS_FT)
+    for p in ("A", "B", "C", "D"):
         ws.cell(r, 2, f"Pass {p}: shell loss from "
-                      + {"A": "none", "B": "the pass A drum", "C": "the pass B drum (final)"}[p]).font = \
+                      + {"A": "none", "B": "the pass A drum", "C": "the pass B drum",
+                         "D": "the pass C drum, or the kept drum when B and C alternate (final)"}[p]).font = \
             _font(10, True, ORANGE, head=True)
         sel0 = r + 1
         top = sel0 + 8
@@ -1144,41 +1236,58 @@ def build_drum(bk: Book):
                             {"acfm": f"d_ACFM_{p}", "gin": f"d_GinMass_{p}", "gout": f"d_GoutMass_{p}",
                              "ut": f"dr_Ut_{p}"})
         rng = lambda k: f"${CL(Cc[k])}${top + 1}:${CL(Cc[k])}${rN}"  # noqa: E731
-        sel = [("VolRec", f"=_xlfn.MINIFS({rng('Vol')},{rng('PassT')},1)"),
-               ("Row", f"=IF(dr_{p}_VolRec>0,MATCH(dr_{p}_VolRec,{rng('VolT')},0),0)"),
-               ("D", f"=IF(dr_{p}_Row>0,INDEX({rng('D')},dr_{p}_Row),0)"),
-               ("L", f"=IF(dr_{p}_Row>0,INDEX({rng('L')},dr_{p}_Row),0)"),
-               ("Shell", f"=PI()*dr_{p}_D*dr_{p}_L"),
-               ("NextVol", f"=IF(dr_{p}_VolRec>0,_xlfn.MINIFS({rng('Vol')},{rng('PassT')},1,{rng('Vol')},"
-                           f"\">\"&dr_{p}_VolRec*1.0001),0)"),
-               ("AltVol", f"=_xlfn.MINIFS({rng('Vol')},{rng('PassAll')},1,{rng('Above')},1,{rng('Vol')},"
-                          f"\"<\"&IF(dr_{p}_VolRec>0,dr_{p}_VolRec*0.9999,1E+99))")]
+        lrng = f"${CL(Cc['L'])}${top + 1}:${CL(Cc['L'])}${top + nL}"
+        if p == "D":
+            sel = [("VolMin", f"=_xlfn.MINIFS({rng('Vol')},{rng('PassT')},1)"),
+                   ("Row", f"=IF(d_DrumAlternates=1,MATCH(dr_Z_D,{rng('D')},0)+MATCH(dr_Z_L,{lrng},0)-1,"
+                           f"IF(dr_D_VolMin>0,MATCH(dr_D_VolMin,{rng('VolT')},0),0))"),
+                   ("VolRec", f"=IF(dr_D_Row>0,INDEX({rng('Vol')},dr_D_Row),0)")]
+        else:
+            sel = [("VolRec", f"=_xlfn.MINIFS({rng('Vol')},{rng('PassT')},1)"),
+                   ("Row", f"=IF(dr_{p}_VolRec>0,MATCH(dr_{p}_VolRec,{rng('VolT')},0),0)")]
+        sel += [
+                ("D", f"=IF(dr_{p}_Row>0,INDEX({rng('D')},dr_{p}_Row),0)"),
+                ("L", f"=IF(dr_{p}_Row>0,INDEX({rng('L')},dr_{p}_Row),0)"),
+                ("Shell", f"=PI()*dr_{p}_D*dr_{p}_L"),
+                ("NextVol", f"=IF(dr_{p}_VolRec>0,_xlfn.MINIFS({rng('Vol')},{rng('PassT')},1,{rng('Vol')},"
+                            f"\">\"&dr_{p}_VolRec*1.0001),0)"),
+                ("AltVol", f"=_xlfn.MINIFS({rng('Vol')},{rng('PassAll')},1,{rng('Above')},1,{rng('Vol')},"
+                           f"\"<\"&IF(dr_{p}_VolRec>0,dr_{p}_VolRec*0.9999,1E+99))")]
         for i, (k, f) in enumerate(sel):
             ws.cell(sel0 + i, 2, f"Pass {p} {k}")
             ws.cell(sel0 + i, 3, f)
             bk.name(f"dr_{p}_{k}", ws, _abs(3, sel0 + i))
-        if p == "C":
+        if p == "D":
             ws.cell(sel0, 5, "Next D")
-            ws.cell(sel0, 6, f"=IF(dr_C_NextVol>0,INDEX({rng('D')},MATCH(dr_C_NextVol,{rng('VolT')},0)),0)")
+            ws.cell(sel0, 6, f"=IF(dr_D_NextVol>0,INDEX({rng('D')},MATCH(dr_D_NextVol,{rng('VolT')},0)),0)")
             ws.cell(sel0 + 1, 5, "Next L")
-            ws.cell(sel0 + 1, 6, f"=IF(dr_C_NextVol>0,INDEX({rng('L')},MATCH(dr_C_NextVol,{rng('VolT')},0)),0)")
+            ws.cell(sel0 + 1, 6, f"=IF(dr_D_NextVol>0,INDEX({rng('L')},MATCH(dr_D_NextVol,{rng('VolT')},0)),0)")
             ws.cell(sel0 + 2, 5, "Alt D")
-            ws.cell(sel0 + 2, 6, f"=IF(dr_C_AltVol>0,INDEX({rng('D')},MATCH(dr_C_AltVol,{rng('Vol')},0)),0)")
+            ws.cell(sel0 + 2, 6, f"=IF(dr_D_AltVol>0,INDEX({rng('D')},MATCH(dr_D_AltVol,{rng('Vol')},0)),0)")
             ws.cell(sel0 + 3, 5, "Alt L")
-            ws.cell(sel0 + 3, 6, f"=IF(dr_C_AltVol>0,INDEX({rng('L')},MATCH(dr_C_AltVol,{rng('Vol')},0)),0)")
+            ws.cell(sel0 + 3, 6, f"=IF(dr_D_AltVol>0,INDEX({rng('L')},MATCH(dr_D_AltVol,{rng('Vol')},0)),0)")
             for i, k in enumerate(["NextD", "NextL", "AltD", "AltL"]):
-                bk.name(f"dr_C_{k}", ws, _abs(6, sel0 + i))
+                bk.name(f"dr_D_{k}", ws, _abs(6, sel0 + i))
+            # kept drum when the pass B and C drums alternate: the larger diameter (then length)
+            ws.cell(sel0 + 6, 5, "Kept D")
+            ws.cell(sel0 + 6, 6, "=IF(d_DrumAlternates=1,IF(OR(dr_B_D>dr_C_D,AND(dr_B_D=dr_C_D,dr_B_L>dr_C_L)),dr_B_D,"
+                                 "dr_C_D),dr_C_D)")
+            ws.cell(sel0 + 7, 5, "Kept L")
+            ws.cell(sel0 + 7, 6, "=IF(d_DrumAlternates=1,IF(OR(dr_B_D>dr_C_D,AND(dr_B_D=dr_C_D,dr_B_L>dr_C_L)),dr_B_L,"
+                                 "dr_C_L),dr_C_L)")
+            bk.name("dr_Z_D", ws, _abs(6, sel0 + 6))
+            bk.name("dr_Z_L", ws, _abs(6, sel0 + 7))
             # selected drum metrics
             mrow = sel0 + 4
             for j, k in enumerate(["VER", "Vel", "Theta", "Fill", "Slope", "N", "Nc", "LD", "PassAll", "GasTerm"]):
                 ws.cell(mrow + (j // 5), 5 + 2 * (j % 5), k)
-                ws.cell(mrow + (j // 5), 6 + 2 * (j % 5), f"=IF(dr_C_Row>0,INDEX({rng(k)},dr_C_Row),0)")
-                bk.name(f"dr_C_{k}", ws, _abs(6 + 2 * (j % 5), mrow + (j // 5)))
+                ws.cell(mrow + (j // 5), 6 + 2 * (j % 5), f"=IF(dr_D_Row>0,INDEX({rng(k)},dr_D_Row),0)")
+                bk.name(f"dr_D_{k}", ws, _abs(6 + 2 * (j % 5), mrow + (j // 5)))
         r = rN + 3
     # forced drum row
     ws.cell(r, 2, "Forced drum (Inputs: force diameter and length)").font = _font(10, True, ORANGE, head=True)
-    Cf, rN = _drum_rows(ws, r + 2, [(0, 0)], "F", {"acfm": "d_ACFM_C", "gin": "d_GinMass_C", "gout": "d_GoutMass_C",
-                                                         "ut": "dr_Ut_C"})
+    Cf, rN = _drum_rows(ws, r + 2, [(0, 0)], "F", {"acfm": "d_ACFM_D", "gin": "d_GinMass_D", "gout": "d_GoutMass_D",
+                                                         "ut": "dr_Ut_D"})
     ws.cell(r + 2, Cf["D"], "=MAX(r_ForceD,1)")
     ws.cell(r + 2, Cf["L"], "=MAX(r_ForceL,1)")
     for k in ["VER", "Vel", "Theta", "Fill", "Slope", "N", "Nc", "LD", "PassAll", "GasTerm"]:
@@ -1354,8 +1463,8 @@ def build_diagram(bk: Book):
         ("=p_MCout/100", "moisture", "0.00%"), ("=d_Solids", "lb/hr solids", "#,##0"),
         ("=d_WaterOut", "lb/hr water", "#,##0"), ("=d_Product", "lb/hr total", "#,##0"),
         ("=p_ProdT", "deg F", "0")])
-    _box(ws, 27, 31, 6, '=IF(d_IsWood=1,"Dry Fuel to Burner","Fuel")', [
-        ("=IF(d_IsWood=1,d_mf,0)", "lb/hr", "#,##0")])
+    _box(ws, 27, 31, 6, '=IF(d_SelfFuel=1,"Dry Fuel to Burner","Fuel to Burner")', [
+        ('=IF(d_IsGas=1,d_FuelSCFH,d_mf)', '=IF(d_IsGas=1,"SCFH","lb/hr")', "#,##0")])
     _box(ws, 27, 34, 6, "Net Dry Product", [("=d_NetProduct", "lb/hr", "#,##0")])
 
     # evaporation call-out
@@ -1549,6 +1658,295 @@ def build_notes(bk: Book):
         ws.row_dimensions[3 + i].height = 30
 
 
+# --------------------------------------------------------------------------------------- reports
+def _sheet_head(ws, title, sub, widths):
+    for k, v in widths.items():
+        ws.column_dimensions[k].width = v
+    ws.cell(1, 2, "MIDWEST CUSTOM ENGINEERING").font = _font(14, True, head=True)
+    ws.cell(2, 2, title).font = _font(11, True, ORANGE, head=True)
+    c = ws.cell(3, 2, sub)
+    c.font = _font(8, italic=True, color=STEEL)
+    ws.cell(4, 2, '="Job "&IF(j_Job="","-",j_Job)&"   Customer "&IF(j_Customer="","-",j_Customer)&"   "&p_Material&", "'
+                  '&TEXT(d_T,"#,##0")&" lb/hr, "&TEXT(p_MCin,"0.0")&"% to "&TEXT(p_MCout,"0.0")&"% MC, "&f_Fuel').font = \
+        _font(9, True)
+
+
+def _hdr(ws, r, heads, c0=2):
+    for j, h in enumerate(heads):
+        c = ws.cell(r, c0 + j, h)
+        c.font = _font(9, True, WHITE, head=True)
+        c.fill = _fill(BLACK)
+        c.alignment = Alignment(wrap_text=True, vertical="top")
+
+
+EM_POLL = [("NOx", "Nitrogen oxides"), ("CO", "Carbon monoxide"), ("SO2", "Sulfur dioxide"),
+           ("PM", "Particulate (stack)"), ("VOC", "Volatile organic compounds"), ("CO2", "Carbon dioxide")]
+
+
+def build_emissions(bk: Book):
+    ws = bk.sheet("Emissions")
+    _sheet_head(ws, "Emissions estimate (potential to emit)",
+                "Screening estimate for permitting discussions. The burner vendor's guarantee and the state permit "
+                "govern. Verify factors against the current AP-42 edition before an application.",
+                {"A": 1.5, "B": 34, "C": 15, "D": 15, "E": 15, "F": 15, "G": 90})
+    # factor table
+    r = 6
+    ws.cell(r, 2, "AP-42 uncontrolled factors, lb/MMBtu of fuel (HHV)").font = _font(10, True, head=True)
+    r += 1
+    _hdr(ws, r, ["Fuel key", "NOx", "CO", "PM (burner)", "VOC", "Source"])
+    r += 1
+    f0 = r
+    for key, ef in EM.EMISSION_FACTORS.items():
+        ws.cell(r, 2, key).font = _font(9)
+        for j, k in enumerate(("NOx", "CO", "PM", "VOC")):
+            c = ws.cell(r, 3 + j, ef[k])
+            c.number_format = "0.0000"
+            c.font = _font(9, color=INPUT_BLUE)
+        n = ws.cell(r, 7, ef["source"])
+        n.font = _font(8, color=MUTED)
+        n.alignment = Alignment(wrap_text=True, vertical="top")
+        ws.row_dimensions[r].height = 24
+        r += 1
+    for j, k in enumerate(("key", "NOx", "CO", "PM", "VOC")):
+        bk.name(f"ef_{k}", ws, f"${CL(2 + j)}${f0}:${CL(2 + j)}${r - 1}")
+    r += 1
+    ws.cell(r, 2, "Major-source threshold (criteria pollutant)").font = _font(9)
+    ws.cell(r, 3, EM.MAJOR_SOURCE_TPY).font = _font(9, color=INPUT_BLUE)
+    ws.cell(r, 4, "tpy").font = _font(8, color=STEEL)
+    ws.cell(r, 7, "Title V, attainment area. Lower thresholds apply in nonattainment areas; check the state.").font = \
+        _font(8, color=MUTED)
+    bk.name("em_Major", ws, _abs(3, r))
+    r += 1
+    ws.cell(r, 2, "Hours for potential to emit").font = _font(9)
+    ws.cell(r, 3, 8760).font = _font(9, color=INPUT_BLUE)
+    ws.cell(r, 4, "hr/yr").font = _font(8, color=STEEL)
+    bk.name("em_PTEhr", ws, _abs(3, r))
+    r += 2
+    # basis
+    ws.cell(r, 2, "Basis").font = _font(10, True, head=True)
+    r += 1
+    w = CalcWriter(bk, ws)
+    w.r = r
+    w.put("em_Key", "Fuel", "=INDEX(fu_key,MATCH(f_Fuel,fu_label,0))", "", "@")
+    w.put("em_MMBtu", "Fuel fired (HHV)", "=d_mf*d_HHV/1000000", "MMBtu/hr", "0.000", "fuel lb/hr x HHV as fired")
+    w.put("em_DSCFM", "Stack flow, dry standard", "=(x_sST_mol-INDEX(g_sST,5))*k_StdVol/60", "DSCFM", "#,##0",
+          "70 F, 29.92 in. Hg (EPA uses 68 F; 0.4% difference)")
+    w.put("em_O2", "Stack O2, dry", "=x_sST_o2", "vol %", "0.0")
+    w.put("em_ODT", "Product dry solids", "=d_Solids/2000", "ODT/hr", "0.000")
+    for k in ("NOx", "CO", "PM", "VOC"):
+        w.put(f"em_ef{k}", f"{k} factor used", f"=INDEX(ef_{k},MATCH(em_Key,ef_key,0))", "lb/MMBtu", "0.0000")
+    w.put("em_BurnerPM", "Burner PM before the collector", "=em_efPM*em_MMBtu", "lb/hr", "0.000",
+          "the collector outlet loading below sets stack PM")
+    r = w.r + 1
+    # results
+    ws.cell(r, 2, "Emissions").font = _font(10, True, head=True)
+    r += 1
+    _hdr(ws, r, ["Pollutant", "lb/hr", "tons/yr at operating hours", "PTE tons/yr (8,760 hr)", "Major source?",
+                 "Basis"])
+    ws.row_dimensions[r].height = 26
+    r += 1
+    lbhr = {"NOx": "=em_efNOx*em_MMBtu", "CO": "=em_efCO*em_MMBtu", "SO2": "=d_mf*d_SO2f*mw_SO2",
+            "PM": "=a_Grain*em_DSCFM*60/7000", "VOC": "=em_efVOC*em_MMBtu+p_VOC*em_ODT",
+            "CO2": "=d_mf*d_CO2f*mw_CO2"}
+    basis = {"NOx": "AP-42 factor x fuel fired (HHV)", "CO": "AP-42 factor x fuel fired (HHV)",
+             "SO2": "mass balance: all fuel sulfur to SO2",
+             "PM": '="collector outlet "&TEXT(a_Grain,"0.000")&" gr/dscf x "&TEXT(em_DSCFM,"#,##0")&" DSCFM"',
+             "VOC": '="burner factor + product "&TEXT(p_VOC,"0.00")&" lb/ODT"&IF(p_VOC=0," (product VOC NOT '
+                    'estimated)","")',
+             "CO2": '="mass balance: all fuel carbon to CO2"&IF(em_Key="biomass"," (biogenic)","")'}
+    for k, lab in EM_POLL:
+        ws.cell(r, 2, f"{lab} ({k})").font = _font(9)
+        c = ws.cell(r, 3, lbhr[k])
+        c.number_format = "#,##0.00"
+        c.font = _font(9, True)
+        c = ws.cell(r, 4, f"=C{r}*p_Hours/2000")
+        c.number_format = "#,##0.0"
+        c = ws.cell(r, 5, f"=C{r}*em_PTEhr/2000")
+        c.number_format = "#,##0.0"
+        c.font = _font(9, True)
+        ws.cell(r, 6, "n/a" if k == "CO2" else f'=IF(E{r}>=em_Major,"YES: review","no")').font = _font(9, True)
+        b = ws.cell(r, 7, basis[k])
+        b.data_type = "s" if not basis[k].startswith("=") else b.data_type
+        b.font = _font(8, color=MUTED)
+        for j, nm in enumerate(("lb", "tpy", "pte")):
+            bk.name(f"em_{k}_{nm}", ws, _abs(3 + j, r))
+        r += 1
+    ws.cell(r, 2, "CO2 is shown for greenhouse-gas reporting (40 CFR 98 threshold 25,000 metric tons CO2e/yr).").font = \
+        _font(8, italic=True, color=MUTED)
+    r += 2
+    ws.cell(r, 2, "Summary").font = _font(10, True, head=True)
+    r += 1
+    crit = "+".join(f'(em_{k}_pte>=em_Major)*1' for k in ("NOx", "CO", "SO2", "PM", "VOC"))
+    c = ws.cell(r, 2, f'=IF(({crit})>0,"One or more pollutants have a potential to emit at or above "&TEXT(em_Major,'
+                      f'"0")&" tpy: Title V major-source review is likely.","No criteria pollutant reaches "&'
+                      f'TEXT(em_Major,"0")&" tpy potential to emit at these conditions (synthetic minor or minor '
+                      f'source likely; confirm with the state).")')
+    c.font = _font(9, True)
+    bk.name("em_Summary", ws, _abs(2, r))
+    r += 2
+    notes = ["Factors are uncontrolled. Low-NOx burners, a baghouse or an RTO change the result; use vendor guarantees "
+             "when available.",
+             "Wood and ag dryers release VOC from the product (terpenes, organic acids). It often sets the permit. "
+             "Enter a factor (lb per oven-dry ton) on the Inputs sheet from AP-42 Ch.10.6 or a stack test.",
+             "Biomass factors are AP-42 Ch.1.6 for dry wood under 20% moisture; wet fuel or ag residue differ.",
+             "Hazardous air pollutants (formaldehyde, acetaldehyde, methanol from wood) are not estimated here.",
+             "Sulfur in natural gas and propane is taken from the fuel composition (0 unless entered)."]
+    ws.cell(r, 2, "Notes").font = _font(10, True, head=True)
+    r += 1
+    for n in notes:
+        c = ws.cell(r, 2, n)
+        c.font = _font(8)
+        ws.merge_cells(start_row=r, start_column=2, end_row=r, end_column=7)
+        r += 1
+    return ws
+
+
+def build_equipment(bk: Book):
+    ws = bk.sheet("Equipment")
+    _sheet_head(ws, "Equipment summary and handoffs",
+                "Sizes come from this calculator. Design values include the burner margin and the design throughput "
+                "factor on the Inputs sheet.", {"A": 1.5, "B": 38, "C": 18, "D": 14, "E": 14, "F": 12, "G": 60})
+    items = [
+        ("Rotary drum dryer", None),
+        ("Drum size", "=d_DrumSize", "", "@", ""),
+        ("Next size up", "=d_DrumNext", "", "@", ""),
+        ("Smaller alternate", "=d_DrumAlt", "", "@", "slightly over the target drum velocity"),
+        ("Speed", "=d_DrumRPM", "rpm", "0.0", '="critical "&TEXT(d_DrumNc,"0.0")&" rpm"'),
+        ("Slope", "=d_DrumSlope", "in/ft", "0.000", ""),
+        ("Residence time", "=d_DrumRes", "min", "0.0", ""),
+        ("Fill", "=d_DrumFill", "%", "0.0", ""),
+        ("Volumetric evaporation rate", "=d_DrumVER", "lb H2O/hr-ft3", "0.00", ""),
+        ("Gas velocity", "=d_DrumVel", "FPM", "#,##0", '="target "&TEXT(r_Vtarget,"0")&" FPM"'),
+        ("Insulated shell", "=r_Insulated", "", "@", ""),
+        ("Burner and furnace", None),
+        ("Burner operating (LHV)", "=d_BurnerOp", "MMBtu/hr", "0.00", ""),
+        ("Burner design rating (LHV)", "=d_BurnerDesign", "MMBtu/hr", "0.00", '="margin "&TEXT(r_BurnerMargin,"0.00")'),
+        ("Fuel", "=f_Fuel", "", "@", ""),
+        ("Fuel rate", "=d_mf", "lb/hr", "#,##0", ""),
+        ("Fuel rate, gas", "=IF(d_IsGas=1,d_FuelSCFH,0)", "SCFH", "#,##0", "gas fuels"),
+        ("Fuel rate, liquid", "=d_FuelGal", "gal/hr", "#,##0.0", "liquid fuels"),
+        ("Solid fuel feed volume (design)", "=h_FuelFt3", "ft3/hr", "#,##0.0", "biomass burner metering bin / screw"),
+        ("Dryer inlet temperature", "=r_Tin", "F", "#,##0", ""),
+        ("Combustion air", "=x_sCA_scfm", "SCFM", "#,##0", '="excess air "&TEXT(f_EA,"0")&"%"'),
+        ("Dilution (tempering) air", "=x_sDA_scfm", "SCFM", "#,##0", ""),
+        ("Exhaust fan", None),
+        ("Fan flow at fan inlet", "=d_FanACFM", "ACFM", "#,##0", '="at "&TEXT(r_Texh,"0")&" F"'),
+        ("Static pressure (operating density)", "=d_SPop", "in. w.c.", "0.0", ""),
+        ("Fan brake HP, hot", "=d_BHPop", "HP", "0.0", ""),
+        ("Fan brake HP, cold start", "=d_BHPcold", "HP", "0.0", ""),
+        ("Fan motor", "=d_Motor", "HP", "0", '=IF(a_VFD="Yes","VFD or inlet damper","sized for cold start")'),
+        ("Collector and ducts", None),
+        ("Cyclone / baghouse inlet", "=h_CycACFM", "ACFM", "#,##0", ""),
+        ("Duct furnace to drum", "=du_in_d", "in. dia", "0", '=TEXT(du_in_v,"#,##0")&" FPM"'),
+        ("Duct drum to cyclone", "=du_dc_d", "in. dia", "0", '=TEXT(du_dc_v,"#,##0")&" FPM"'),
+        ("Duct stack", "=du_st_d", "in. dia", "0", '=TEXT(du_st_v,"#,##0")&" FPM"'),
+        ("Duct recycle", "=IF(r_Recycle>0,du_rc_d,0)", "in. dia", "0", '=IF(r_Recycle>0,TEXT(du_rc_v,"#,##0")&" FPM","none")'),
+        ("Feed and discharge (design)", None),
+        ("Infeed airlock / screw", "=h_InLb", "lb/hr", "#,##0", '=TEXT(h_InFt3,"#,##0")&" ft3/hr"'),
+        ("Discharge airlock / screw", "=h_OutLb", "lb/hr", "#,##0", '=TEXT(h_OutFt3,"#,##0")&" ft3/hr"'),
+        ("Dried product", "=d_Product", "lb/hr", "#,##0", '=TEXT(d_AnnProduct,"#,##0")&" tons/yr"'),
+    ]
+    r = 6
+    _hdr(ws, r, ["Item", "Value", "Unit", "", "", "Note"])
+    r += 1
+    for it in items:
+        if it[1] is None:
+            r += 1
+            for c in range(2, 8):
+                ws.cell(r, c).fill = _fill(STEEL)
+            ws.cell(r, 1).fill = _fill(ORANGE)
+            ws.cell(r, 2, it[0].upper()).font = _font(10, True, WHITE, head=True)
+            r += 1
+            continue
+        lab, f, unit, fmt, note = it
+        ws.cell(r, 2, lab).font = _font(9)
+        c = ws.cell(r, 3, f)
+        c.number_format = fmt
+        c.font = _font(9, True)
+        ws.cell(r, 4, unit).font = _font(8, color=STEEL)
+        n = ws.cell(r, 7, note)
+        if not note.startswith("="):
+            n.data_type = "s"
+        n.font = _font(8, color=MUTED)
+        r += 1
+    return ws
+
+
+OPEN_ITEMS = [
+    ("Product specific heat (dry solids)", "=p_Cp", "BTU/lb-F",
+     "USDA Wood Handbook (wood) or Choi & Okos from typical composition (other products). Confirm by lab test for "
+     "a new product."),
+    ("Product bulk density, particle size and density", '=TEXT(p_RhoDry,"0.0")&" lb/ft3, "&TEXT(p_Dp,"0.00")&" in"',
+     "", "MCE assumption per product; sets drum fill, entrainment and airlock sizing. Confirm from a customer sample."),
+    ("Typical infeed and product moisture", '=TEXT(p_MCin,"0")&"% to "&TEXT(p_MCout,"0")&"%"', "% wb",
+     "Product library defaults; use the customer's measured values."),
+    ("Target residence time and VER range", '=TEXT(p_Residence,"0")&" min, VER "&TEXT(p_VERmin,"0.0")&" to "&'
+     'TEXT(p_VERmax,"0.0")', "", "MCE assumption per product; confirm from MCE job history or a test."),
+    ("Maximum product temperature", "=p_MaxT", "F", "Heat-sensitive products (food, pet food, DDGS) need the "
+     "customer's limit."),
+    ("Standard drum grid", "3 to 13 ft dia, 10 to 80 ft long", "", "Placeholder grid; replace with the MCE standard "
+     "drum list when set. Over 60 ft is flagged."),
+    ("Drum target velocity and allowance", '=TEXT(r_Vtarget,"0")&" FPM + "&TEXT(r_Vtol,"0")&"%"', "",
+     "Target per MCE; the allowance only offers a smaller alternate."),
+    ("Shell heat-loss coefficient", "=r_U", "BTU/hr-ft2-F", "Estimate accepted by MCE; confirm with field data."),
+    ("Leakage air", "=r_Leak", "% of exhaust", "MCE assumption; depends on seals and airlocks."),
+    ("Fuel heating value", '=TEXT(f_HV,"#,##0")&" BTU/lb ("&f_HVbasis&")"', "",
+     "Biomass 8,000 BTU/lb dry net per MCE; confirm with a fuel analysis for each job."),
+    ("Fuel moisture (biomass)", "=f_MC", "% wb", "MCE assumption for dried wood fuel."),
+    ("Excess air", "=f_EA", "%", "Burner vendor value governs."),
+    ("Furnace efficiency", "=f_Eff", "", "98% gas, 93% biomass per MCE."),
+    ("Burner design margin", "=r_BurnerMargin", "", "1.10 per MCE."),
+    ("Design throughput factor (handoffs)", "=r_DesignFactor", "", "MCE assumption; confirm per job."),
+    ("Fan static pressure", "=a_SP", "in. w.c.", "MCE assumption; replace with the system pressure drop (drum, "
+     "cyclone or baghouse, ducts)."),
+    ("Ambient humidity", "=s_W", "lb/lb dry air", "Design value; use the site summer design condition if critical."),
+    ("Collector outlet loading", "=a_Grain", "gr/dscf", "Sets stack PM. Use the cyclone or baghouse guarantee."),
+    ("Product VOC factor", "=p_VOC", "lb/ODT", "0 = not estimated. Needed for wood permits (AP-42 Ch.10.6 or a "
+     "stack test)."),
+    ("Emission factors", "AP-42 uncontrolled", "", "Screening values; the burner vendor guarantee and the permit "
+     "govern."),
+    ("Fire risk inlet temperature", "=k_FireT", "F", "Inlet default 900 F; above this a fire-risk warning is shown."),
+    ("Dryer type selector", "Python engine only", "", "Rules and thresholds are DRAFT for MCE review."),
+]
+
+
+def build_open_items(bk: Book):
+    ws = bk.sheet("Open Items")
+    _sheet_head(ws, "Open items and assumptions to confirm",
+                "Every value here is an input that can be overridden on the Inputs sheet (or the Products sheet). "
+                "Values shown are the ones used in this run.",
+                {"A": 1.5, "B": 42, "C": 26, "D": 16, "E": 14, "F": 2, "G": 90})
+    r = 6
+    _hdr(ws, r, ["Item", "Value used", "Unit", "Status", "", "Note"])
+    r += 1
+    for lab, f, unit, note in OPEN_ITEMS:
+        ws.cell(r, 2, lab).font = _font(9)
+        c = ws.cell(r, 3, f)
+        if not str(f).startswith("="):
+            c.data_type = "s"
+        c.font = _font(9, True)
+        c.alignment = Alignment(horizontal="left")
+        ws.cell(r, 4, unit).font = _font(8, color=STEEL)
+        ws.cell(r, 5, "MCE to confirm").font = _font(8, True, ORANGE)
+        n = ws.cell(r, 7, note)
+        n.data_type = "s"
+        n.font = _font(8, color=MUTED)
+        n.alignment = Alignment(wrap_text=True, vertical="top")
+        r += 1
+    r += 1
+    ws.cell(r, 2, "Checks raised in this run").font = _font(10, True, head=True)
+    r += 1
+    ws.cell(r, 2, '=IF(d_WarnCount=0,"None.",TEXT(d_WarnCount,"0")&" active (also listed on the Calc sheet):")').font = \
+        _font(9)
+    r += 1
+    for i in range(1, N_CHECKS + 1):
+        c = ws.cell(r, 2, f'=IF(INDEX(ck_All,{i})="","",INDEX(ck_All,{i}))')
+        c.font = _font(9, color=ORANGE)
+        ws.merge_cells(start_row=r, start_column=2, end_row=r, end_column=7)
+        r += 1
+    return ws
+
+
 # --------------------------------------------------------------------------------------- entry mapping
 def entries_from_request(req: DryerRequest) -> dict[str, Any]:
     """Only fields the request sets explicitly go into the ENTRY column; the rest stay at the default."""
@@ -1567,14 +1965,15 @@ def entries_from_request(req: DryerRequest) -> dict[str, Any]:
           "backmix_mc_wb": "p_BmMC", "backmix_temp_F": "p_BmT", "feed_temp_F": "p_FeedT",
           "product_temp_F": "p_ProdT", "material_cp": "p_Cp", "bulk_density_dry": "p_RhoDry",
           "bulk_density_wet": "p_RhoWet", "particle_size_in": "p_Dp", "particle_density": "p_RhoP",
-          "sphericity": "p_Phi", "max_product_temp_F": "p_MaxT", "annual_hours": "p_Hours"}
+          "sphericity": "p_Phi", "max_product_temp_F": "p_MaxT", "annual_hours": "p_Hours",
+          "product_voc_lb_odt": "p_VOC"}
     for k, nm in pm.items():
         if k in setp and getattr(req.process, k) is not None:
             e[nm] = p[k]
     for k, nm in {"ambient_temp_F": "s_Tamb", "humidity_lb_lb": "s_W", "elevation_ft": "s_Elev"}.items():
         if k in sets:
             e[nm] = s[k]
-    if req.fuel.fuel != "dry_wood":
+    if req.fuel.fuel != "biomass":
         e["f_Fuel"] = FUELS[req.fuel.fuel]["label"]
     fm = {"heating_value": "f_HV", "heating_value_basis": "f_HVbasis", "heating_value_source": "f_HVsource",
           "moisture_wb": "f_MC", "density": "f_Density", "excess_air_pct": "f_EA", "furnace_efficiency": "f_Eff",
@@ -1613,7 +2012,8 @@ def entries_from_request(req: DryerRequest) -> dict[str, Any]:
         e["r_ForceD"], e["r_ForceL"] = req.rotary.force_drum
     am = {"duct_velocity_fpm": "a_DuctV", "duct_size_increment_in": "a_DuctInc", "min_gas_to_product": "a_MinRatio",
           "convey_velocity_coeff": "a_ConvCoeff", "convey_velocity_factor": "a_ConvFactor", "fan_sp_in_wc": "a_SP",
-          "fan_sp_basis": "a_SPbasis", "fan_efficiency": "a_FanEff", "fan_inlet_static_in_wc": "a_FanStatic"}
+          "fan_sp_basis": "a_SPbasis", "fan_efficiency": "a_FanEff", "fan_inlet_static_in_wc": "a_FanStatic",
+          "collector_outlet_gr_dscf": "a_Grain"}
     for k, nm in am.items():
         if k in seta and getattr(req.air, k) is not None:
             e[nm] = a[k]
@@ -1636,18 +2036,24 @@ def build_workbook(request: dict | DryerRequest | None = None, path: str | Path 
            "j_Date": dt.date.today().strftime("%m/%d/%Y"), "j_Case": "", "j_Record": record_index}
     bk = Book()
     build_data(bk)
+    build_products(bk)
     build_inputs(bk, entries, job)
     build_gas_and_calc(bk)
     build_drum(bk)
     build_diagram(bk)
+    build_emissions(bk)
+    build_equipment(bk)
+    build_open_items(bk)
     build_notes(bk)
-    order = ["Mass-Energy Balance", "Inputs", "Calc", "Gas", "Drum", "Data", "Notes"]
+    order = ["Mass-Energy Balance", "Inputs", "Equipment", "Emissions", "Open Items", "Calc", "Gas", "Drum",
+             "Products", "Data", "Notes"]
     bk.wb._sheets = [bk.wb[n] for n in order]
-    tabs = {"Mass-Energy Balance": ORANGE, "Inputs": BLACK, "Calc": STEEL, "Gas": SILVER, "Drum": SILVER,
-            "Data": SILVER, "Notes": SILVER}
+    tabs = {"Mass-Energy Balance": ORANGE, "Inputs": BLACK, "Equipment": ORANGE, "Emissions": ORANGE,
+            "Open Items": ORANGE, "Calc": STEEL, "Gas": SILVER, "Drum": SILVER, "Products": STEEL, "Data": SILVER,
+            "Notes": SILVER}
     for n, col in tabs.items():
         bk.wb[n].sheet_properties.tabColor = col
-    for n in ("Inputs", "Calc", "Notes"):
+    for n in ("Inputs", "Equipment", "Emissions", "Open Items", "Calc", "Notes"):
         ws = bk.wb[n]
         ws.page_setup.orientation = "landscape"
         ws.page_setup.paperSize = ws.PAPERSIZE_LETTER
@@ -1672,7 +2078,7 @@ _P = {"p_Throughput": "throughput", "p_TUnit": "throughput_unit", "p_TBasis": "t
       "p_BmT": "backmix_temp_F", "p_FeedT": "feed_temp_F", "p_ProdT": "product_temp_F", "p_Cp": "material_cp",
       "p_RhoDry": "bulk_density_dry", "p_RhoWet": "bulk_density_wet", "p_Dp": "particle_size_in",
       "p_RhoP": "particle_density", "p_Phi": "sphericity", "p_MaxT": "max_product_temp_F", "p_Fire": "fire_risk",
-      "p_Hours": "annual_hours"}
+      "p_Hours": "annual_hours", "p_VOC": "product_voc_lb_odt"}
 _S = {"s_Tamb": "ambient_temp_F", "s_W": "humidity_lb_lb", "s_Elev": "elevation_ft"}
 _F = {"f_HV": "heating_value", "f_HVbasis": "heating_value_basis", "f_HVsource": "heating_value_source",
       "f_MC": "moisture_wb", "f_Density": "density", "f_EA": "excess_air_pct", "f_Eff": "furnace_efficiency",
@@ -1685,7 +2091,8 @@ _R = {"r_Tin": "inlet_temp_F", "r_Texh": "exhaust_temp_F", "r_Recycle": "recycle
       "r_Crit": "critical_speed_pct", "r_DewMargin": "min_dew_point_margin_F"}
 _A = {"a_DuctV": "duct_velocity_fpm", "a_DuctInc": "duct_size_increment_in", "a_MinRatio": "min_gas_to_product",
       "a_ConvCoeff": "convey_velocity_coeff", "a_ConvFactor": "convey_velocity_factor", "a_SP": "fan_sp_in_wc",
-      "a_SPbasis": "fan_sp_basis", "a_FanEff": "fan_efficiency", "a_FanStatic": "fan_inlet_static_in_wc"}
+      "a_SPbasis": "fan_sp_basis", "a_FanEff": "fan_efficiency", "a_FanStatic": "fan_inlet_static_in_wc",
+      "a_Grain": "collector_outlet_gr_dscf"}
 _PAIRS = {("p_VERmin", "p_VERmax"): ("rotary", "ver_range"), ("r_FillMin", "r_FillMax"): ("rotary", "fill_range_pct"),
           ("r_LDmin", "r_LDmax"): ("rotary", "ld_range"), ("r_SlopeMin", "r_SlopeMax"): ("rotary", "slope_range_in_per_ft"),
           ("r_CritMin", "r_CritMax"): ("rotary", "critical_speed_range_pct")}

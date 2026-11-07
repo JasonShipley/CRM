@@ -59,7 +59,7 @@ RULES: list[Rule] = [
     Rule("rotary", 2, "high infeed moisture", lambda c: c["infeed_mc_wb"] >= TH["high_infeed_mc_wb"]),
     Rule("rotary", 2, "robust product (low heat sensitivity)", lambda c: c["heat_sensitivity"] in ("none", "low", "moderate")),
     Rule("rotary", 2, "wood, biomass or ag residue", _biomass),
-    Rule("rotary", 2, "direct firing on biomass", lambda c: c["heat_source"] in ("biomass", "dry_wood")),
+    Rule("rotary", 2, "direct firing on biomass", lambda c: c["heat_source"] == "biomass"),
     Rule("rotary", 1, "medium or long residence time", lambda c: c["residence_need"] in ("medium", "long")),
     Rule("rotary", -3, "highly heat sensitive product", lambda c: c["heat_sensitivity"] == "high"),
     Rule("rotary", -1, "tight footprint", lambda c: c["footprint"] == "tight"),

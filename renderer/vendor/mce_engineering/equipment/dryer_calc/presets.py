@@ -16,100 +16,179 @@ def v(value, source: str) -> dict:
 
 
 # ----------------------------------------------------------------------------- materials
-MATERIALS: dict[str, dict] = {
-    "wood_shavings": {
-        "label": "Wood shavings / planer shavings",
-        "cp": v(0.55, "SHEET Input A4 (material specific heat, BTU/lb-F)"),
-        "bulk_density_dry": v(8.0, "SHEET Input A6 (dry bulk density; FLOW R26 used 13 and DESIGN B10 used 6)"),
-        "particle_size_in": v(0.40, "Volume-equivalent diameter of a 0.09 in. thick shaving (SHEET FLOW C3: 0.080 to "
-                                    "0.100 in.) with a 0.5 x 0.75 in. face; face size " + MCE_CONFIRM),
-        "particle_density": v(28.0, "USDA Wood Handbook FPL-GTR-282 Ch.5: softwood oven-dry SG about 0.35 to 0.55; "
-                                    "0.45 x 62.4 = 28 lb/ft3. " + MCE_CONFIRM),
-        "sphericity": v(0.3, "Flake-shaped particle. " + MCE_CONFIRM),
-        "ver_range": v([1.5, 4.0], "Volumetric evaporation design range, lb H2O/hr-ft3. " + MCE_CONFIRM),
-        "residence_target_min": v(8.0, "Target drum residence time. " + MCE_CONFIRM),
-        "max_product_temp_F": v(250.0, "Wood: limit to keep VOC release and scorch down. " + MCE_CONFIRM),
-        "heat_sensitivity": v("moderate", MCE_CONFIRM),
-        "fire_risk": v("high", "Dry fine wood: high fire and dust deflagration risk. " + MCE_CONFIRM),
-        "sticky": v(False, MCE_CONFIRM),
-        "is_wood": True,
-    },
-    "sawdust": {
-        "label": "Sawdust",
-        "cp": v(0.55, "SHEET Input A4"),
-        "bulk_density_dry": v(10.0, MCE_CONFIRM),
-        "particle_size_in": v(0.04, "About 1 mm. " + MCE_CONFIRM),
-        "particle_density": v(28.0, "USDA Wood Handbook (SG about 0.45). " + MCE_CONFIRM),
-        "sphericity": v(0.5, MCE_CONFIRM),
-        "ver_range": v([1.5, 4.0], MCE_CONFIRM),
-        "residence_target_min": v(8.0, MCE_CONFIRM),
-        "max_product_temp_F": v(250.0, MCE_CONFIRM),
-        "heat_sensitivity": v("moderate", MCE_CONFIRM),
-        "fire_risk": v("high", MCE_CONFIRM),
-        "sticky": v(False, MCE_CONFIRM),
-        "is_wood": True,
-    },
-    "wood_chips": {
-        "label": "Wood chips / hog fuel",
-        "cp": v(0.55, "SHEET Input A4"),
-        "bulk_density_dry": v(12.0, MCE_CONFIRM),
-        "particle_size_in": v(0.75, MCE_CONFIRM),
-        "particle_density": v(28.0, "USDA Wood Handbook (SG about 0.45). " + MCE_CONFIRM),
-        "sphericity": v(0.5, MCE_CONFIRM),
-        "ver_range": v([1.5, 4.0], MCE_CONFIRM),
-        "residence_target_min": v(15.0, MCE_CONFIRM),
-        "max_product_temp_F": v(250.0, MCE_CONFIRM),
-        "heat_sensitivity": v("low", MCE_CONFIRM),
-        "fire_risk": v("moderate", MCE_CONFIRM),
-        "sticky": v(False, MCE_CONFIRM),
-        "is_wood": True,
-    },
-    "ag_residue": {
-        "label": "Ag residue (chopped straw, stover, hulls)",
-        "cp": v(0.50, MCE_CONFIRM),
-        "bulk_density_dry": v(6.0, MCE_CONFIRM),
-        "particle_size_in": v(0.5, MCE_CONFIRM),
-        "particle_density": v(20.0, MCE_CONFIRM),
-        "sphericity": v(0.25, MCE_CONFIRM),
-        "ver_range": v([1.5, 4.0], MCE_CONFIRM),
-        "residence_target_min": v(10.0, MCE_CONFIRM),
-        "max_product_temp_F": v(220.0, MCE_CONFIRM),
-        "heat_sensitivity": v("moderate", MCE_CONFIRM),
-        "fire_risk": v("high", MCE_CONFIRM),
-        "sticky": v(False, MCE_CONFIRM),
-        "is_wood": False,
-    },
-    "distillers_grains": {
-        "label": "Distillers grains / wet feed co-products",
-        "cp": v(0.45, MCE_CONFIRM),
-        "bulk_density_dry": v(30.0, MCE_CONFIRM),
-        "particle_size_in": v(0.06, MCE_CONFIRM),
-        "particle_density": v(70.0, MCE_CONFIRM),
-        "sphericity": v(0.7, MCE_CONFIRM),
-        "ver_range": v([1.0, 3.0], MCE_CONFIRM),
-        "residence_target_min": v(20.0, MCE_CONFIRM),
-        "max_product_temp_F": v(200.0, "Protein damage above this. " + MCE_CONFIRM),
-        "heat_sensitivity": v("high", MCE_CONFIRM),
-        "fire_risk": v("moderate", MCE_CONFIRM),
-        "sticky": v(True, "Wet syrup fraction is sticky; backmix normally needed. " + MCE_CONFIRM),
-        "is_wood": False,
-    },
-    "custom": {
-        "label": "Custom (enter every property)",
-        "cp": v(0.55, "Generic placeholder (SHEET Input A4). Enter the material value."),
-        "bulk_density_dry": v(8.0, "Generic placeholder (SHEET Input A6). Enter the material value."),
-        "particle_size_in": v(0.25, "Generic placeholder. Enter the material value."),
-        "particle_density": v(40.0, "Generic placeholder. Enter the material value."),
-        "sphericity": v(0.6, "Generic placeholder."),
-        "ver_range": v([1.5, 4.0], "Generic placeholder. " + MCE_CONFIRM),
-        "residence_target_min": v(10.0, "Generic placeholder."),
-        "max_product_temp_F": v(250.0, "Generic placeholder."),
-        "heat_sensitivity": v("moderate", "Generic placeholder."),
-        "fire_risk": v("moderate", "Generic placeholder."),
-        "sticky": v(False, "Generic placeholder."),
-        "is_wood": False,
-    },
+# ----------------------------------------------------------------------------- specific heat of dry solids
+T_CP_MEAN_C = (130.0 - 32.0) / 1.8  # dry-solids cp evaluated at 130 F, the mean of a 60 F feed and 200 F product
+KJKGK_TO_BTULBF = 0.238845897
+
+
+def cp_wood_dry(t_c: float = T_CP_MEAN_C) -> float:
+    """USDA Wood Handbook (FPL-GTR-282) Ch.4: c0 = 0.1031 + 0.003867 T (kJ/kg-K, T in K), oven-dry wood."""
+    return (0.1031 + 0.003867 * (t_c + 273.15)) * KJKGK_TO_BTULBF
+
+
+# Choi & Okos (1986) component equations, kJ/kg-K with t in C (ASHRAE Handbook Refrigeration, Ch.19 Table 1)
+CHOI_OKOS = {
+    "protein": (2.0082, 1.2089e-3, -1.3129e-6),
+    "fat": (1.9842, 1.4733e-3, -4.8008e-6),
+    "carbohydrate": (1.5488, 1.9625e-3, -5.9399e-6),
+    "fiber": (1.8459, 1.8306e-3, -4.6509e-6),
+    "ash": (1.0926, 1.8896e-3, -3.6817e-6),
 }
+
+
+def cp_choi_okos(dry_comp_pct: dict[str, float], t_c: float = T_CP_MEAN_C) -> float:
+    """Dry-solids cp (BTU/lb-F) from a dry-basis composition (protein, fat, carbohydrate, fiber, ash; sums to 100)."""
+    tot = sum(dry_comp_pct.values())
+    cp = sum(dry_comp_pct[k] / tot * (a + b * t_c + c * t_c * t_c) for k, (a, b, c) in CHOI_OKOS.items())
+    return cp * KJKGK_TO_BTULBF
+
+
+def _comp(protein, fat, carbohydrate, fiber, ash):
+    return {"protein": protein, "fat": fat, "carbohydrate": carbohydrate, "fiber": fiber, "ash": ash}
+
+
+WOOD_CP_SOURCE = ("USDA Wood Handbook FPL-GTR-282 Ch.4, oven-dry wood c0 = 0.1031 + 0.003867 T(K) kJ/kg-K at 130 F. "
+                  "Replaces the sheet's 0.55, which counts part of the water twice (water is added separately).")
+
+
+def _food(label, comp, comp_src, **kw):
+    return {"label": label, "composition": v(comp, comp_src),
+            "cp": v(cp_choi_okos(comp), "Choi & Okos (1986), ASHRAE Refrigeration Handbook Ch.19, from the dry "
+                                        "composition at 130 F"), **kw}
+
+
+def _wood(label, **kw):
+    return {"label": label, "composition": v(None, "wood"), "cp": v(cp_wood_dry(), WOOD_CP_SOURCE), "is_wood": True,
+            **kw}
+
+
+# Every product: dry-solids cp, dry bulk density, design particle (volume-equivalent dia, envelope density,
+# sphericity), drum design rules (VER range, residence), limits and classes, and typical moisture in/out
+# (defaults only: the salesperson types the customer's numbers).
+MATERIALS: dict[str, dict] = {
+    "wood_shavings": _wood(
+        "Wood shavings",
+        bulk_density_dry=v(8.0, "SHEET Input A6"),
+        particle_size_in=v(0.40, "Volume-equivalent dia of a 0.09 in. shaving (SHEET FLOW C3) with a 0.5 x 0.75 in. "
+                                 "face; face size " + MCE_CONFIRM),
+        particle_density=v(28.0, "USDA Wood Handbook: oven-dry SG about 0.45"), sphericity=v(0.3, "flakes. " + MCE_CONFIRM),
+        ver_range=v([1.5, 4.0], MCE_CONFIRM), residence_target_min=v(8.0, MCE_CONFIRM),
+        max_product_temp_F=v(250.0, MCE_CONFIRM), heat_sensitivity=v("moderate", MCE_CONFIRM),
+        fire_risk=v("high", MCE_CONFIRM), sticky=v(False, MCE_CONFIRM),
+        mc_in=v(50.0, "test case"), product_temp_F=v(180.0, "product leaves at the exhaust temperature (the sheet used 200 F with a 180 F exhaust). " + MCE_CONFIRM), mc_out=v(10.0, "SHEET Input F15")),
+    "sawdust": _wood(
+        "Sawdust",
+        bulk_density_dry=v(12.0, MCE_CONFIRM), particle_size_in=v(0.04, "about 1 mm. " + MCE_CONFIRM),
+        particle_density=v(28.0, "USDA Wood Handbook: SG about 0.45"), sphericity=v(0.5, MCE_CONFIRM),
+        ver_range=v([1.5, 4.0], MCE_CONFIRM), residence_target_min=v(8.0, MCE_CONFIRM),
+        max_product_temp_F=v(250.0, MCE_CONFIRM), heat_sensitivity=v("moderate", MCE_CONFIRM),
+        fire_risk=v("high", MCE_CONFIRM), sticky=v(False, MCE_CONFIRM), mc_in=v(50.0, MCE_CONFIRM),
+        product_temp_F=v(180.0, "product leaves at the exhaust temperature (the sheet used 200 F with a 180 F exhaust). " + MCE_CONFIRM), mc_out=v(10.0, MCE_CONFIRM)),
+    "wood_chips": _wood(
+        "Wood chips",
+        bulk_density_dry=v(12.0, MCE_CONFIRM), particle_size_in=v(0.75, MCE_CONFIRM),
+        particle_density=v(28.0, "USDA Wood Handbook: SG about 0.45"), sphericity=v(0.5, MCE_CONFIRM),
+        ver_range=v([1.5, 4.0], MCE_CONFIRM), residence_target_min=v(15.0, MCE_CONFIRM),
+        max_product_temp_F=v(250.0, MCE_CONFIRM), heat_sensitivity=v("low", MCE_CONFIRM),
+        fire_risk=v("moderate", MCE_CONFIRM), sticky=v(False, MCE_CONFIRM), mc_in=v(50.0, MCE_CONFIRM),
+        product_temp_F=v(180.0, "product leaves at the exhaust temperature (the sheet used 200 F with a 180 F exhaust). " + MCE_CONFIRM), mc_out=v(10.0, MCE_CONFIRM)),
+    "bark": _wood(
+        "Bark / hog fuel",
+        bulk_density_dry=v(15.0, MCE_CONFIRM), particle_size_in=v(1.0, MCE_CONFIRM),
+        particle_density=v(30.0, "bark SG about 0.48. " + MCE_CONFIRM), sphericity=v(0.45, MCE_CONFIRM),
+        ver_range=v([1.5, 4.0], MCE_CONFIRM), residence_target_min=v(20.0, MCE_CONFIRM),
+        max_product_temp_F=v(250.0, MCE_CONFIRM), heat_sensitivity=v("low", MCE_CONFIRM),
+        fire_risk=v("moderate", MCE_CONFIRM), sticky=v(False, MCE_CONFIRM), mc_in=v(55.0, MCE_CONFIRM),
+        product_temp_F=v(180.0, "product leaves at the exhaust temperature (the sheet used 200 F with a 180 F exhaust). " + MCE_CONFIRM), mc_out=v(15.0, MCE_CONFIRM)),
+    "carrots": _food(
+        "Carrots (culls / pomace)", _comp(7.9, 2.0, 57.8, 23.9, 8.3),
+        "USDA SR Legacy 11124 carrots raw (water 88.3, protein 0.93, fat 0.24, carbohydrate 9.58 incl. fiber 2.8, "
+        "ash 0.97 g/100 g) on a dry basis",
+        bulk_density_dry=v(22.0, MCE_CONFIRM), particle_size_in=v(0.25, "diced or shredded. " + MCE_CONFIRM),
+        particle_density=v(50.0, MCE_CONFIRM), sphericity=v(0.6, MCE_CONFIRM), ver_range=v([1.0, 3.0], MCE_CONFIRM),
+        residence_target_min=v(25.0, MCE_CONFIRM), max_product_temp_F=v(180.0, "sugars caramelize. " + MCE_CONFIRM),
+        heat_sensitivity=v("high", MCE_CONFIRM), fire_risk=v("low", MCE_CONFIRM),
+        sticky=v(True, "sugary when wet. " + MCE_CONFIRM), mc_in=v(85.0, MCE_CONFIRM), product_temp_F=v(160.0, MCE_CONFIRM), mc_out=v(10.0, MCE_CONFIRM)),
+    "tomato_pomace": _food(
+        "Tomato pomace", _comp(20.0, 12.0, 14.0, 50.0, 4.0),
+        "Dried tomato pomace, typical feed analyses (CP about 20%, fat 10 to 15%, NDF about 50%, ash 3 to 5%). "
+        + MCE_CONFIRM,
+        bulk_density_dry=v(18.0, MCE_CONFIRM), particle_size_in=v(0.10, "skins and seeds. " + MCE_CONFIRM),
+        particle_density=v(45.0, MCE_CONFIRM), sphericity=v(0.4, MCE_CONFIRM), ver_range=v([1.0, 3.0], MCE_CONFIRM),
+        residence_target_min=v(20.0, MCE_CONFIRM), max_product_temp_F=v(180.0, MCE_CONFIRM),
+        heat_sensitivity=v("high", MCE_CONFIRM), fire_risk=v("low", MCE_CONFIRM), sticky=v(True, MCE_CONFIRM),
+        mc_in=v(75.0, MCE_CONFIRM), product_temp_F=v(160.0, MCE_CONFIRM), mc_out=v(10.0, MCE_CONFIRM)),
+    "walnut_hulls": _food(
+        "Walnut hulls", _comp(6.0, 2.0, 48.0, 35.0, 9.0), "Green walnut hulls, dry basis estimate. " + MCE_CONFIRM,
+        bulk_density_dry=v(20.0, MCE_CONFIRM), particle_size_in=v(0.5, MCE_CONFIRM),
+        particle_density=v(45.0, MCE_CONFIRM), sphericity=v(0.5, MCE_CONFIRM), ver_range=v([1.0, 3.0], MCE_CONFIRM),
+        residence_target_min=v(20.0, MCE_CONFIRM), max_product_temp_F=v(200.0, MCE_CONFIRM),
+        heat_sensitivity=v("moderate", MCE_CONFIRM), fire_risk=v("moderate", MCE_CONFIRM),
+        sticky=v(False, MCE_CONFIRM), mc_in=v(65.0, MCE_CONFIRM), product_temp_F=v(180.0, MCE_CONFIRM), mc_out=v(12.0, MCE_CONFIRM)),
+    "almond_skins": _food(
+        "Almond skins", _comp(11.0, 12.0, 32.0, 42.0, 3.0), "Blanched almond skins, dry basis estimate. " + MCE_CONFIRM,
+        bulk_density_dry=v(15.0, MCE_CONFIRM), particle_size_in=v(0.08, MCE_CONFIRM),
+        particle_density=v(40.0, MCE_CONFIRM), sphericity=v(0.3, "flakes. " + MCE_CONFIRM),
+        ver_range=v([1.0, 3.0], MCE_CONFIRM), residence_target_min=v(15.0, MCE_CONFIRM),
+        max_product_temp_F=v(180.0, MCE_CONFIRM), heat_sensitivity=v("high", MCE_CONFIRM),
+        fire_risk=v("high", "fine, oily dust. " + MCE_CONFIRM), sticky=v(False, MCE_CONFIRM),
+        mc_in=v(55.0, MCE_CONFIRM), product_temp_F=v(160.0, MCE_CONFIRM), mc_out=v(10.0, MCE_CONFIRM)),
+    "ag_residue": _food(
+        "Ag residue (straw, stover, hulls)", _comp(4.0, 1.5, 12.5, 75.0, 7.0),
+        "Cereal straw / corn stover, typical feed analyses (CP about 4%, NDF about 75%). " + MCE_CONFIRM,
+        bulk_density_dry=v(6.0, MCE_CONFIRM), particle_size_in=v(0.5, MCE_CONFIRM),
+        particle_density=v(20.0, MCE_CONFIRM), sphericity=v(0.25, MCE_CONFIRM), ver_range=v([1.5, 4.0], MCE_CONFIRM),
+        residence_target_min=v(10.0, MCE_CONFIRM), max_product_temp_F=v(220.0, MCE_CONFIRM),
+        heat_sensitivity=v("moderate", MCE_CONFIRM), fire_risk=v("high", MCE_CONFIRM), sticky=v(False, MCE_CONFIRM),
+        mc_in=v(40.0, MCE_CONFIRM), product_temp_F=v(180.0, MCE_CONFIRM), mc_out=v(12.0, MCE_CONFIRM)),
+    "petfood": _food(
+        "Pet food ingredients / kibble", _comp(28.0, 15.0, 45.0, 4.0, 8.0),
+        "Typical dry dog food guaranteed analysis on a dry basis. " + MCE_CONFIRM,
+        bulk_density_dry=v(28.0, MCE_CONFIRM), particle_size_in=v(0.25, "kibble. " + MCE_CONFIRM),
+        particle_density=v(60.0, MCE_CONFIRM), sphericity=v(0.8, MCE_CONFIRM), ver_range=v([1.0, 3.0], MCE_CONFIRM),
+        residence_target_min=v(15.0, MCE_CONFIRM), max_product_temp_F=v(200.0, MCE_CONFIRM),
+        heat_sensitivity=v("high", MCE_CONFIRM), fire_risk=v("moderate", "fat. " + MCE_CONFIRM),
+        sticky=v(False, MCE_CONFIRM), mc_in=v(30.0, MCE_CONFIRM), product_temp_F=v(180.0, MCE_CONFIRM), mc_out=v(10.0, MCE_CONFIRM)),
+    "alfalfa": _food(
+        "Alfalfa", _comp(18.0, 2.5, 27.5, 42.0, 10.0),
+        "Alfalfa, typical feed analyses (CP 17 to 20%, NDF about 42%, ash about 10%). " + MCE_CONFIRM,
+        bulk_density_dry=v(10.0, "chopped. " + MCE_CONFIRM), particle_size_in=v(0.5, "chopped. " + MCE_CONFIRM),
+        particle_density=v(25.0, MCE_CONFIRM), sphericity=v(0.25, MCE_CONFIRM), ver_range=v([1.5, 4.0], MCE_CONFIRM),
+        residence_target_min=v(10.0, MCE_CONFIRM), max_product_temp_F=v(220.0, MCE_CONFIRM),
+        heat_sensitivity=v("moderate", MCE_CONFIRM), fire_risk=v("high", MCE_CONFIRM), sticky=v(False, MCE_CONFIRM),
+        mc_in=v(70.0, "fresh chopped alfalfa. " + MCE_CONFIRM), product_temp_F=v(180.0, MCE_CONFIRM), mc_out=v(10.0, MCE_CONFIRM)),
+    "hay": _food(
+        "Hay (grass)", _comp(10.0, 2.5, 19.5, 60.0, 8.0),
+        "Grass hay, typical feed analyses (CP about 10%, NDF about 60%). " + MCE_CONFIRM,
+        bulk_density_dry=v(6.0, "chopped. " + MCE_CONFIRM), particle_size_in=v(1.0, MCE_CONFIRM),
+        particle_density=v(20.0, MCE_CONFIRM), sphericity=v(0.2, MCE_CONFIRM), ver_range=v([1.5, 4.0], MCE_CONFIRM),
+        residence_target_min=v(15.0, MCE_CONFIRM), max_product_temp_F=v(200.0, MCE_CONFIRM),
+        heat_sensitivity=v("moderate", MCE_CONFIRM), fire_risk=v("high", MCE_CONFIRM), sticky=v(False, MCE_CONFIRM),
+        mc_in=v(30.0, MCE_CONFIRM), product_temp_F=v(180.0, MCE_CONFIRM), mc_out=v(12.0, MCE_CONFIRM)),
+    "distillers_grains": _food(
+        "Distillers grains", _comp(30.0, 10.0, 20.0, 35.0, 5.0),
+        "DDGS, typical analyses (CP about 30%, fat about 10%, NDF about 35%, ash about 5%). " + MCE_CONFIRM,
+        bulk_density_dry=v(30.0, MCE_CONFIRM), particle_size_in=v(0.06, MCE_CONFIRM),
+        particle_density=v(70.0, MCE_CONFIRM), sphericity=v(0.7, MCE_CONFIRM), ver_range=v([1.0, 3.0], MCE_CONFIRM),
+        residence_target_min=v(20.0, MCE_CONFIRM), max_product_temp_F=v(200.0, "protein damage above this. "
+                                                                        + MCE_CONFIRM),
+        heat_sensitivity=v("high", MCE_CONFIRM), fire_risk=v("moderate", MCE_CONFIRM),
+        sticky=v(True, "syrup fraction; backmix normally needed. " + MCE_CONFIRM),
+        mc_in=v(65.0, "wet cake plus syrup. " + MCE_CONFIRM), product_temp_F=v(180.0, MCE_CONFIRM), mc_out=v(10.0, MCE_CONFIRM)),
+    "custom": _wood(
+        "Custom (enter the properties)",
+        bulk_density_dry=v(8.0, "Generic placeholder. Enter the material value."),
+        particle_size_in=v(0.25, "Generic placeholder."), particle_density=v(40.0, "Generic placeholder."),
+        sphericity=v(0.6, "Generic placeholder."), ver_range=v([1.5, 4.0], "Generic placeholder."),
+        residence_target_min=v(10.0, "Generic placeholder."), max_product_temp_F=v(250.0, "Generic placeholder."),
+        heat_sensitivity=v("moderate", "Generic placeholder."), fire_risk=v("moderate", "Generic placeholder."),
+        sticky=v(False, "Generic placeholder."), mc_in=v(50.0, "Generic placeholder."),
+        product_temp_F=v(200.0, "Generic placeholder."), mc_out=v(10.0, "Generic placeholder.")),
+}
+MATERIALS["custom"]["is_wood"] = False
+MATERIALS["custom"]["cp"] = v(round(cp_wood_dry(), 4), "Generic placeholder (oven-dry wood). Enter the material value.")
+for _m in MATERIALS.values():
+    _m.setdefault("is_wood", False)
 
 # ----------------------------------------------------------------------------- fuel analyses
 # Dry basis mass %, must close to 100 with ash. Moisture is a separate input (wet basis).
@@ -142,7 +221,7 @@ FUELS: dict[str, dict] = {
         "furnace_efficiency": v(0.98, "MCE (Jason 2026-11-07): about 98% for gas"),
     },
     "propane": {
-        "label": "Propane (HD-5 taken as 100% C3H8)", "kind": "gas",
+        "label": "Propane", "kind": "gas",
         "composition": v({"C3H8": 100.0}, "HD-5 is at least 90% propane; pure C3H8 assumed. " + MCE_CONFIRM),
         "heating_value": v(19900.0, "SHEET Input G8"),
         "heating_value_basis": v("net_as_fired", "SHEET Input G5 label"),
@@ -165,18 +244,7 @@ FUELS: dict[str, dict] = {
         "furnace_efficiency": v(0.98, "Same as gas (98%). " + MCE_CONFIRM),
     },
     "biomass": {
-        "label": "Biomass (as-received wood fuel)", "kind": "solid",
-        "ultimate": v(WOOD_DRY_ULTIMATE, WOOD_DRY_ULTIMATE_SOURCE),
-        "heating_value": v(8500.0, "SHEET Input G7 (net BTU/lb). Taken as DRY basis net. " + MCE_CONFIRM),
-        "heating_value_basis": v("net_dry", MCE_CONFIRM),
-        "moisture_wb": v(10.0, "Not given in the sheet; same as dry wood (SHEET COMB C10). " + MCE_CONFIRM),
-        "density": v(15.0, "SHEET Input H7"),
-        "excess_air_pct": v(200.0, "SHEET Input I7 (2 entered; read as 200% excess air)"),
-        "cp": v(0.40, "Wood fuel at 10% MC (fuel sensible heat only). " + MCE_CONFIRM),
-        "furnace_efficiency": v(0.93, "MCE (Jason 2026-11-07): about 93% for biomass"),
-    },
-    "dry_wood": {
-        "label": "Dry wood (dried product as fuel)", "kind": "solid",
+        "label": "Biomass burner (wood fuel)", "kind": "solid",
         "ultimate": v(WOOD_DRY_ULTIMATE, WOOD_DRY_ULTIMATE_SOURCE),
         "heating_value": v(8000.0, "SHEET Input G10; dry basis net (Jason 2026-11-07). Cross-check: Jackson quote "
                                    "260714a-dtm, 6.5 MMBtu/hr at 903 lb/hr dry dust = 7,198 BTU/lb as fired, vs "

@@ -27,6 +27,7 @@ from typing import Any
 from mce_engineering.core.provenance import Flag
 
 from . import combustion as cb
+from . import emissions as em
 from .drum import DrumDuty, DrumRules, select_drum
 from .presets import (FUELS, LHV_AS_FIRED_SANE, MATERIALS, NEMA_HP, STANDARD_DRUM_MAX_NORMAL_LENGTH_FT,
                       WOOD_LHV_DRY_SANE)
@@ -318,7 +319,8 @@ def calculate(R: Resolved) -> dict:
 
     mb = mass_balance(p, ctx)
     ph = product_heat(p, mb, r["exhaust_temp_F"], ctx)
-    is_wood_fuel = f["fuel"] in ("dry_wood", "biomass")
+    is_wood_fuel = f["fuel"] == "biomass"
+    self_fueled = is_wood_fuel and bool(mat.get("is_wood"))  # the burner can fire the dried product itself
     fm = fuel_model(f, f["fuel"], is_wood_fuel, ctx)
     c: cb.CombustionResult = fm["c"]
 
@@ -336,15 +338,11 @@ def calculate(R: Resolved) -> dict:
                       ld_range=r["ld_range"], velocity_tolerance_pct=r["drum_velocity_tolerance_pct"],
                       entrainment_hard=not a["product_air_conveyed"])
     drum_sel, sol, outer = None, None, []
-    prev_key = None
-    for k in range(12):
-        try:
-            sol = gm.solve()
-        except SolverError as e:
-            raise ValueError(f"gas-side balance did not converge: {e}") from e
+
+    def _duty(sol):
         st = sol["streams"]
         ex = st["dryer_exhaust"]
-        duty = DrumDuty(
+        return DrumDuty(
             evap_lb_hr=mb["evaporation_lb_hr"], exhaust_acfm=acfm_from_lbmol_hr(_mol(ex), r["exhaust_temp_F"], p_site),
             gas_in_lb_hr=_mass(st["dryer_inlet"]), gas_out_lb_hr=_mass(ex), solids_lb_hr=mb["drum_solids_lb_hr"],
             wet_in_lb_hr=mb["drum_infeed_lb_hr"], drum_out_lb_hr=mb["drum_discharge_lb_hr"],
@@ -352,6 +350,17 @@ def calculate(R: Resolved) -> dict:
             particle_density=p["particle_density"], sphericity=p["sphericity"],
             gas_density_exhaust=gas_density_lb_ft3(_mass(ex) / _mol(ex), r["exhaust_temp_F"], p_site),
             exhaust_temp_F=r["exhaust_temp_F"])
+
+    def _solve():
+        try:
+            return gm.solve()
+        except SolverError as e:
+            raise ValueError(f"gas-side balance did not converge: {e}") from e
+
+    prev_key, seen = None, []
+    for k in range(12):
+        sol = _solve()
+        duty = _duty(sol)
         drum_sel = select_drum(duty, rules, r["standard_diameters_ft"], r["standard_lengths_ft"], r["force_drum"])
         rec = drum_sel["recommended"]
         key = (rec["diameter_ft"], rec["length_ft"]) if rec else None
@@ -361,6 +370,23 @@ def calculate(R: Resolved) -> dict:
             break
         new_ua = r["shell_U"] * rec["shell_area_ft2"]
         if key == prev_key and abs(new_ua - gm.shell_ua) < 1e-6 * max(new_ua, 1):
+            break
+        if k >= 2 and key != prev_key and r["force_drum"] is None:
+            # The shell loss of one drum selects the other: take the larger diameter (it carries the higher gas
+            # flow), solve with its own shell loss and keep it. The workbook does the same after its pass B and C.
+            cand = max(key, prev_key)
+            gm.shell_ua = r["shell_U"] * math.pi * cand[0] * cand[1]
+            sol = _solve()
+            duty = _duty(sol)
+            drum_sel = select_drum(duty, rules, r["standard_diameters_ft"], r["standard_lengths_ft"], None, keep=cand)
+            outer.append({"iteration": k + 2, "fuel_lb_hr": sol["m_fuel"], "drum": cand,
+                          "shell_loss_btu_hr": gm.shell_loss(sol["m_fuel"], sol["t_in"]), "note": "drum alternated"})
+            ctx.flag("info", "DRUM_SHELL_LOSS_ALTERNATES",
+                     f"The shell loss of the {prev_key[0]:g} x {prev_key[1]:g} ft drum selects the {key[0]:g} x "
+                     f"{key[1]:g} ft drum and back. The larger diameter is kept, with its own shell loss.", "drum")
+            if not drum_sel["recommended"]["passes"]:
+                ctx.flag("warning", "DRUM_ALTERNATE_FAILS", f"The kept {cand[0]:g} x {cand[1]:g} ft drum fails "
+                         + ", ".join(drum_sel["recommended"]["failed"]) + " at its own gas flow.", "drum")
             break
         prev_key, gm.shell_ua = key, new_ua
     if drum_sel["recommended"] is None:
@@ -484,7 +510,7 @@ def calculate(R: Resolved) -> dict:
     if fm["kind"] == "gas":
         annual["fuel_mmscf_yr"] = round(m_f * fm["vol"]["scf_per_lb"] * hours / 1e6, 3)
     self_fuel = None
-    if is_wood_fuel:
+    if self_fueled:
         net = mb["product_lb_hr"] - m_f
         self_fuel = {"product_lb_hr": q(mb["product_lb_hr"], "lb/hr"), "fuel_lb_hr": q(m_f, "lb/hr"),
                      "net_product_lb_hr": q(net, "lb/hr"), "fraction_of_product_burned": round(m_f / mb["product_lb_hr"], 4),
@@ -493,6 +519,27 @@ def calculate(R: Resolved) -> dict:
         if net < 0:
             ctx.flag("warning", "NOT_SELF_FUELING", f"The dryer burns more fuel ({m_f:,.0f} lb/hr) than it produces "
                                                     f"({mb['product_lb_hr']:,.0f} lb/hr).")
+
+    # ------------------------------------------------------------ emissions (potential to emit)
+    stack = st["stack"]
+    stack_dscfm = scfm_from_lbmol_hr(_mol(stack) - stack.get("H2O", 0.0))
+    emis = em.estimate(f["fuel"], m_f, fm["hhv"], c.products_lbmol.get("CO2", 0.0) * MW["CO2"],
+                       c.products_lbmol.get("SO2", 0.0) * MW["SO2"], stack_dscfm, mb["solids_lb_hr"],
+                       p["annual_hours"], a["collector_outlet_gr_dscf"], p["product_voc_lb_odt"])
+    for k in emis["major_source_flags"]:
+        ctx.flag("warning", "PTE_MAJOR_SOURCE", f"{k} potential to emit {emis['pollutants'][k]['pte_tpy']:,.0f} tpy is at "
+                                                f"or above {em.MAJOR_SOURCE_TPY:g} tpy: Title V major-source review is "
+                                                f"likely. Check state and nonattainment thresholds.", "emissions")
+    if not emis["product_voc_estimated"]:
+        ctx.flag("info", "VOC_PRODUCT_NOT_ESTIMATED", "VOC released by the product is not included (factor 0 lb/ODT). "
+                                                      "For wood it can set the permit; enter a factor from AP-42 "
+                                                      "Ch.10.6 or a stack test.", "emissions")
+    emis_out = {"stack_dscfm": q(stack_dscfm, "SCFM"), "fuel_mmbtu_hr_hhv": q(emis["fuel_mmbtu_hr_hhv"], "MMBtu/hr"),
+                "burner_pm_lb_hr": q(emis["burner_pm_lb_hr"], "lb/hr"), "factor_source": emis["factor_source"],
+                "pollutants": {k: {"lb_hr": q(r["lb_hr"], "lb/hr"), "tpy": q(r["tpy"], "tons/yr"),
+                                   "pte_tpy": q(r["pte_tpy"], "tons/yr"), "basis": r["basis"]}
+                               for k, r in emis["pollutants"].items()},
+                "major_source_flags": emis["major_source_flags"], "notes": emis["notes"]}
 
     # ------------------------------------------------------------ h. air system
     dv = a["duct_velocity_fpm"]
@@ -744,6 +791,7 @@ def calculate(R: Resolved) -> dict:
                                      "pass": bool(convey_ok and v_dc >= v_convey) if a["product_air_conveyed"] else None},
                        "fan": fan},
         "handoffs": handoffs,
+        "emissions": emis_out,
         "trace": ctx.trace,
     }
     return {"outputs": out, "flags": ctx.flags}

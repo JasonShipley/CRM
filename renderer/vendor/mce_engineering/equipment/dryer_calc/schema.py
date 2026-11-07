@@ -49,14 +49,16 @@ class JobBlock(_M):
 class ProcessInputs(_M):
     material: MaterialKey = F("wood_shavings", desc="Material pick (sets the preset properties below)",
                               src="pull-down")
-    throughput: float = F(3000.0, "per throughput_unit", 1.0, 400000.0, "test case: 1.5 TPH wet",
+    throughput: float = F(1.5, "per throughput_unit", 0.001, 400000.0, "test case: 1.5 TPH wet",
                           desc="Throughput value")
-    throughput_unit: Literal["lb/hr", "TPH"] = F("lb/hr", desc="Unit of throughput (TPH = US short tons/hr)")
+    throughput_unit: Literal["lb/hr", "TPH"] = F("TPH", desc="Unit of throughput (TPH = US short tons/hr)")
     throughput_basis: Literal["wet_feed", "dry_solids", "product"] = F(
-        "wet_feed", desc="wet_feed = dryer infeed as received; dry_solids = bone dry; product = dried product")
-    infeed_mc_wb: float = F(50.0, "% wet basis", 2.0, 75.0, "test case", desc="Infeed moisture, wet basis",
-                            reason="rotary drums rarely see over 65 to 70% wb without backmix")
-    target_mc_wb: float = F(10.0, "% wet basis", 0.5, 40.0, "SHEET Input F15", desc="Product moisture, wet basis")
+        "wet_feed", desc="wet_feed = wet infeed as received; product = dried product out; dry_solids = bone dry")
+    infeed_mc_wb: float | None = F(None, "% wet basis", 2.0, 90.0, "material preset", preset="mc_in",
+                                   desc="Infeed moisture, wet basis",
+                                   reason="very wet feeds (over about 70% wb) usually need backmix or a pre-press")
+    target_mc_wb: float | None = F(None, "% wet basis", 0.5, 40.0, "material preset", preset="mc_out",
+                                   desc="Product moisture, wet basis")
     backmix_ratio: float = F(0.0, "lb backmix / lb fresh wet feed", 0.0, 3.0, "SHEET Input A14",
                              desc="Dried product returned to the infeed")
     backmix_mc_wb: float | None = F(None, "% wet basis", 0.5, 40.0, "SHEET Input A15 (= product MC)",
@@ -65,7 +67,8 @@ class ProcessInputs(_M):
                                      desc="Backmix temperature at the infeed; None = ambient")
     feed_temp_F: float | None = F(None, "F", -20.0, 200.0, "SHEET Input D14 (mixed infeed 60 F = ambient)",
                                   desc="Fresh feed temperature; None = ambient")
-    product_temp_F: float = F(200.0, "F", 100.0, 400.0, "SHEET Input F14", desc="Product discharge temperature")
+    product_temp_F: float | None = F(None, "F", 100.0, 400.0, "material preset", preset="product_temp_F",
+                                     desc="Product discharge temperature")
     material_cp: float | None = F(None, "BTU/lb-F", 0.2, 0.9, "material preset", preset="cp",
                                   desc="Dry solids specific heat")
     bulk_density_dry: float | None = F(None, "lb/ft3", 2.0, 120.0, "material preset", preset="bulk_density_dry",
@@ -94,6 +97,9 @@ class ProcessInputs(_M):
     precise_temperature: bool = F(False, src="selector input", desc="Product needs precise temperature control")
     heat_source: Literal["fuel", "waste_heat", "steam", "electric"] = F(
         "fuel", src="selector input", desc="fuel = direct fired on the fuel pick below")
+    product_voc_lb_odt: float = F(0.0, "lb VOC / oven-dry ton", 0.0, 20.0,
+                                  "0 = not estimated. Enter from AP-42 Ch.10.6 or a stack test (wood dryers)",
+                                  desc="VOC released by the product while drying")
     annual_hours: float = F(7500.0, "hr/yr", 100.0, 8760.0, "SHEET Input H31 (FLOW R19 says 8,000; Input used)",
                             desc="Operating hours per year")
 
@@ -105,7 +111,7 @@ class SiteInputs(_M):
 
 
 class FuelInputs(_M):
-    fuel: FuelKey = F("dry_wood", desc="Fuel pick", src="pull-down")
+    fuel: FuelKey = F("biomass", desc="Fuel pick", src="pull-down")
     heating_value: float | None = F(None, "BTU/lb", 1000.0, 25000.0, "fuel preset", preset="heating_value",
                                     desc="Heating value in the basis below")
     heating_value_basis: Literal["net_as_fired", "net_dry", "gross_dry", "gross_as_fired"] | None = F(
@@ -212,6 +218,9 @@ class AirSystemInputs(_M):
     fan_inlet_static_in_wc: float = F(0.0, "in. w.c. gauge", -60.0, 10.0, "0 = ACFM at site barometric pressure",
                                       desc="Static pressure at the fan inlet (negative = suction)")
     fan_vfd_or_damper: bool = F(True, src=MCE_CONFIRM, desc="If False the motor is sized for cold start")
+    collector_outlet_gr_dscf: float = F(0.02, "gr/dscf", 0.001, 0.5,
+                                        "Cyclone or baghouse outlet loading for stack PM. " + MCE_CONFIRM,
+                                        desc="Particulate leaving the collector")
 
 
 class DryerRequest(_M):

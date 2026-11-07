@@ -2,8 +2,10 @@
 
     python -m mce_engineering.equipment.dryer_calc serve --port 8095
 
-GET  /                 phone-friendly form (pull-downs for material, fuel and gas mode)
-GET  /calculator       the full HTML calculator built from the Excel workbook (live formulas in the browser)
+GET  /                 the calculator (product, throughput, moisture in and out, fuel, elevation; live formulas
+                       from the Excel workbook in the browser)
+GET  /calculator       same page
+GET  /form             plain form that posts to /run and returns the one-page sizing report
 POST /api/dryer        JSON request (mce.dryer.v1) -> JSON response
 POST /api/dryer/workbook  calculator entries -> sizing record + cross-check against the Python engine
 POST /api/dryer/workbook/xlsx  calculator entries -> the live MCE Excel workbook for those inputs
@@ -39,21 +41,18 @@ box-sizing:border-box}}button{{margin:1em 0;width:100%;padding:.8em;font-size:1r
 border:0;border-radius:6px}}h1{{font-size:1.2rem}}.row{{display:flex;gap:8px}}.row>div{{flex:1}}</style></head><body>
 <p>Midwest Custom Engineering, Inc.</p><h1>Rotary dryer sizing</h1><form method=post action=/run>
 <label>Job number<input name=job_number value=""></label>
-<label>Material<select name=material>{_opts(MATERIALS, 'wood_shavings')}</select></label>
+<label>Product<select name=material>{_opts(MATERIALS, 'wood_shavings')}</select></label>
 <div class=row><div><label>Throughput<input name=throughput type=number step=any value=1.5></label></div>
 <div><label>Unit<select name=throughput_unit><option>TPH</option><option>lb/hr</option></select></label></div></div>
-<label>Throughput basis<select name=throughput_basis><option value=wet_feed>Wet feed</option>
-<option value=dry_solids>Dry solids</option><option value=product>Dried product</option></select></label>
-<div class=row><div><label>Infeed MC % wb<input name=infeed_mc_wb type=number step=any value=50></label></div>
-<div><label>Target MC % wb<input name=target_mc_wb type=number step=any value=10></label></div></div>
-<label>Fuel<select name=fuel>{_opts(FUELS, 'dry_wood')}</select></label>
-<div class=row><div><label>Ambient F<input name=ambient_temp_F type=number step=any value=60></label></div>
-<div><label>Elevation ft<input name=elevation_ft type=number step=any value=1200></label></div></div>
-<div class=row><div><label>Inlet gas F<input name=inlet_temp_F type=number step=any value=600></label></div>
-<div><label>Exhaust F<input name=exhaust_temp_F type=number step=any value=180></label></div></div>
+<label>Throughput basis<select name=throughput_basis><option value=wet_feed>Wet infeed</option>
+<option value=product>Dried product</option></select></label>
+<div class=row><div><label>Moisture in % wb<input name=infeed_mc_wb type=number step=any placeholder="product default"></label></div>
+<div><label>Moisture out % wb<input name=target_mc_wb type=number step=any placeholder="product default"></label></div></div>
+<label>Fuel<select name=fuel>{_opts(FUELS, 'biomass')}</select></label>
+<label>Site elevation ft<input name=elevation_ft type=number step=any value=1200></label>
 <label>Advanced (JSON merged into the request, optional)<input name=advanced value=""></label>
 <button type=submit>Size dryer</button></form>
-<p><a href="/calculator">Open the full calculator</a> (every input, live results, customer sheet).</p>
+<p><a href="/">Open the calculator</a> (live results, customer sheet, Excel download).</p>
 <p style="font-size:.8rem;color:#555">Every run is saved as a sizing record. All defaults can be overridden in the
 advanced JSON; overrides and out-of-range values are flagged.</p></body></html>"""
 
@@ -65,14 +64,16 @@ def _merge(a: dict, b: dict) -> dict:
 
 
 def form_to_request(f: dict[str, str]) -> dict:
-    num = lambda k: float(f[k])
+    def num(k):
+        return float(f[k]) if str(f.get(k, "")).strip() else None
+
+    proc = {"material": f["material"], "throughput": num("throughput"), "throughput_unit": f["throughput_unit"],
+            "throughput_basis": f.get("throughput_basis", "wet_feed"),
+            "infeed_mc_wb": num("infeed_mc_wb"), "target_mc_wb": num("target_mc_wb")}
     req = {"job": {"job_number": f.get("job_number") or "UNASSIGNED"},
-           "process": {"material": f["material"], "throughput": num("throughput"),
-                       "throughput_unit": f["throughput_unit"], "throughput_basis": f["throughput_basis"],
-                       "infeed_mc_wb": num("infeed_mc_wb"), "target_mc_wb": num("target_mc_wb")},
-           "site": {"ambient_temp_F": num("ambient_temp_F"), "elevation_ft": num("elevation_ft")},
-           "fuel": {"fuel": f["fuel"]},
-           "rotary": {"inlet_temp_F": num("inlet_temp_F"), "exhaust_temp_F": num("exhaust_temp_F")}}
+           "process": {k: v for k, v in proc.items() if v is not None},
+           "site": {k: v for k, v in {"elevation_ft": num("elevation_ft")}.items() if v is not None},
+           "fuel": {"fuel": f["fuel"]}}
     if f.get("advanced", "").strip():
         req = _merge(req, json.loads(f["advanced"]))
     return req
@@ -88,11 +89,13 @@ class Handler(BaseHTTPRequestHandler):
         self.wfile.write(data)
 
     def do_GET(self):  # noqa: N802
-        if self.path.rstrip("/") == "/calculator":
-            return self._send(200, calculator_page(), "text/html; charset=utf-8")
         if self.path == "/schema":
             return self._send(200, json.dumps(input_json_schema(), indent=2), "application/json")
-        return self._send(200, FORM, "text/html; charset=utf-8")
+        if self.path.rstrip("/") == "/form":
+            return self._send(200, FORM, "text/html; charset=utf-8")
+        if self.path.rstrip("/") in ("", "/calculator"):
+            return self._send(200, calculator_page(), "text/html; charset=utf-8")
+        return self._send(404, "not found", "text/plain")
 
     def do_POST(self):  # noqa: N802
         raw = self.rfile.read(int(self.headers.get("Content-Length", 0))).decode()

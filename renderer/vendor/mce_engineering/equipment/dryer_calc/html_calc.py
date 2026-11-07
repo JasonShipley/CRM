@@ -230,19 +230,29 @@ PAGE = """<!doctype html>
 :root{--orange:#FF6602;--black:#000;--steel:#575D5E;--silver:#C8C7C7;--white:#fff;--field:#F1F1F1;--panel:#F5F5F5;
 --muted:#9A9A9A;--entry:#FFF4E5;--head:'Oswald','Arial Narrow',Arial,sans-serif;--body:'Inter',Arial,Helvetica,sans-serif}
 *{box-sizing:border-box}
-html,body{margin:0;background:#fff;color:#000;font-family:var(--body);font-size:14px}
+html,body{margin:0;overflow-x:hidden;background:#fff;color:#000;font-family:var(--body);font-size:14px}
 header{background:var(--black);color:#fff;padding:10px 16px 8px;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
 header img{height:44px}
 header .t{flex:1;min-width:200px;text-align:right}
 header h1{font-family:var(--head);font-size:20px;margin:0;letter-spacing:.3px}
 header .s{color:var(--orange);font-family:var(--head);font-size:14px;font-weight:600}
 .rule{height:4px;background:var(--orange)}
-nav{position:sticky;top:0;z-index:5;background:#fff;border-bottom:1px solid var(--silver);display:flex;overflow-x:auto}
-nav button{flex:1 0 auto;border:0;background:none;padding:12px 14px;font-family:var(--head);font-size:15px;color:var(--steel);
-text-transform:uppercase;letter-spacing:.4px;border-bottom:3px solid transparent;cursor:pointer}
-nav button.on{color:#000;border-bottom-color:var(--orange)}
 main{max-width:1180px;margin:0 auto;padding:12px 16px 40px}
-section.tab{display:none}section.tab.on{display:block}
+.grid{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:18px;align-items:start}
+.form{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px;margin-top:8px}
+.form .f{min-width:0}.form .f.wide{grid-column:1/-1}
+.panel{min-width:0}
+.form label{display:block;font-size:12px;color:var(--steel);margin-bottom:3px;text-transform:uppercase;font-family:var(--head);letter-spacing:.3px}
+.form .ctl{display:flex;gap:6px;align-items:center}
+.form input,.form select{flex:1;min-width:0;padding:10px 8px;font-size:16px;border:1px solid var(--silver);border-radius:4px;
+background:var(--entry);color:#000;font-weight:600;font-family:var(--body)}
+.form select#in_p_TUnit{flex:0 0 92px}
+.form input::placeholder{color:#555;font-weight:400}
+.form .u{font-size:12px;color:var(--steel);white-space:nowrap}
+details{margin-top:18px;border:1px solid var(--silver);border-radius:4px;padding:0 12px}
+details>summary{cursor:pointer;padding:12px 0;font-family:var(--head);text-transform:uppercase;letter-spacing:.4px;font-size:15px}
+details[open]{padding-bottom:12px}
+.bar:first-child{margin-top:0}
 .bar{background:var(--steel);color:#fff;font-family:var(--head);text-transform:uppercase;letter-spacing:.4px;padding:6px 10px;
 margin:18px 0 6px;border-left:6px solid var(--orange);font-size:14px}
 .row{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr) auto;gap:8px;align-items:center;padding:6px 2px;
@@ -262,7 +272,7 @@ color:#0000FF;font-weight:600;font-family:var(--body)}
 table{border-collapse:collapse;width:100%;font-size:13px}
 td,th{border-bottom:1px solid #eee;padding:5px 6px;text-align:left;vertical-align:top}
 th{background:#E4E4E4;font-weight:600}
-td.n{text-align:right;white-space:nowrap}
+td.n,th.n{text-align:right;white-space:nowrap}
 .warn{border-left:4px solid var(--orange);background:var(--panel);padding:8px 10px;margin:6px 0;font-size:13px}
 .ok{border-left:4px solid var(--steel);background:var(--panel);padding:8px 10px;margin:6px 0;font-size:13px}
 .btns{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
@@ -281,11 +291,14 @@ footer{border-top:1px solid var(--silver);margin-top:24px;padding:10px 16px;font
 display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
 footer b{font-family:var(--head);letter-spacing:.4px}
 footer .tag{color:var(--muted)}
-@media (max-width:560px){header .t{text-align:left}.row{grid-template-columns:1fr 1fr}.row .u{grid-column:2}}
+@media (max-width:860px){.grid{grid-template-columns:1fr}}
+@media (max-width:560px){header .t{text-align:left}.row{grid-template-columns:1fr 1fr}.row .u{grid-column:2}
+.cards{grid-template-columns:1fr 1fr}.card .v{font-size:18px}}
 @media print{
   @page{size:letter landscape;margin:0.3in}
-  header,.rule,nav,footer,.btns,.note,section.tab{display:none !important}
-  section#t-sheet{display:block !important}
+  header,.rule,footer,.grid,details{display:none !important}
+  details#d-sheet{display:block !important;border:0;padding:0}
+  details#d-sheet>summary,details#d-sheet .note{display:none !important}
   main{padding:0;max-width:none}
   #sheetWrap{border:0;page-break-inside:avoid;break-inside:avoid}
 }
@@ -295,20 +308,22 @@ footer .tag{color:var(--muted)}
 <header><img alt="Midwest Custom Engineering" src="__LOGO__"><div class="t"><h1>ROTARY DRYER CALCULATOR</h1>
 <div class="s">Mass and energy balance, burner, drum, fan</div></div></header>
 <div class="rule"></div>
-<nav id="nav"><button data-t="t-inputs" class="on">Inputs</button><button data-t="t-results">Results</button>
-<button data-t="t-sheet">Customer sheet</button><button data-t="t-calc">Calculation</button></nav>
 <main>
-<section class="tab on" id="t-inputs"><p class="note">Type only what differs from the default (shown grey). Material and fuel
-picks set their own defaults. Every entry is marked as an override; values outside the normal range are flagged.</p>
-<div class="btns"><button class="alt" id="reset">Reset all inputs</button></div><div id="inputs"></div></section>
-<section class="tab" id="t-results"><div id="results"></div>
-<div class="btns"><button id="save">Save sizing record</button><button class="alt" id="xlsx">Download Excel</button>
-<button class="alt" id="download">Download record (JSON)</button></div>
-<div id="saveMsg" class="note"></div></section>
-<section class="tab" id="t-sheet"><div class="btns"><button id="print">Print customer sheet</button></div>
-<div id="sheetWrap"><div id="sheet"></div></div><p class="note">One landscape page. Print or save as PDF to send.</p></section>
-<section class="tab" id="t-calc"><p class="note">Every line is a named formula from the MCE rotary dryer workbook.</p>
-<div id="calc"></div></section>
+<div class="grid">
+<section class="panel" id="p-in"><div class="bar">Dryer duty</div><div id="simple" class="form"></div>
+<p class="note" id="prodNote"></p>
+<div class="btns"><button id="xlsx">Download Excel (full details)</button><button class="alt" id="print">Print customer sheet</button>
+<button class="alt" id="save">Save sizing record</button></div><div id="saveMsg" class="note"></div></section>
+<section class="panel" id="p-out"><div class="bar">Results</div><div id="results"></div></section>
+</div>
+<details id="d-sheet"><summary>Customer sheet (mass and energy balance)</summary>
+<div id="sheetWrap"><div id="sheet"></div></div><p class="note">One landscape page. Print or save as PDF to send.</p></details>
+<details id="d-adv"><summary>All inputs<span id="advCount"></span></summary>
+<p class="note">Everything here starts at the workbook default (shown grey) and only needs changing for a special case.
+Product and fuel set their own defaults. Changed values are marked; values outside the normal range are flagged.</p>
+<div class="btns"><button class="alt" id="reset">Reset all inputs</button><button class="alt" id="download">Download record (JSON)</button></div>
+<div id="inputs"></div></details>
+<details id="d-calc"><summary>Calculation (every workbook line)</summary><div id="calc"></div></details>
 </main>
 <footer><span><b>MIDWEST CUSTOM ENGINEERING</b> <span class="tag">PRECISION. QUALITY. INTEGRITY.</span></span>
 <span id="ver"></span></footer>

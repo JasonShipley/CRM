@@ -50,12 +50,16 @@ Open `http://<server>:3000` and sign in with the email/password from
 
 ### Size a rotary dryer for a quote
 1. Open `https://quotes.usemce.com/calc/dryer/` (same login as the quotes; works on a phone).
-2. **Inputs:** type only what differs from the grey default (job number and customer first). Material and fuel
-   pull-downs set their own defaults. Entries are marked "override"; anything outside the normal range is flagged.
-3. **Results:** burner, fuel, BTU/lb water, drum, fan and warnings. **Customer sheet:** the branded Mass-Energy
-   Balance page; **Print customer sheet** gives one landscape page to attach to the quote.
+2. **Enter the duty:** product (wood shavings, sawdust, chips, bark, carrots, tomato pomace, walnut hulls, almond
+   skins, ag residue, pet food, alfalfa, hay, distillers grains), throughput (TPH or lb/hr, wet infeed or dried
+   product), moisture in and out (blank = the product's typical values, shown grey), fuel (natural gas, propane,
+   #2 fuel oil, biomass burner) and site elevation. Job number and customer are optional.
+3. **Results** show beside the inputs: burner size, fuel use, water evaporated, dried product, drum, exhaust ACFM,
+   fan motor, BTU/lb water, an emissions table and warnings. **Print customer sheet** gives the branded
+   Mass-Energy Balance page on one landscape page. Any other default can still be changed under **All inputs**.
 4. **Save sizing record** gives the run its record number (e.g. `RD-000012`), which prints on the customer sheet.
-   Put that number in the quote's comments. **Download Excel** gives the live MCE workbook for the same inputs.
+   Put that number in the quote's comments. **Download Excel** gives the live MCE workbook for the same inputs, with every detail: equipment
+   summary, emissions report, open items, product library and the full calculation.
 5. All saved runs, with their PDF sizing report and Excel workbook, are at `https://quotes.usemce.com/calc/dryer/records`.
 
 ### When a customer accepts

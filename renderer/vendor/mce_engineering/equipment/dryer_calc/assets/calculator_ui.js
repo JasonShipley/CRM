@@ -1,4 +1,6 @@
-/* MCE rotary dryer calculator UI. All numbers come from the workbook's formulas via xlcalc (MODEL). */
+/* MCE rotary dryer calculator UI. All numbers come from the workbook's formulas via xlcalc (MODEL).
+   Simple screen: product, throughput, moisture in and out, fuel, elevation. Everything else stays at the workbook
+   default and can be changed under "All inputs" or in the Excel download. */
 (function () {
   'use strict';
   var wb = new xlcalc.Workbook(MODEL);
@@ -8,33 +10,59 @@
   var fmt = xlcalc.format, isErr = xlcalc.isErr;
   var $ = function (id) { return document.getElementById(id); };
   var esc = function (s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
-  var STORE = 'mce-dryer-entries-v1';
+  var STORE = 'mce-dryer-entries-v2';
+  var SIMPLE = ['j_Job', 'j_Customer', 'p_Material', 'p_Throughput', 'p_TUnit', 'p_TBasis', 'p_MCin', 'p_MCout', 'f_Fuel', 's_Elev'];
+  var LABELS = { p_TBasis: { wet_feed: 'Wet infeed', product: 'Dried product' } };
 
   function nm(n) { return wb.name(n); }
-  function calcRow(n) { var d = MODEL.names[n]; return d && d[0] === SC ? d[1] : null; }
-  function si(n) {  // metric value + unit from the Calc sheet's SI columns
-    var r = calcRow(n); if (!r) return '';
-    var v = wb.cell(SC, r, 5), u = wb.cell(SC, r, 6);
-    if (v === null || isErr(v) || !u) return '';
-    return fmt(v, Math.abs(v) >= 100 ? '#,##0' : '0.00') + ' ' + u;
-  }
+  function num(n) { var v = nm(n); return typeof v === 'number' ? v : NaN; }
   function val(n, f, unit) { var v = nm(n); return isErr(v) ? v.code : fmt(v, f) + (unit ? ' ' + unit : ''); }
 
   // ------------------------------------------------------------------ inputs
-  var inputRows = [];
-  function buildInputs() {
+  var rows = {}, inputRows = [];
+  MODEL.inputs.forEach(function (sec) { sec.rows.forEach(function (r) { rows[r.name] = r; inputRows.push(r); }); });
+
+  function control(row, id) {
+    if (row.pick) {
+      var opts = row.pick;
+      if (LABELS[row.name]) opts = Object.keys(LABELS[row.name]);
+      return '<select id="' + id + '">' + opts.map(function (p) {
+        return '<option value="' + esc(p) + '">' + esc(LABELS[row.name] ? LABELS[row.name][p] : p) + '</option>'; }).join('') + '</select>';
+    }
+    return '<input id="' + id + '" ' + (row.numeric ? 'inputmode="decimal"' : 'type="text"') + ' autocomplete="off">';
+  }
+  function buildSimple() {
+    var f = function (name, label, unit, wide) {
+      var row = rows[name];
+      return '<div class="f' + (wide ? ' wide' : '') + '"><label for="in_' + name + '">' + esc(label) +
+        '<span id="bd_' + name + '"></span></label><div class="ctl">' + control(row, 'in_' + name) +
+        (unit ? '<span class="u">' + esc(unit) + '</span>' : '') + '</div></div>';
+    };
+    $('simple').innerHTML = [
+      f('p_Material', 'Product', '', true),
+      '<div class="f"><label for="in_p_Throughput">Throughput<span id="bd_p_Throughput"></span></label><div class="ctl">' +
+        control(rows.p_Throughput, 'in_p_Throughput') + control(rows.p_TUnit, 'in_p_TUnit') + '</div></div>',
+      f('p_TBasis', 'Rate is of the', ''),
+      f('p_MCin', 'Moisture in', '% wb'),
+      f('p_MCout', 'Moisture out', '% wb'),
+      f('f_Fuel', 'Fuel', '', true),
+      f('s_Elev', 'Site elevation', 'ft'),
+      f('j_Job', 'Job number (optional)', ''),
+      f('j_Customer', 'Customer (optional)', '')
+    ].join('');
+  }
+  function buildAdvanced() {
     var h = [];
     MODEL.inputs.forEach(function (sec) {
+      var rs = sec.rows.filter(function (r) { return SIMPLE.indexOf(r.name) < 0; });
+      if (!rs.length) return;
       h.push('<div class="bar">' + esc(sec.title) + '</div>');
-      sec.rows.forEach(function (row) {
-        inputRows.push(row);
+      rs.forEach(function (row) {
         var id = 'in_' + row.name, ctl;
         if (row.pick) {
           ctl = '<select id="' + id + '"><option value="">(default)</option>' + row.pick.map(function (p) {
             return '<option>' + esc(p) + '</option>'; }).join('') + '</select>';
-        } else {
-          ctl = '<input id="' + id + '" ' + (row.numeric ? 'inputmode="decimal"' : 'type="text"') + ' autocomplete="off">';
-        }
+        } else ctl = control(row, id);
         h.push('<div class="row"><label for="' + id + '">' + esc(row.label) + '<span id="bd_' + row.name + '"></span></label>' +
           ctl + '<span class="u">' + esc(row.unit || '') + '</span>' +
           (row.src ? '<span class="src">' + esc(row.src) + (row.numeric && row.lo !== null && row.hi !== null ?
@@ -42,14 +70,19 @@
       });
     });
     $('inputs').innerHTML = h.join('');
+  }
+  function bind() {
     inputRows.forEach(function (row) {
       var el = $('in_' + row.name);
-      el.addEventListener(row.pick ? 'change' : 'input', function () { setEntry(row, el.value); schedule(); save(); });
+      if (!el) return;
+      el.addEventListener(el.tagName === 'SELECT' ? 'change' : 'input', function () { setEntry(row, el.value); schedule(); save(); });
     });
   }
+  function dflt(row) { return wb.cell(SI, row.row, 3); }
   function setEntry(row, raw) {
     var v = String(raw).trim();
-    if (v === '') { wb.clearInput(SI, row.row, 4); return; }
+    var simpleSel = SIMPLE.indexOf(row.name) >= 0 && row.pick;
+    if (v === '' || (simpleSel && v === String(dflt(row)))) { wb.clearInput(SI, row.row, 4); return; }
     if (row.numeric) {
       var n = Number(v.replace(/,/g, ''));
       wb.setInput(SI, row.row, 4, isNaN(n) ? v : n);
@@ -68,20 +101,31 @@
     var e = {};
     try { e = JSON.parse(localStorage.getItem(STORE) || '{}') || {}; } catch (x) { e = {}; }
     inputRows.forEach(function (row) {
-      if (row.name in e) { setEntry(row, e[row.name]); $('in_' + row.name).value = e[row.name]; }
+      if (row.name in e && $('in_' + row.name)) { setEntry(row, e[row.name]); $('in_' + row.name).value = e[row.name]; }
     });
   }
   function renderInputs() {
+    var nOver = 0;
     inputRows.forEach(function (row) {
-      var el = $('in_' + row.name), d = wb.cell(SI, row.row, 3), chk = wb.cell(SI, row.row, 9);
+      var el = $('in_' + row.name);
+      if (!el) return;
+      var d = dflt(row), chk = wb.cell(SI, row.row, 9), set = (wb.key(SI, row.row, 4) in wb.inputs);
       var dshow = isErr(d) ? d.code : (typeof d === 'number' ? fmt(d, Math.abs(d) < 0.1 && d !== 0 ? '0.0000' : 'General') : (d || ''));
-      if (row.pick) el.options[0].text = '(default: ' + dshow + ')';
-      else el.placeholder = dshow === '' ? '' : 'default ' + dshow;
+      var simple = SIMPLE.indexOf(row.name) >= 0;
+      if (el.tagName === 'SELECT') {
+        if (simple) { if (!set) el.value = String(d); }
+        else el.options[0].text = '(default: ' + dshow + ')';
+      } else el.placeholder = dshow === '' ? '' : (simple ? dshow : 'default ' + dshow);
       var b = '';
       if (chk === 'OUT OF RANGE') b = '<span class="badge b-bad">OUT OF RANGE</span>';
-      else if (chk === 'override') b = '<span class="badge b-ov">override</span>';
-      $('bd_' + row.name).innerHTML = b;
+      else if (chk === 'override' && !simple) { b = '<span class="badge b-ov">override</span>'; nOver++; }
+      var bd = $('bd_' + row.name); if (bd) bd.innerHTML = b;
     });
+    $('advCount').textContent = nOver ? ' (' + nOver + ' changed)' : '';
+    var mat = nm('p_Material');
+    $('prodNote').textContent = 'Cp ' + val('p_Cp', '0.000') + ' BTU/lb-F dry solids, bulk density ' + val('p_RhoDry', '0.0') +
+      ' lb/ft3 dry, typical ' + val('p_MCin', '0') + '% to ' + val('p_MCout', '0') + '%, discharge ' + val('p_ProdT', '0') +
+      ' F. Values from the product library (' + String(mat) + '); change any of them under All inputs.';
   }
 
   // ------------------------------------------------------------------ results
@@ -89,37 +133,38 @@
     return '<div class="card"><div class="k">' + esc(k) + '</div><div class="v' + (orange ? ' or' : '') + '">' + esc(v) +
       '</div>' + (m ? '<div class="m">' + esc(m) + '</div>' : '') + '</div>';
   }
+  function fuelRate() {
+    var kind = nm('d_FuelKind');
+    if (kind === 'gas') return [val('d_FuelSCFH', '#,##0', 'SCFH'), val('d_mf', '#,##0', 'lb/hr')];
+    if (kind === 'liquid') return [val('d_FuelGal', '#,##0.0', 'gal/hr'), val('d_mf', '#,##0', 'lb/hr')];
+    return [val('d_mf', '#,##0', 'lb/hr'), val('f_MC', '0') + '% MC wood fuel'];
+  }
   function renderResults() {
-    var gas = nm('d_IsGas') === 1;
+    var fr = fuelRate(), self = num('d_SelfFuel') === 1;
     var h = ['<div class="cards">',
-      card('Burner operating (LHV)', val('d_BurnerOp', '0.00', 'MMBtu/hr'), si('d_BurnerOp') + ' | HHV ' + val('d_BurnerHHV', '0.00', 'MMBtu/hr')),
-      card('Burner design rating', val('d_BurnerDesign', '0.00', 'MMBtu/hr'), 'x ' + val('r_BurnerMargin', '0.00') + ' of operating'),
-      card('Specific heat use', val('d_BtuLb', '#,##0', 'BTU/lb water'), si('d_BtuLb') + ' (LHV)', true),
-      card('Fuel', gas ? val('d_FuelSCFH', '#,##0', 'SCFH') : val('d_mf', '#,##0', 'lb/hr'),
-        (gas ? val('d_mf', '#,##0.0', 'lb/hr') + ' | ' : '') + nm('f_Fuel')),
-      card('Evaporation', val('d_Evap', '#,##0', 'lb/hr'), si('d_Evap')),
-      card('Product', val('d_Product', '#,##0', 'lb/hr'), val('p_MCout', '0.0') + '% MC wb'),
-      card('Drum', String(nm('d_DrumSize')), 'Next up: ' + nm('d_DrumNext') + (nm('d_DrumAlt') !== '-' ? ' | smaller alternate ' + nm('d_DrumAlt') : '')),
-      card('Drum checks', val('d_DrumVel', '#,##0', 'FPM'), 'VER ' + val('d_DrumVER', '0.00') + ' | fill ' + val('d_DrumFill', '0.0') +
-        '% | ' + val('d_DrumRes', '0.0') + ' min | ' + val('d_DrumRPM', '0.0') + ' rpm'),
-      card('Dryer exhaust', val('x_sEX_acfm', '#,##0', 'ACFM'), val('r_Texh', '0') + ' F | dew point ' + val('d_Tdew', '0') + ' F'),
-      card('Inlet gas', val('x_sIN_acfm', '#,##0', 'ACFM'), val('r_Tin', '#,##0') + ' F | flame ' + val('d_Tflame', '#,##0') + ' F'),
-      card('Fan', val('d_Motor', '0', 'HP motor'), val('d_BHPop', '0.0') + ' BHP hot | ' + val('d_BHPcold', '0.0') + ' BHP cold'),
-      card('Annual fuel', val('d_AnnFuel', '#,##0', 'tons/yr'), val('d_AnnMMBtu', '#,##0', 'MMBtu/yr')),
+      card('Burner size', val('d_BurnerDesign', '0.00', 'MMBtu/hr'), 'design rating; ' + val('d_BurnerOp', '0.00') + ' MMBtu/hr operating (LHV)', true),
+      card('Fuel use', fr[0], fr[1] + ' | ' + val('d_AnnMMBtu', '#,##0') + ' MMBtu/yr'),
+      card('Water evaporated', val('d_Evap', '#,##0', 'lb/hr'), val('d_Wet', '#,##0') + ' lb/hr wet in'),
+      card('Dried product', val('d_Product', '#,##0', 'lb/hr'), self ? val('d_NetProduct', '#,##0') + ' lb/hr net after the burner fuel'
+        : val('d_AnnProduct', '#,##0') + ' tons/yr'),
+      card('Rotary drum', String(nm('d_DrumSize')), val('d_DrumRPM', '0.0') + ' rpm | ' + val('d_DrumRes', '0') + ' min residence', true),
+      card('Exhaust air', val('x_sEX_acfm', '#,##0', 'ACFM'), 'at ' + val('r_Texh', '0') + ' F; inlet ' + val('r_Tin', '#,##0') + ' F'),
+      card('Exhaust fan', val('d_Motor', '0', 'HP motor'), val('d_BHPop', '0.0') + ' BHP at ' + val('d_SPop', '0.0') + ' in. w.c.'),
+      card('Energy per lb water', val('d_BtuLb', '#,##0', 'BTU/lb'), 'LHV; typical 1,400 to 1,900'),
       '</div>'];
+    // emissions
+    h.push('<div class="bar">Emissions estimate</div><table><tr><th>Pollutant</th><th class="n">lb/hr</th><th class="n">tons/yr*</th>' +
+      '<th class="n">PTE tons/yr</th></tr>');
+    [['NOx', 'NOx'], ['CO', 'CO'], ['SO2', 'SO2'], ['PM', 'PM (stack)'], ['VOC', 'VOC'], ['CO2', 'CO2']].forEach(function (p) {
+      h.push('<tr><td>' + p[1] + '</td><td class="n">' + val('em_' + p[0] + '_lb', p[0] === 'CO2' ? '#,##0' : '0.00') + '</td><td class="n">' +
+        val('em_' + p[0] + '_tpy', '#,##0.0') + '</td><td class="n">' + val('em_' + p[0] + '_pte', '#,##0.0') + '</td></tr>');
+    });
+    h.push('</table><p class="note">' + esc(String(nm('em_Summary'))) + ' *At ' + val('p_Hours', '#,##0') + ' hr/yr; PTE at 8,760 hr/yr. ' +
+      'AP-42 screening factors; details and sources on the Emissions sheet of the Excel workbook.</p>');
     var warn = wb.values(wb.nameRange('ck_All')).filter(function (x) { return x && !isErr(x); });
     h.push('<div class="bar">Warnings (' + warn.length + ')</div>');
     if (!warn.length) h.push('<div class="ok">No warnings.</div>');
     warn.forEach(function (w) { h.push('<div class="warn">' + esc(w) + '</div>'); });
-    h.push('<div class="bar">Heat balance (LHV)</div><table><tr><th>Heat use</th><th>BTU/hr</th><th>%</th><th>BTU/lb water</th></tr>');
-    [['Evaporation', 'd_Qevap'], ['Solids heating', 'd_Qsolids'], ['Residual water heating', 'd_Qresid'], ['Stack', 'd_Qstack'],
-      ['Shell', 'd_Qshell'], ['Furnace', 'd_Qfurnace'], ['Recycle duct', 'd_Qrecduct'], ['Burner input', 'd_Qfuel']].forEach(function (p) {
-      var q = nm(p[1]), t = nm('d_Qfuel'), e = nm('d_Evap');
-      h.push('<tr><td>' + p[0] + '</td><td class="n">' + fmt(q, '#,##0') + '</td><td class="n">' + fmt(q / t, '0.0%') +
-        '</td><td class="n">' + fmt(q / e, '#,##0') + '</td></tr>');
-    });
-    h.push('</table><p class="note">Mass closure ' + val('d_CloseM', '0.0E+00') + '%, energy closure ' + val('d_CloseE', '0.0E+00') +
-      '%. LHV as fired; SCFM at 70 F, 29.92 in. Hg; ACFM at site pressure.</p>');
     $('results').innerHTML = h.join('');
   }
 
@@ -170,8 +215,7 @@
     D.texts.forEach(function (t, i) {
       var el = textEls[i]; if (!el) return;
       var v = wb.cell(D.sheet, t.r, t.c);
-      var s = (typeof v === 'number') ? fmt(v, t.fmt) : isErr(v) ? v.code : (v === null ? '' : String(v));
-      el.textContent = s;
+      el.textContent = (typeof v === 'number') ? fmt(v, t.fmt) : isErr(v) ? v.code : (v === null ? '' : String(v));
       if (el.style.direction === 'rtl') { el.style.direction = 'ltr'; el.style.justifyContent = 'flex-end'; }
     });
   }
@@ -199,20 +243,22 @@
   }
 
   // ------------------------------------------------------------------ render loop
-  var pending = false, active = 't-inputs';
+  var pending = false;
+  function open(id) { return $(id).open; }
   function render() {
     pending = false;
     wb.reset();
     renderInputs();
-    if (active === 't-results') renderResults();
-    if (active === 't-sheet') { renderSheet(); fitSheet(); }
-    if (active === 't-calc') renderCalc();
+    renderResults();
+    if (open('d-sheet')) { renderSheet(); fitSheet(); }
+    if (open('d-calc')) renderCalc();
   }
   function schedule() { if (!pending) { pending = true; (window.requestAnimationFrame || setTimeout)(render); } }
 
   // ------------------------------------------------------------------ record
   var KEY = ['d_Evap', 'd_Product', 'd_mf', 'd_BurnerOp', 'd_BurnerHHV', 'd_BurnerDesign', 'd_BtuLb', 'd_DrumSize', 'd_DrumNext',
-    'd_DrumAlt', 'x_sEX_acfm', 'x_sIN_scfm', 'd_Tdew', 'd_BHPop', 'd_Motor', 'd_Tflame', 'd_CloseE', 'd_CloseM'];
+    'd_DrumAlt', 'x_sEX_acfm', 'x_sIN_scfm', 'd_Tdew', 'd_BHPop', 'd_Motor', 'd_Tflame', 'd_CloseE', 'd_CloseM',
+    'em_NOx_pte', 'em_CO_pte', 'em_PM_pte', 'em_VOC_pte', 'em_CO2_pte'];
   function record() {
     var res = {};
     KEY.forEach(function (k) { var v = nm(k); res[k] = isErr(v) ? v.code : v; });
@@ -220,31 +266,24 @@
       entries: entries(), results: res,
       warnings: wb.values(wb.nameRange('ck_All')).filter(function (x) { return x && !isErr(x); }) };
   }
-  $('download').addEventListener('click', function () {
-    var rec = record(), a = document.createElement('a');
-    a.href = URL.createObjectURL(new Blob([JSON.stringify(rec, null, 2)], { type: 'application/json' }));
-    a.download = 'rotary_dryer_' + (rec.entries.j_Job || 'case') + '_' + rec.timestamp.slice(0, 10) + '.json';
-    document.body.appendChild(a); a.click(); a.remove();
-  });
+  function msg(t) { $('saveMsg').textContent = t; }
   $('save').addEventListener('click', function () {
-    var msg = $('saveMsg');
-    if (location.protocol === 'file:') { msg.textContent = 'Saving a sizing record needs the MCE server or quote app. Use Download record instead.'; return; }
-    msg.textContent = 'Saving...';
+    if (location.protocol === 'file:') { msg('Saving a sizing record needs the MCE server or quote app.'); return; }
+    msg('Saving...');
     fetch('api/dryer/workbook', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(record()) })
       .then(function (r) { return r.json(); })
       .then(function (r) {
-        if (r.status !== 'ok') { msg.textContent = 'Not saved: ' + (r.error || r.message || 'error'); return; }
-        var row = inputRows.filter(function (x) { return x.name === 'j_Record'; })[0];
-        if (row) { wb.setInput(SI, row.row, 4, r.record.index); $('in_j_Record').value = r.record.index; save(); }
-        msg.textContent = 'Saved as sizing record ' + r.record.index + '. Engine cross-check: ' + r.crosscheck.summary;
+        if (r.status !== 'ok') { msg('Not saved: ' + (r.error || r.message || 'error')); return; }
+        var row = rows.j_Record;
+        if (row) { wb.setInput(SI, row.row, 4, r.record.index); if ($('in_j_Record')) $('in_j_Record').value = r.record.index; save(); }
+        msg('Saved as sizing record ' + r.record.index + '. Engine cross-check: ' + r.crosscheck.summary);
         schedule();
       })
-      .catch(function () { msg.textContent = 'Server not reachable. Use Download record instead.'; });
+      .catch(function () { msg('Server not reachable. Use Download Excel later or the record JSON.'); });
   });
   $('xlsx').addEventListener('click', function () {
-    var msg = $('saveMsg');
-    if (location.protocol === 'file:') { msg.textContent = 'The Excel download needs the MCE server or quote app.'; return; }
-    msg.textContent = 'Building the workbook...';
+    if (location.protocol === 'file:') { msg('The Excel download needs the MCE server or quote app.'); return; }
+    msg('Building the workbook...');
     fetch('api/dryer/workbook/xlsx', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(record()) })
       .then(function (r) {
         if (!r.ok) throw new Error('HTTP ' + r.status);
@@ -253,11 +292,17 @@
       })
       .then(function (x) {
         var a = document.createElement('a'); a.href = URL.createObjectURL(x[0]); a.download = x[1];
-        document.body.appendChild(a); a.click(); a.remove(); msg.textContent = 'Excel workbook downloaded: ' + x[1];
+        document.body.appendChild(a); a.click(); a.remove(); msg('Excel workbook downloaded: ' + x[1]);
       })
-      .catch(function (e) { msg.textContent = 'Excel download failed: ' + e.message; });
+      .catch(function (e) { msg('Excel download failed: ' + e.message); });
   });
-  $('print').addEventListener('click', function () { window.print(); });
+  $('download').addEventListener('click', function () {
+    var rec = record(), a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([JSON.stringify(rec, null, 2)], { type: 'application/json' }));
+    a.download = 'rotary_dryer_' + (rec.entries.j_Job || 'case') + '_' + rec.timestamp.slice(0, 10) + '.json';
+    document.body.appendChild(a); a.click(); a.remove();
+  });
+  $('print').addEventListener('click', function () { $('d-sheet').open = true; render(); window.print(); });
   window.addEventListener('beforeprint', function () {  // letter landscape, 0.3 in margins: 10.4 x 7.9 in
     var el = $('sheet'), W = colx[D.cols], H = rowy[D.rows];
     var k = Math.min(1, 10.3 * 96 / W, 7.8 * 96 / H);
@@ -266,20 +311,16 @@
   });
   window.addEventListener('afterprint', function () { $('sheetWrap').style.width = ''; fitSheet(); });
   $('reset').addEventListener('click', function () {
-    inputRows.forEach(function (row) { wb.clearInput(SI, row.row, 4); $('in_' + row.name).value = ''; });
+    inputRows.forEach(function (row) { wb.clearInput(SI, row.row, 4); var el = $('in_' + row.name); if (el) el.value = ''; });
     save(); schedule();
   });
-  document.querySelectorAll('nav button').forEach(function (b) {
-    b.addEventListener('click', function () {
-      document.querySelectorAll('nav button').forEach(function (x) { x.classList.toggle('on', x === b); });
-      document.querySelectorAll('section.tab').forEach(function (s) { s.classList.toggle('on', s.id === b.dataset.t); });
-      active = b.dataset.t; schedule();
-    });
-  });
+  ['d-sheet', 'd-calc'].forEach(function (id) { $(id).addEventListener('toggle', schedule); });
   window.addEventListener('resize', fitSheet);
   $('ver').textContent = MODEL.version;
 
-  buildInputs();
+  buildSimple();
+  buildAdvanced();
+  bind();
   load();
   buildSheet();
   render();
