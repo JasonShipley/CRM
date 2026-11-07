@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rotary Dryer Sizing Records</title>{% include "calc_base.css.html" %}</head>
+<body><header><h1>SIZING RECORDS</h1><div class="s">Rotary dryer calculator</div></header><div class="rule"></div>
+<main>
+<p><a href="/calc/dryer/">&larr; Calculator</a> &middot; <a href="/">Quotes</a></p>
+<p class="note">Every saved run, newest first. Records are sealed (SHA-256) and never overwritten. The PDF is the
+sizing report; the Excel file is the live MCE workbook for that run, with the customer Mass-Energy Balance sheet first.</p>
+<div class="wrap"><table>
+<tr><th>Record</th><th>Saved (UTC)</th><th>Job</th><th>Customer</th><th>Evaporation lb/hr</th><th>Burner MMBtu/hr</th>
+<th>Drum</th><th>Files</th></tr>
+{% for r in rows %}
+<tr><td style="white-space:nowrap"><a href="/calc/dryer/records/{{ r.index }}.json">{{ r.index }}</a></td>
+<td style="white-space:nowrap">{{ r.time.replace("T", " ") }}</td>
+<td>{{ r.job }}</td><td>{{ r.customer or "" }}</td><td class="n">{{ r.evap or "" }}</td>
+<td class="n">{{ r.burner or "" }}{% if r.design %} ({{ r.design }} design){% endif %}</td><td>{{ r.drum or "" }}</td>
+<td>{% for f in r.files %}<a href="/calc/dryer/records/{{ f }}">{{ "PDF" if f.endswith(".pdf") else "Excel" }}</a>{% if not loop.last %} &middot; {% endif %}{% endfor %}</td></tr>
+{% else %}
+<tr><td colspan="8">No sizing records yet. Use "Save sizing record" in the calculator.</td></tr>
+{% endfor %}
+</table></div>
+</main>
+<footer><b>MIDWEST CUSTOM ENGINEERING</b> &nbsp; PRECISION. QUALITY. INTEGRITY.</footer>
+</body></html>

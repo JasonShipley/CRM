@@ -6,6 +6,7 @@ Routes:
   GET /                  quote list (pick one to render)
   GET /quote/<id>        branded web view
   GET /quote/<id>/pdf    branded PDF (chromium print)
+  GET /calc ...          engineering calculators (calc.py): rotary dryer calculator and sizing records
 
 Config (env):
   TWENTY_URL       default http://localhost:3000
@@ -42,6 +43,10 @@ OWNER_CONTACTS = {
 FOOTER_RIGHT = "Stuart, FL \u00b7 772-200-4060 \u00b7 midwestcustomengineering.com"
 
 app = Flask(__name__)
+
+from calc import bp as calc_bp  # noqa: E402  (MCE calculators: /calc)
+
+app.register_blueprint(calc_bp)
 _token = {"value": None, "at": 0}
 
 

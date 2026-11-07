@@ -19,7 +19,14 @@ docker compose -f "$DEPLOY_DIR/docker-compose.yml" exec -T db \
 docker run --rm -v twenty_server-local-data:/data -v "$BACKUP_DIR":/backup alpine \
   tar czf "/backup/twenty-files-$STAMP.tar.gz" -C /data .
 
-# 3) prune old backups
+# 3) calculator sizing records (quote renderer volume; skipped if the renderer is not deployed)
+RECORDS_VOL="$(docker volume ls -q | grep -E '(^|_)sizing-records$' | head -1 || true)"
+if [ -n "$RECORDS_VOL" ]; then
+  docker run --rm -v "$RECORDS_VOL":/data -v "$BACKUP_DIR":/backup alpine \
+    tar czf "/backup/mce-sizing-records-$STAMP.tar.gz" -C /data .
+fi
+
+# 4) prune old backups (sizing records are kept: they are the audit trail for quotes)
 find "$BACKUP_DIR" -name 'twenty-*' -mtime +"$KEEP_DAYS" -delete
 
 echo "$(date -Is) backup complete: $BACKUP_DIR/twenty-db-$STAMP.sql.gz"

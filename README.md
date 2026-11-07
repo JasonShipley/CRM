@@ -11,6 +11,7 @@ operate everything.
 |---|---|---|
 | Twenty CRM | the CRM itself (app, worker, PostgreSQL, Redis) | `http://<server>:3000` |
 | Quote renderer | turns a Quote into a branded web page + PDF | `http://<server>:8090` |
+| Calculators | rotary dryer calculator and sizing records, inside the quote renderer | `https://quotes.usemce.com/calc` |
 
 **Where credentials live:** `deploy/credentials.local` on the server (never in git).
 It holds the admin login for Twenty. Keep a copy in your password manager.
@@ -47,6 +48,16 @@ Open `http://<server>:3000` and sign in with the email/password from
 2. Click the quote to preview the branded web view.
 3. Click **PDF** to download the print-ready document (this is what you email).
 
+### Size a rotary dryer for a quote
+1. Open `https://quotes.usemce.com/calc/dryer/` (same login as the quotes; works on a phone).
+2. **Inputs:** type only what differs from the grey default (job number and customer first). Material and fuel
+   pull-downs set their own defaults. Entries are marked "override"; anything outside the normal range is flagged.
+3. **Results:** burner, fuel, BTU/lb water, drum, fan and warnings. **Customer sheet:** the branded Mass-Energy
+   Balance page; **Print customer sheet** gives one landscape page to attach to the quote.
+4. **Save sizing record** gives the run its record number (e.g. `RD-000012`), which prints on the customer sheet.
+   Put that number in the quote's comments. **Download Excel** gives the live MCE workbook for the same inputs.
+5. All saved runs, with their PDF sizing report and Excel workbook, are at `https://quotes.usemce.com/calc/dryer/records`.
+
 ### When a customer accepts
 1. Change the quote's **Status** to **Accepted**.
 2. The QuickBooks sync (below) creates a matching **QBO Estimate** so accounting can
@@ -71,7 +82,21 @@ All commands run on the server, from the repo folder (e.g. `/opt/mce-crm`).
 | Restore a backup | `gunzip -c /var/backups/mce-crm/twenty-db-<stamp>.sql.gz \| docker compose exec -T db psql -U postgres -d default` |
 
 Nightly backups: `deploy/backup.sh` is installed in root's crontab (2:15 AM, keeps 30
-days, database + uploaded files) during production setup.
+days, database + uploaded files) during production setup. It also archives the calculator's sizing records
+(`mce-sizing-records-<stamp>.tar.gz`); those archives are not pruned because they are the audit trail for quotes.
+
+**Updating the calculator** (after a change in the Engineering repo):
+
+```bash
+renderer/vendor/sync_from_engineering.sh /path/to/Engineering
+```
+
+```bash
+cd deploy && docker compose -f docker-compose.yml -f docker-compose.renderer.yml up -d --build quote-renderer
+```
+
+`renderer/vendor/VENDORED.txt` records which Engineering commit is deployed. Sizing records live in the
+`sizing-records` Docker volume and survive rebuilds. Route tests: `cd renderer && python -m pytest tests -q`.
 
 ## Accepted quote → QuickBooks estimate
 
