@@ -14,13 +14,14 @@
 <div class="bar"><span class="t">{{ rows|length }} quote{{ "s" if rows|length != 1 }}</span></div>
 <div class="card" style="padding:0">
 <table>
-  <tr><th>Quote</th><th>Ref</th><th>Customer</th><th>Built</th><th>Status</th>
+  <tr><th>Quote</th><th>Ref</th><th>Customer</th>{% if show_dealer %}<th>Dealer</th>{% endif %}<th>Built</th><th>Status</th>
       <th class="num">Total</th><th></th></tr>
   {% for r in rows %}
   <tr>
     <td><a href="{{ url_for('builder.quote_view', quote_id=r.id) }}"><b>{{ r.name }}</b></a></td>
     <td class="muted">{{ r.quoteNumber or "—" }}</td>
     <td>{{ (r.customer or {}).company or "—" }}</td>
+    {% if show_dealer %}<td class="muted">{{ r.dealership or "MCE" }}</td>{% endif %}
     <td class="muted">{{ r._date }}</td>
     <td><span class="pill">{{ r.status or "Draft" }}</span></td>
     <td class="num money">{{ r._total }}</td>

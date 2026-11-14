@@ -9,10 +9,12 @@ PDF. Nothing here needs the CRM — quotes live in quotes_store.
 Every sizing run is kept on the quote (`sizing`), with its inputs, so an engineer
 reviewing the PDF can see exactly what the numbers came from.
 """
-from flask import (Blueprint, abort, current_app, jsonify, render_template,
+from flask import (Blueprint, abort, current_app, g, jsonify, render_template,
                    request, url_for)
 
+import accounts
 import calculators
+import dealer_view
 import interpret
 import quote_from_job
 import quotes_store as store
@@ -74,17 +76,73 @@ def _from_payload(payload, existing=None):
     return quote
 
 
+# ------------------------------------------------------- who sees what ---
+
+def _user():
+    return getattr(g, "user", None) or {"role": "staff",
+                                         "dealership": accounts.STAFF_DEALERSHIP}
+
+
+def is_dealer():
+    return _user().get("role") == "dealer"
+
+
+def _dealership(quote):
+    # quotes from before dealers existed were all MCE's own
+    return quote.get("dealership") or accounts.STAFF_DEALERSHIP
+
+
+def _visible(quote):
+    return bool(quote) and (not is_dealer()
+                            or _dealership(quote) == _user().get("dealership"))
+
+
+def _load(quote_id):
+    """A quote this person may see, or a 404 — a dealer is never told another
+    dealer's quote exists."""
+    quote = store.load(quote_id)
+    if not _visible(quote):
+        abort(404)
+    return quote
+
+
+def for_viewer(quote):
+    """The quote as the person asking may see it."""
+    return dealer_view.quote(quote) if is_dealer() else quote
+
+
+def _form_calculators():
+    """The calculators for the quote form — pricing factors and internal help
+    taken out for a dealer."""
+    if not is_dealer():
+        return calculators.CALCULATORS
+    return dealer_view.calculators_for_dealer(calculators.CALCULATORS)
+
+
+def _product_defaults():
+    return (dealer_view.product_defaults(calculators.PRODUCT_DEFAULTS) if is_dealer()
+            else calculators.PRODUCT_DEFAULTS)
+
+
+def _stamp_owner(quote):
+    user = _user()
+    quote["createdBy"] = user.get("email") or ""
+    quote["dealership"] = user.get("dealership") or accounts.STAFF_DEALERSHIP
+    return quote
+
+
 # ------------------------------------------------------------------- pages ---
 
 @bp.route("/")
 def index():
-    quotes = store.all_quotes()
+    quotes = [q for q in store.all_quotes() if _visible(q)]
     rows = []
     for q in quotes:
         t = store.totals(q)
         rows.append({**q, "_total": render_ctx.fmt_money(t["total"]),
                      "_date": render_ctx.fmt_date(q.get("createdAt"))})
-    return render_template("index.html", nav="quotes", rows=rows)
+    return render_template("index.html", nav="quotes", rows=rows,
+                           show_dealer=not is_dealer())
 
 
 @bp.route("/quotes/new")
@@ -92,8 +150,8 @@ def new_quote():
     return render_template(
         "quote_form.html", nav="new", quote=None,
         quote_number=store.next_quote_number(),
-        calculators=calculators.CALCULATORS, planned=calculators.PLANNED,
-        product_defaults=calculators.PRODUCT_DEFAULTS,
+        calculators=_form_calculators(), planned=calculators.PLANNED,
+        product_defaults=_product_defaults(),
         cooler_options=calculators.COOLER_OPTION_DEFS,
         prepared_by=PREPARED_BY, statuses=store.STATUSES,
         default_terms=DEFAULT_TERMS)
@@ -101,14 +159,12 @@ def new_quote():
 
 @bp.route("/quotes/<quote_id>/edit")
 def edit_quote(quote_id):
-    quote = store.load(quote_id)
-    if not quote:
-        abort(404)
+    quote = for_viewer(_load(quote_id))
     return render_template(
         "quote_form.html", nav="quotes", quote=quote,
         quote_number=quote.get("quoteNumber") or store.next_quote_number(),
-        calculators=calculators.CALCULATORS, planned=calculators.PLANNED,
-        product_defaults=calculators.PRODUCT_DEFAULTS,
+        calculators=_form_calculators(), planned=calculators.PLANNED,
+        product_defaults=_product_defaults(),
         cooler_options=calculators.COOLER_OPTION_DEFS,
         prepared_by=PREPARED_BY, statuses=store.STATUSES,
         default_terms=DEFAULT_TERMS)
@@ -116,17 +172,13 @@ def edit_quote(quote_id):
 
 @bp.route("/quotes/<quote_id>")
 def quote_view(quote_id):
-    quote = store.load(quote_id)
-    if not quote:
-        abort(404)
+    quote = for_viewer(_load(quote_id))
     return render_template("quote.html", **render_ctx.from_store(quote))
 
 
 @bp.route("/quotes/<quote_id>/pdf")
 def quote_pdf(quote_id):
-    quote = store.load(quote_id)
-    if not quote:
-        abort(404)
+    quote = for_viewer(_load(quote_id))
     html = render_template("quote.html", **render_ctx.from_store(quote))
     pdf = render_ctx.to_pdf(html)
     ref = quote.get("quoteNumber") or quote_id
@@ -152,7 +204,8 @@ def api_interpret():
         return jsonify({"error": str(e)}), 400
     quote = quote_from_job.build(job)
     quote["sourceRequest"] = text
-    return jsonify({"quote": quote, "openItems": quote["openItems"],
+    quote = for_viewer(quote)
+    return jsonify({"quote": quote, "openItems": quote.get("openItems", []),
                     "job": job.model_dump()})
 
 
@@ -174,7 +227,11 @@ def api_pricing():
 @bp.route("/api/calc/<key>", methods=["POST"])
 def api_calc(key):
     form = request.get_json(silent=True) or request.form.to_dict()
-    result = calculators.run_with_defaults(key, form)
+    if is_dealer():
+        result = dealer_view.calc(
+            calculators.run_with_defaults(key, dealer_view.lock_inputs(key, form)))
+    else:
+        result = calculators.run_with_defaults(key, form)
     return jsonify(result), (400 if result.get("error") else 200)
 
 
@@ -191,7 +248,9 @@ def api_create():
         return jsonify({"error": " ".join(problems)}), 400
     if not quote["quoteNumber"]:
         quote["quoteNumber"] = store.next_quote_number()
-    saved = store.save(quote)
+    if is_dealer():
+        quote = dealer_view.quote(quote)
+    saved = store.save(_stamp_owner(quote))
     return jsonify({"id": saved["id"],
                     "url": url_for("builder.quote_view", quote_id=saved["id"]),
                     "pdfUrl": url_for("builder.quote_pdf", quote_id=saved["id"]),
@@ -201,7 +260,7 @@ def api_create():
 @bp.route("/api/quotes/<quote_id>", methods=["POST"])
 def api_update(quote_id):
     existing = store.load(quote_id)
-    if not existing:
+    if not _visible(existing):
         return jsonify({"error": "That quote no longer exists."}), 404
     payload = request.get_json(silent=True) or {}
     quote = _from_payload(payload, existing)
@@ -209,6 +268,8 @@ def api_update(quote_id):
         return jsonify({"error": "Give the quote a name."}), 400
     if not quote["lines"]:
         return jsonify({"error": "Add at least one line item."}), 400
+    if is_dealer():
+        quote = dealer_view.quote(quote)
     saved = store.save(quote)
     return jsonify({"id": saved["id"],
                     "url": url_for("builder.quote_view", quote_id=saved["id"]),
@@ -218,6 +279,6 @@ def api_update(quote_id):
 
 @bp.route("/api/quotes/<quote_id>/delete", methods=["POST"])
 def api_delete(quote_id):
-    if not store.delete(quote_id):
+    if not _visible(store.load(quote_id)) or not store.delete(quote_id):
         return jsonify({"error": "That quote no longer exists."}), 404
     return jsonify({"ok": True, "url": url_for("builder.index")})

@@ -7,28 +7,11 @@ crm.usemce.com {
 }
 
 quotes.usemce.com {
-	# The API authenticates itself: agents present `Authorization: Bearer mceq_...`,
-	# which they issue against their own work email (renderer/tokens.py), and the
-	# app checks it. Basic auth in front of that would reject the bearer header
-	# before the app ever saw it, so /api/ is routed straight through and the app
-	# is what refuses an invalid token.
-	@api path /api/*
-	handle @api {
-		reverse_proxy quote-renderer:8090
-	}
-
-	# Everything a person uses stays behind basic auth.
-	#
-	# The hash comes from QUOTES_PASSWORD_HASH in deploy/.env, which is gitignored,
-	# so the quote builder's password can be changed without a commit and need not
-	# be the same as the Twenty CRM admin password. Generate one with:
-	#   docker run --rm caddy:2 caddy hash-password --plaintext 'the-password'
-	# The fallback is the old shared hash, so an install that has not set it yet
-	# keeps working — update.sh says so on every run until it is set.
-	handle {
-		basic_auth {
-			mce {$QUOTES_PASSWORD_HASH:$2b$12$Hfa6PSeJiogxr6uibilZV.FRj41vK9tQpbko9x526knZ1IkyCsaHS}
-		}
-		reverse_proxy quote-renderer:8090
-	}
+	# The app is the gate. Everyone signs in at /login with a code emailed to
+	# them (renderer/accounts.py): MCE staff by work address, dealers once MCE
+	# has added them. Agents use bearer tokens. A shared basic-auth password in
+	# front would have to be handed to every dealer, so there isn't one — every
+	# page and API refuses a request with no session or token (renderer/app.py
+	# _gate, tests/test_accounts.py).
+	reverse_proxy quote-renderer:8090
 }

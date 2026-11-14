@@ -15,11 +15,13 @@ Routes:
   GET  /tools/<slug>          one calculator, served whole
   GET  /crm                   quotes in Twenty CRM            (crm.py)
 
+  GET  /login                 email -> one-time code sign-in        (accounts.py)
+  GET  /admin/users           dealers and staff, staff only
+
 Config (env):
-  RENDERER_PASSWORD  optional app-level password gate. Leave unset in production,
-                     where Caddy already enforces basic auth (deploy/Caddyfile).
-  SECRET_KEY         Flask session key. Required if RENDERER_PASSWORD is set,
-                     otherwise logins do not survive a restart.
+  SECRET_KEY         Flask session key. Set it — without one every restart signs
+                     everybody out.
+  SESSION_COOKIE_SECURE  1 (default) sends the session cookie over HTTPS only.
   RENDERER_DATA_DIR  where quotes and API tokens are stored (default renderer/data)
   ALLOWED_EMAIL_DOMAINS  who may issue themselves an API token (default usemce.com)
   SMTP_HOST / SMTP_PORT / SMTP_USER / SMTP_PASSWORD / SMTP_FROM
@@ -29,23 +31,27 @@ Config (env):
   CHROMIUM_PATH      default: auto-detect the playwright chromium
   TWENTY_URL / TWENTY_EMAIL / TWENTY_PASSWORD   only needed for /crm
 
-Security: this service exposes every quote and MCE's internal sizing and pricing
-data. It must not be published straight to the internet — in production it binds
-to localhost and is reached only through Caddy. Caddy enforces basic auth on
-everything a person uses; /api/ is passed through because it carries its own
-bearer tokens, and an invalid one is refused here (see _gate).
+Security: this service holds every quote and MCE's internal sizing and pricing
+data, and since dealers came on it is the only gate in front of them — Caddy
+passes everything through (deploy/Caddyfile). Every page and API needs a signed-in
+person or an API token (see _gate). Staff see everything; a dealer reaches only
+DEALER_ENDPOINTS, sees only their own dealership's quotes, and gets every answer
+through dealer_view.py. It still binds to localhost and is reached through Caddy.
 """
-import hmac
+import datetime
 import os
 import pathlib
 
 from flask import (Flask, abort, g, jsonify, redirect, render_template, request,
                    send_from_directory, session, url_for)
 
+import accounts
 import calculators
+import codes
 from builder import bp as builder_bp
 from crm import bp as crm_bp
 import tokens
+from voice import bp as voice_bp
 
 ROOT = pathlib.Path(__file__).resolve().parent
 TOOLS_DIR = ROOT / "tools"
@@ -81,10 +87,15 @@ TOOLS = {
 
 app = Flask(__name__, static_folder="assets", static_url_path="/assets")
 app.secret_key = os.environ.get("SECRET_KEY") or os.urandom(32)
+app.config.update(
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE="Lax",
+    SESSION_COOKIE_SECURE=os.environ.get("SESSION_COOKIE_SECURE", "1") != "0",
+    PERMANENT_SESSION_LIFETIME=datetime.timedelta(days=30),
+)
 app.register_blueprint(builder_bp)
 app.register_blueprint(crm_bp)
-
-RENDERER_PASSWORD = os.environ.get("RENDERER_PASSWORD") or ""
+app.register_blueprint(voice_bp)
 
 # Endpoints an API token may reach. A token is for building quotes and reading the
 # basis, not for the browser session's full run of the app.
@@ -98,6 +109,18 @@ TOKEN_ENDPOINTS = {"builder.api_interpret", "builder.api_calc", "builder.api_pri
 # needs a code that was mailed to that address.
 OPEN_ENDPOINTS = {"login", "static", "api_token_request", "api_token_confirm"}
 
+# Everything a dealer may reach. An allowlist on purpose: a page added later is
+# staff-only until someone decides a dealer should see it. Not here, and so
+# staff-only: /crm, /tools (MCE's own calculator pages carry the pricing
+# multipliers and vendor costs), /api/pricing, /api/tokens, /admin.
+DEALER_ENDPOINTS = {"logout", "static",
+                    "builder.index", "builder.new_quote", "builder.edit_quote",
+                    "builder.quote_view", "builder.quote_pdf",
+                    "builder.api_interpret", "builder.api_calc", "builder.api_create",
+                    "builder.api_update", "builder.api_delete",
+                    "voice.session", "voice.equipment", "voice.fields",
+                    "voice.size", "voice.draft"}
+
 # Everything under this prefix is passed through Caddy without basic auth so
 # bearer headers survive, so this app is the only guard in front of it.
 API_PREFIX = "/api/"
@@ -109,19 +132,16 @@ def _is_api(path):
 
 @app.before_request
 def _gate():
-    """Session password for people, bearer token for agents.
+    """A signed-in person, or an agent with a bearer token. Nobody else.
 
-    A salesperson signs in at /login. An agent presents `Authorization: Bearer
-    mceq_...`, which it issued itself against its work email — see tokens.py. The
-    token reaches the quote and calculator APIs only.
+    People sign in at /login with an emailed code (accounts.py). Staff reach
+    everything; a dealer reaches DEALER_ENDPOINTS only. An agent presents
+    `Authorization: Bearer mceq_...`, issued to a work address (tokens.py), which
+    reaches the quote and calculator APIs only.
 
-    /api/ is the part to be careful with. Caddy routes it straight through with no
-    basic auth, because a basic-auth challenge would reject the bearer header
-    before this app ever saw it (deploy/Caddyfile). That makes this function the
-    ONLY thing standing in front of the API — so an /api/ request must carry a
-    valid token or a signed-in browser session, and RENDERER_PASSWORD being unset
-    does NOT open it. Unset is the normal production setup, where Caddy holds the
-    password for the pages a person uses.
+    Caddy passes every request straight through, so this function is the ONLY
+    thing in front of MCE's quotes and pricing. An account switched off in
+    /admin/users is refused on its very next request, not when its session ends.
     """
     if request.endpoint in OPEN_ENDPOINTS:
         return None
@@ -136,48 +156,46 @@ def _gate():
                                      "APIs only.",
                             "allowed": sorted(TOKEN_ENDPOINTS)}), 403
         g.api_user = who
+        g.user = {"email": who["email"], "role": "staff",
+                  "dealership": accounts.STAFF_DEALERSHIP, "name": ""}
         return None
 
-    if _is_api(request.path):
-        if session.get("ok"):
-            return None                       # signed in at /login in this browser
-        return jsonify({
-            "error": "This endpoint needs an API token.",
-            "how": "POST /api/tokens/request with your work email, then "
-                   "/api/tokens/confirm with the code you are sent.",
-            "use": "Authorization: Bearer <token>",
-        }), 401
+    signed_in = session.get("user")
+    user = accounts.get(signed_in["email"]) if signed_in else None
+    if not user:
+        session.pop("user", None)
+        if _is_api(request.path):
+            return jsonify({
+                "error": "Sign in first, or use an API token.",
+                "how": "People sign in at /login. Agents: POST /api/tokens/request "
+                       "with a work email, then /api/tokens/confirm with the code.",
+                "use": "Authorization: Bearer <token>",
+            }), 401
+        return redirect(url_for("login", next=request.full_path))
 
-    if not RENDERER_PASSWORD or session.get("ok"):
-        return None
-    return redirect(url_for("login", next=request.full_path))
+    g.user = accounts.session_user(user)
+    if g.user["role"] == "dealer" and request.endpoint not in DEALER_ENDPOINTS:
+        if _is_api(request.path):
+            return jsonify({"error": "That is not available on a dealer account."}), 403
+        return render_template("error.html", nav="", title="Not available",
+                               message="That page is for MCE staff only."), 403
+    return None
+
+
+@app.context_processor
+def _who():
+    user = getattr(g, "user", None)
+    return {"me": user, "is_staff": bool(user and user.get("role") == "staff")}
 
 
 def _send_code(email, code):
     """Email a one-time code. Falls back to the log when no SMTP is configured."""
-    host = os.environ.get("SMTP_HOST")
-    subject = "Your MCE quote builder code"
-    body = (f"Your code is {code}\n\nIt is good for 15 minutes. If you did not ask "
-            "for it, ignore this message and nothing happens.")
-    if not host:
-        app.logger.warning("No SMTP_HOST set — code for %s is %s", email, code)
+    try:
+        return codes.send(email, code,
+                          default_from=f"quotes@{tokens.ALLOWED_DOMAINS[0]}")
+    except Exception as e:                     # noqa: BLE001 — say so, don't 500
+        app.logger.error("Could not send the code to %s: %s", email, e)
         return False
-    import smtplib
-    from email.message import EmailMessage
-
-    msg = EmailMessage()
-    msg["Subject"] = subject
-    msg["From"] = os.environ.get("SMTP_FROM", f"quotes@{tokens.ALLOWED_DOMAINS[0]}")
-    msg["To"] = email
-    msg.set_content(body)
-    port = int(os.environ.get("SMTP_PORT", "587"))
-    with smtplib.SMTP(host, port, timeout=20) as smtp:
-        smtp.starttls()
-        user = os.environ.get("SMTP_USER")
-        if user:
-            smtp.login(user, os.environ.get("SMTP_PASSWORD", ""))
-        smtp.send_message(msg)
-    return True
 
 
 @app.route("/api/tokens/request", methods=["POST"])
@@ -185,7 +203,7 @@ def api_token_request():
     """Ask for a one-time code. Work addresses only."""
     payload = request.get_json(silent=True) or request.form.to_dict()
     email = (payload.get("email") or "").strip()
-    code, error = tokens.request_code(email)
+    code, error = tokens.request_code(email, throttle=True)
     if error:
         return jsonify({"error": error}), 400
     sent = _send_code(email, code)
@@ -228,27 +246,84 @@ def api_token_revoke(token_id):
     return jsonify({"revoked": ok}), (200 if ok else 404)
 
 
+def _safe_next(nxt):
+    """Only ever bounce back to a path on this host."""
+    nxt = nxt or ""
+    return nxt if nxt.startswith("/") and not nxt.startswith("//") else url_for("builder.index")
+
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
-    if not RENDERER_PASSWORD:
-        return redirect(url_for("builder.index"))
-    error = None
-    if request.method == "POST":
-        if hmac.compare_digest(request.form.get("password", ""), RENDERER_PASSWORD):
-            session["ok"] = True
-            session.permanent = True
-            nxt = request.args.get("next") or ""
-            # only ever bounce back to a path on this host
-            return redirect(nxt if nxt.startswith("/") and not nxt.startswith("//")
-                            else url_for("builder.index"))
-        error = "That password doesn't match."
-    return render_template("login.html", error=error), (401 if error else 200)
+    """Email in, code out, signed in. No passwords anywhere.
+
+    The reply to an address is the same whether or not it may sign in, so the
+    page cannot be used to find out who MCE's dealers are."""
+    nxt = request.values.get("next") or ""
+    if request.method == "GET":
+        if session.get("user") and accounts.get(session["user"]["email"]):
+            return redirect(_safe_next(nxt))
+        return render_template("login.html", step="email", next=nxt)
+
+    email = accounts.normalise(request.form.get("email"))
+    if request.form.get("step") == "code":
+        ok, error = codes.verify(email, "login", request.form.get("code"))
+        user = accounts.get(email) if ok else None
+        if not user:
+            return render_template("login.html", step="code", email=email, next=nxt,
+                                   error=error or "That code doesn't match."), 401
+        accounts.touch_login(email)
+        session.clear()
+        session["user"] = accounts.session_user(user)
+        session.permanent = True
+        return redirect(_safe_next(nxt))
+
+    if not accounts.EMAIL_RE.match(email):
+        return render_template("login.html", step="email", next=nxt,
+                               error="Enter your email address."), 400
+    note = None
+    if not os.environ.get("SMTP_HOST"):
+        # said for every address alike, so it gives away nothing about who has access
+        note = ("Mail is not set up on this server yet, so codes go to the service "
+                "log. Ask MCE for yours.")
+    if accounts.get(email):
+        code, error = codes.issue(email, "login", throttle=True)
+        if code:
+            _send_code(email, code)
+        elif error:
+            note = error
+    return render_template("login.html", step="code", email=email, next=nxt, note=note)
 
 
 @app.route("/logout")
 def logout():
     session.clear()
-    return redirect(url_for("login") if RENDERER_PASSWORD else url_for("builder.index"))
+    return redirect(url_for("login"))
+
+
+@app.route("/admin/users", methods=["GET", "POST"])
+def admin_users():
+    """Add, edit and switch off dealers. Staff only (not in DEALER_ENDPOINTS)."""
+    message = error = None
+    if request.method == "POST":
+        by = g.user["email"]
+        action = request.form.get("action")
+        email = request.form.get("email")
+        if action == "save":
+            user, error = accounts.save_dealer(
+                email, request.form.get("name"), request.form.get("dealership"),
+                active=request.form.get("active", "1") == "1", by=by)
+            if user:
+                message = f"Saved {user['email']} ({user['dealership']})."
+        elif action in ("disable", "enable"):
+            if accounts.set_active(email, action == "enable", by=by):
+                message = f"{accounts.normalise(email)} " + (
+                    "can sign in again." if action == "enable" else
+                    "is switched off — signed out on their next click.")
+            else:
+                error = "No such account."
+    return render_template("admin_users.html", nav="admin",
+                           users=accounts.listing(), message=message, error=error), (
+                               400 if error else 200)
 
 
 @app.route("/tools")

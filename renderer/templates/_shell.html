@@ -139,13 +139,18 @@
   <nav>
     <a href="{{ url_for('builder.index') }}" {% if nav == 'quotes' %}class="on"{% endif %}>Quotes</a>
     <a href="{{ url_for('builder.new_quote') }}" {% if nav == 'new' %}class="on"{% endif %}>New Quote</a>
+    {% if is_staff %}
     <a href="{{ url_for('tools_index') }}" {% if nav == 'tools' %}class="on"{% endif %}>Calculators</a>
     <a href="{{ url_for('crm.index') }}" {% if nav == 'crm' %}class="on"{% endif %}>CRM</a>
+    <a href="{{ url_for('admin_users') }}" {% if nav == 'admin' %}class="on"{% endif %}>People</a>
+    {% endif %}
+    {% if me %}<a href="{{ url_for('logout') }}" title="{{ me.email }}">Sign out</a>{% endif %}
   </nav>
 </header>
 <main class="{% block mainclass %}{% endblock %}">
 {% block body %}{% endblock %}
 </main>
 {% block script %}{% endblock %}
+{% if me %}{% include "_voice.html" %}{% endif %}
 </body>
 </html>

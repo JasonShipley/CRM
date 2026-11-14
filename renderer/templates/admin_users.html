@@ -1,0 +1,62 @@
+{% extends "_shell.html" %}
+{% block title %}People — MCE Quoting{% endblock %}
+{% block body %}
+<h1>People</h1>
+<p class="lede">Anyone at an MCE address signs in as staff with no setup. Dealers
+  sign in only once they are added here, and see only their own dealership's
+  quotes — at list price, with no costs, vendors or internal notes.</p>
+
+{% if message %}<div class="note ok" style="margin-top:14px">{{ message }}</div>{% endif %}
+{% if error %}<div class="note err" style="margin-top:14px">{{ error }}</div>{% endif %}
+
+<div class="bar"><span class="t">Add or edit a dealer</span></div>
+<div class="card">
+  <form method="post" class="grid g4">
+    <input type="hidden" name="action" value="save">
+    <div class="field"><label for="d-email">Email</label>
+      <input type="text" id="d-email" name="email" required></div>
+    <div class="field"><label for="d-name">Name</label>
+      <input type="text" id="d-name" name="name"></div>
+    <div class="field"><label for="d-dealer">Dealership</label>
+      <input type="text" id="d-dealer" name="dealership" required
+             list="dealerships"></div>
+    <div class="field" style="justify-content:flex-end">
+      <button class="btn-primary" type="submit">Save dealer</button></div>
+    <datalist id="dealerships">
+      {% for d in users|selectattr("role", "equalto", "dealer")|map(attribute="dealership")|unique %}
+      <option value="{{ d }}">{% endfor %}
+    </datalist>
+  </form>
+  <p class="help" style="margin-top:10px">Everyone at the same dealership shares its
+    quotes. To move someone, save them again with the new dealership.</p>
+</div>
+
+<div class="bar"><span class="t">{{ users|length }} account{{ "s" if users|length != 1 }}</span></div>
+<div class="card" style="padding:0">
+<table>
+  <tr><th>Email</th><th>Name</th><th>Role</th><th>Dealership</th><th>Last sign-in</th><th></th></tr>
+  {% for u in users %}
+  <tr>
+    <td>{{ u.email }}</td>
+    <td>{{ u.name or "—" }}</td>
+    <td><span class="pill">{{ u.role }}</span>{% if not u.get("active", True) %}
+        <span class="pill prov">off</span>{% endif %}</td>
+    <td>{{ u.dealership or "—" }}</td>
+    <td class="muted">{{ (u.lastLogin or "never")[:10] }}</td>
+    <td style="white-space:nowrap">
+      {% if u.role == "dealer" %}
+      <form method="post" style="display:inline">
+        <input type="hidden" name="email" value="{{ u.email }}">
+        {% if u.get("active", True) %}
+        <button class="btn btn-ghost btn-sm" name="action" value="disable">Switch off</button>
+        {% else %}
+        <button class="btn btn-ghost btn-sm" name="action" value="enable">Switch on</button>
+        {% endif %}
+      </form>
+      {% endif %}
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+</div>
+{% endblock %}

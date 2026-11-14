@@ -12,23 +12,40 @@
   img { width: 100%; max-width: 260px; display: block; margin: 0 auto 26px; }
   h1 { font-size: 15px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase;
     color: #ff6602; text-align: center; margin: 0 0 16px; }
-  input { width: 100%; font-size: 15px; padding: 11px 12px; border: 1px solid #575d5e;
-    border-radius: 2px; background: #1c1c1c; color: #fff; }
+  p { font-size: 13px; color: #c8c7c7; line-height: 1.5; margin: 0 0 12px; text-align: center; }
+  input { width: 100%; box-sizing: border-box; font-size: 15px; padding: 11px 12px;
+    border: 1px solid #575d5e; border-radius: 2px; background: #1c1c1c; color: #fff; }
+  input.code { font-size: 24px; letter-spacing: .4em; text-align: center; }
   input:focus { outline: 2px solid #ff6602; outline-offset: -1px; }
   button { width: 100%; margin-top: 12px; font-size: 13px; font-weight: 600;
     letter-spacing: .09em; text-transform: uppercase; padding: 11px; cursor: pointer;
     background: #ff6602; color: #fff; border: 0; border-radius: 2px; }
   button:hover { background: #e25c02; }
   .err { margin-top: 12px; font-size: 13px; color: #ff9a6a; text-align: center; }
+  .alt { display: block; margin-top: 14px; font-size: 12px; color: #9a9a9a; text-align: center; }
 </style>
 </head>
 <body>
-<form class="box" method="post">
+<form class="box" method="post" action="{{ url_for('login') }}">
   <img src="{{ url_for('static', filename='mce-logo.png') }}" alt="Midwest Custom Engineering">
   <h1>Quoting</h1>
-  <input type="password" name="password" placeholder="Password" autofocus
-         autocomplete="current-password" required>
-  <button type="submit">Sign in</button>
+  <input type="hidden" name="next" value="{{ next or '' }}">
+  {% if step == "code" %}
+    <input type="hidden" name="step" value="code">
+    <input type="hidden" name="email" value="{{ email }}">
+    <p>If <b>{{ email }}</b> has access, a six-digit code is on its way.
+       It is good for 15 minutes.</p>
+    <input class="code" name="code" inputmode="numeric" autocomplete="one-time-code"
+           pattern="[0-9]{6}" maxlength="6" placeholder="000000" autofocus required>
+    <button type="submit">Sign in</button>
+    {% if note %}<div class="err">{{ note }}</div>{% endif %}
+    <a class="alt" href="{{ url_for('login', next=next) }}">Use a different email</a>
+    <span class="alt">No code? Check spam, or ask your MCE contact to add you.</span>
+  {% else %}
+    <input type="email" name="email" placeholder="Work email" autofocus
+           autocomplete="email" required>
+    <button type="submit">Email me a code</button>
+  {% endif %}
   {% if error %}<div class="err">{{ error }}</div>{% endif %}
 </form>
 </body>

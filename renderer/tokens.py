@@ -20,24 +20,21 @@ everyone else.
 """
 import datetime
 import hashlib
-import hmac
 import json
 import os
 import pathlib
 import re
 import secrets
-import time
+
+import codes
 
 DATA_DIR = pathlib.Path(os.environ.get("RENDERER_DATA_DIR")
                         or (pathlib.Path(__file__).resolve().parent / "data"))
 TOKEN_FILE = DATA_DIR / "api_tokens.json"
-PENDING_FILE = DATA_DIR / "api_token_codes.json"
 
 ALLOWED_DOMAINS = [d.strip().lower() for d in
                    (os.environ.get("ALLOWED_EMAIL_DOMAINS") or "usemce.com").split(",")
                    if d.strip()]
-CODE_TTL_S = 15 * 60
-MAX_ATTEMPTS = 5
 PREFIX = "mceq_"
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
@@ -71,42 +68,21 @@ def _hash(token):
     return hashlib.sha256(token.encode()).hexdigest()
 
 
-def request_code(email):
+def request_code(email, throttle=False):
     """Issue a one-time code for a work address. (code, error)."""
     email = (email or "").strip().lower()
     if not domain_allowed(email):
         return None, ("That address is not on a work domain. Tokens are issued to "
                       + " or ".join("@" + d for d in ALLOWED_DOMAINS) + " addresses.")
-    code = f"{secrets.randbelow(1_000_000):06d}"
-    pending = _read(PENDING_FILE)
-    pending[email] = {"code_hash": _hash(code), "expires": time.time() + CODE_TTL_S,
-                      "attempts": 0}
-    _write(PENDING_FILE, pending)
-    return code, None
+    return codes.issue(email, "token", throttle=throttle)
 
 
 def confirm_code(email, code, label=""):
     """Exchange a valid code for a token. (token, error) — token shown once."""
     email = (email or "").strip().lower()
-    pending = _read(PENDING_FILE)
-    entry = pending.get(email)
-    if not entry:
-        return None, "Ask for a code first."
-    if time.time() > entry["expires"]:
-        pending.pop(email, None)
-        _write(PENDING_FILE, pending)
-        return None, "That code has expired. Ask for another."
-    if entry["attempts"] >= MAX_ATTEMPTS:
-        pending.pop(email, None)
-        _write(PENDING_FILE, pending)
-        return None, "Too many attempts. Ask for another code."
-    if not hmac.compare_digest(entry["code_hash"], _hash((code or "").strip())):
-        entry["attempts"] += 1
-        _write(PENDING_FILE, pending)
-        return None, "That code doesn't match."
-
-    pending.pop(email, None)
-    _write(PENDING_FILE, pending)
+    ok, error = codes.verify(email, "token", code)
+    if not ok:
+        return None, error
     token = PREFIX + secrets.token_urlsafe(32)
     tokens = _read(TOKEN_FILE)
     tokens[_hash(token)] = {

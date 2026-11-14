@@ -12,7 +12,7 @@ import tempfile
 HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent))
 os.environ["RENDERER_DATA_DIR"] = tempfile.mkdtemp()
-os.environ["RENDERER_PASSWORD"] = "browser-password"
+os.environ["SESSION_COOKIE_SECURE"] = "0"
 
 import app as appmod  # noqa: E402
 import tokens  # noqa: E402
@@ -27,23 +27,16 @@ def check(name, cond, detail=""):
 
 
 def production_shape():
-    """A second app the way it actually runs on the server.
-
-    RENDERER_PASSWORD is UNSET in production — Caddy holds the password for the
-    pages a person uses. app.py reads it at import, so this reloads the module
-    with a clean environment and its own data directory.
-    """
+    """A second app the way it actually runs on the server: its own data
+    directory, nobody signed in, Caddy passing everything straight through."""
     import importlib
-    saved_pw = os.environ.get("RENDERER_PASSWORD")
     saved_dir = os.environ["RENDERER_DATA_DIR"]
-    os.environ["RENDERER_PASSWORD"] = ""
     os.environ["RENDERER_DATA_DIR"] = tempfile.mkdtemp()
     importlib.reload(tokens)
     prod = importlib.reload(appmod)
     client = prod.app.test_client()
 
     def restore():
-        os.environ["RENDERER_PASSWORD"] = saved_pw or ""
         os.environ["RENDERER_DATA_DIR"] = saved_dir
         importlib.reload(tokens)
         importlib.reload(appmod)
@@ -54,20 +47,14 @@ def production_shape():
 def test_api_is_closed_without_a_token():
     """The one that matters in production.
 
-    Caddy routes /api/ straight through with NO basic auth, because a basic-auth
-    challenge rejects the bearer header before the app ever sees it. That makes
-    app.py the only guard in front of the API — and in production
-    RENDERER_PASSWORD is unset.
-
-    So an /api/ request with no valid token has to be refused even with no
-    RENDERER_PASSWORD. Getting this wrong publishes MCE's pricing basis and every
-    quote to the internet, which is exactly what an unguarded /api/ did the first
-    time it was routed past Caddy.
+    Caddy passes every request straight through — since dealers came on, the
+    app is the only guard in front of the API and the pages alike. Getting this
+    wrong publishes MCE's pricing basis and every quote to the internet, which
+    is exactly what an unguarded /api/ did the first time it was routed past
+    Caddy.
     """
     c, restore = production_shape()
     try:
-        check("the app really has no password of its own",
-              appmod.RENDERER_PASSWORD == "", repr(appmod.RENDERER_PASSWORD))
         for path in ("/api/tokens", "/api/pricing"):
             r = c.get(path)
             check(f"{path} is refused without a token", r.status_code == 401,
@@ -88,9 +75,10 @@ def test_api_is_closed_without_a_token():
               c.post("/api/tokens/request",
                      json={"email": "someone@gmail.com"}).status_code == 400)
 
-        # the pages a person uses are left to Caddy; double-locking them here
-        # would break the deployed login
-        check("browser pages are left to Caddy", c.get("/tools").status_code == 200)
+        # and the pages a person uses send them to sign in
+        r = c.get("/tools")
+        check("browser pages need a sign-in", r.status_code == 302
+              and "/login" in r.headers.get("Location", ""), str(r.status_code))
 
         # and a real token gets in
         code, _ = tokens.request_code("jb@usemce.com")

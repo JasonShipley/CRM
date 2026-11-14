@@ -469,6 +469,31 @@ $("#describe-go").addEventListener("click", async () => {
   dirty = true;
 });
 
+/* ------------------------------------------------------ voice assistant -- */
+/* The assistant (assets/voice.js) fills this form the same way the typed
+   description does. From another page it leaves the draft in sessionStorage and
+   links here with ?voice=1. */
+
+window.MCE_FORM = {
+  applyQuote(q) {
+    applyQuote(q);
+    renderBuilt(q);
+    $("#describe-status").textContent =
+      "Built by the voice assistant — review everything below before saving.";
+    dirty = true;
+  },
+};
+
+if (new URLSearchParams(location.search).get("voice") === "1") {
+  try {
+    const q = JSON.parse(sessionStorage.getItem("mce.voiceDraft") || "null");
+    if (q) {
+      sessionStorage.removeItem("mce.voiceDraft");
+      window.MCE_FORM.applyQuote(q);
+    }
+  } catch (e) { /* nothing waiting */ }
+}
+
 /* ------------------------------------------------------------------ save -- */
 
 function payload() {

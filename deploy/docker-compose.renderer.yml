@@ -22,9 +22,7 @@ services:
       # Powers the "describe the job" box. Without it the box says so and the
       # rest of the builder still works.
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
-      # Optional second lock on the BROWSER pages behind Caddy's basic auth. Set
-      # both, or neither. It does not gate /api/ — that always needs a token.
-      RENDERER_PASSWORD: ${RENDERER_PASSWORD:-}
+      # Signs the sign-in cookie. Without it every restart signs everyone out.
       SECRET_KEY: ${RENDERER_SECRET_KEY:-}
       # Who may issue themselves an API token. Comma separated; defaults to
       # usemce.com. A gmail address is refused before a code is ever generated.
@@ -37,6 +35,11 @@ services:
       SMTP_USER: ${SMTP_USER:-}
       SMTP_PASSWORD: ${SMTP_PASSWORD:-}
       SMTP_FROM: ${SMTP_FROM:-}
+      # The voice assistant. The key stays on the server: browsers get a
+      # short-lived conversation token from /api/voice/session.
+      ELEVENLABS_API_KEY: ${ELEVENLABS_API_KEY:-}
+      ELEVENLABS_AGENT_ID: ${ELEVENLABS_AGENT_ID:-}
+      SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-1}
     volumes:
       - quote-data:/data
     depends_on:

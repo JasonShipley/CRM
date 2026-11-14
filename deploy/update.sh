@@ -52,17 +52,16 @@ COMPOSE=(-f docker-compose.yml -f docker-compose.renderer.yml)
 [ -f docker-compose.caddy.yml ] && COMPOSE+=(-f docker-compose.caddy.yml)
 docker compose "${COMPOSE[@]}" up -d --build quote-renderer
 
-if ! grep -qE '^QUOTES_PASSWORD_HASH=.+' .env 2>/dev/null; then
-  echo
-  echo "    NOTE: QUOTES_PASSWORD_HASH is not set in deploy/.env, so"
-  echo "          quotes.usemce.com still uses the Twenty CRM admin password."
-  echo "          Anyone you give the quote builder to also gets CRM admin."
-  echo "          To split them:"
-  echo "            docker run --rm caddy:2 caddy hash-password --plaintext 'new-password'"
-  echo "            echo \"QUOTES_PASSWORD_HASH='<the hash>'\" >> deploy/.env"
-  echo "            sudo $0 ${BRANCH}"
-  echo
-fi
+for var in RENDERER_SECRET_KEY SMTP_HOST ELEVENLABS_API_KEY ELEVENLABS_AGENT_ID; do
+  if ! grep -qE "^${var}=.+" .env 2>/dev/null || grep -qE "^${var}=<" .env; then
+    case $var in
+      RENDERER_SECRET_KEY) why="every restart signs everybody out — set it: openssl rand -hex 32" ;;
+      SMTP_HOST)           why="sign-in codes only reach the service log, so nobody can sign in on their own" ;;
+      *)                   why="the voice assistant stays off" ;;
+    esac
+    echo "    NOTE: $var is not set in deploy/.env — $why."
+  fi
+done
 
 echo "==> [4/5] Reloading the proxy"
 # Caddy mounts deploy/Caddyfile read-only and does not notice it changing, so a
@@ -70,10 +69,9 @@ echo "==> [4/5] Reloading the proxy"
 # survive) would sit on disk unapplied. `caddy reload` is graceful — it does not
 # drop TLS or in-flight requests.
 if docker compose "${COMPOSE[@]}" ps --status running --services 2>/dev/null | grep -qx caddy; then
-  # QUOTES_PASSWORD_HASH reaches Caddy as a container environment variable,
-  # fixed when the container is created — a reload never sees a new one. `up -d`
-  # recreates Caddy only when its configuration (that variable included) has
-  # changed, and is a no-op otherwise.
+  # `up -d` recreates Caddy only when its compose configuration changed (its
+  # environment included) and is a no-op otherwise; the reload then applies
+  # Caddyfile edits, which a running container does not notice on its own.
   docker compose "${COMPOSE[@]}" up -d caddy
   if docker compose "${COMPOSE[@]}" exec -T caddy \
        caddy reload --config /etc/caddy/Caddyfile --adapter caddyfile; then
@@ -87,36 +85,26 @@ else
 fi
 
 echo "==> [5/5] Checking it came up"
-# credentials.local holds the password the installer set. Once
-# QUOTES_PASSWORD_HASH is set in .env the quote builder's password is that one
-# instead, and this check just reports 401 — which is not a failure of the deploy.
-pass=$(grep -i '^password' credentials.local 2>/dev/null | cut -d: -f2- | tr -d ' ' || true)
+# The app is the gate now (no basic auth in Caddy): a person with no session is
+# sent to /login, and the API answers 401 without a token or session.
 for i in $(seq 1 12); do
-  code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 \
-    -u "mce:$pass" https://quotes.usemce.com/ || true)
-  [ "$code" = "200" ] && break
+  code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 https://quotes.usemce.com/ || true)
+  [ "$code" = "302" ] && break
   echo "    not ready yet (attempt $i, HTTP ${code:-none})..."; sleep 10
 done
-# The API is routed past basic auth so bearer tokens survive, which makes the app
-# the only guard in front of it. Unauthenticated it MUST answer 401 — a 200 here
-# means MCE's pricing basis and every quote are readable from the internet.
+login=$(curl -s -o /dev/null -w '%{redirect_url}' --max-time 10 https://quotes.usemce.com/ || true)
 api=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 \
   https://quotes.usemce.com/api/pricing || true)
 
 echo
-echo "Quote builder: https://quotes.usemce.com  -> HTTP $code"
-echo "Calculators:   https://quotes.usemce.com/tools"
-echo "Login:         mce / (the password in deploy/credentials.local)"
+echo "Quote builder: https://quotes.usemce.com  -> HTTP $code (302 to sign-in is correct)"
+echo "Sign in:       your @usemce.com email; a code is emailed to you"
 echo "API, no token: HTTP $api (401 is correct — it means the API is locked)"
-if [ "$code" != "200" ] && [ "$code" != "401" ]; then
+if [ "$code" != "302" ] || [[ "$login" != *"/login"* ]]; then
   echo
-  echo "Not answering. Check:  docker compose ${COMPOSE[*]} logs --tail 50 quote-renderer"
+  echo "STOP. The front page answered $code (to '$login') without signing in; it"
+  echo "must redirect to /login. Check:  docker compose ${COMPOSE[*]} logs --tail 50 quote-renderer"
   exit 1
-fi
-if [ "$code" = "401" ]; then
-  echo
-  echo "    (401 means the page is up and asking for a password. Expected if you"
-  echo "     have set QUOTES_PASSWORD_HASH — sign in with the new password.)"
 fi
 [ "$api" = "401" ] || {
   echo

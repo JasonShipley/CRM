@@ -124,7 +124,7 @@
     {% for key, c in calculators.items() %}
     <button type="button" class="tab {{ 'on' if loop.first }}" data-calc="{{ key }}">{{ c.label }}</button>
     {% endfor %}
-    <a class="tab link" href="{{ url_for('tools_index') }}" target="_blank" rel="noopener">Full calculators &#8599;</a>
+    {% if is_staff %}<a class="tab link" href="{{ url_for('tools_index') }}" target="_blank" rel="noopener">Full calculators &#8599;</a>{% endif %}
   </div>
 
   {% for key, c in calculators.items() %}
