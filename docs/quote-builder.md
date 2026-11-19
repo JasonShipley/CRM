@@ -356,8 +356,15 @@ assembly with its own structure.
 
 Two ways, and they are deliberately different.
 
-**People** sign in at `/login` (or through Caddy's basic auth in front of it) and get
-the whole app: the builder, the calculators, past quotes, PDFs.
+**People** sign in at `/login` with their email and a six-digit code mailed to it
+(15 minutes, five attempts). There is no shared password and no basic auth in front:
+the app is the only gate, so every page and API refuses without a session or a token.
+An `@usemce.com` address (`ALLOWED_EMAIL_DOMAINS`) is staff and gets the whole app:
+the builder, the calculators, the CRM, every quote, PDFs and People. Anyone else gets
+in only once staff have added them as a dealer (see **Dealers** below). An unknown
+address gets the same "check your email" reply as a known one, but no code is sent.
+Sign-in needs SMTP. Without `SMTP_HOST`, codes go to the service log, and the page
+says that mail is not set up.
 
 **Agents issue themselves a token**, against a work mailbox, with nobody minting
 credentials by hand:
@@ -380,9 +387,86 @@ directory hands over nothing; each one records a last-used stamp; and a holder c
 list and revoke their own without being able to touch anyone else's. `tests/test_tokens.py`
 asserts each of those, including that no token ever appears in the token file.
 
-Caddy passes `/api/` straight through rather than putting basic auth in front of it —
-a bearer header cannot survive a basic-auth challenge — and the app is what refuses an
-invalid token.
+Caddy passes everything straight through to the renderer. The app is what refuses
+an invalid token or a missing session (`tests/test_accounts.py` walks every route).
+
+## Dealers
+
+Dealers use the same app and quote MCE equipment **at list price**. They never see
+what MCE pays, who MCE buys from, or anyone else's quotes.
+
+**Adding one.** Go to **People** (`/admin/users`, staff only) and enter their email,
+name and dealership. They can sign in straight away with an emailed code. **Switch
+off** takes effect on their next click. An MCE address cannot be made a dealer.
+
+**What a dealer can reach.** Only the endpoints in `DEALER_ENDPOINTS` in `app.py`:
+- their quote list, new, edit, view and PDF;
+- `/api/interpret`, `/api/calc` and the quote save, update and delete APIs;
+- the voice assistant.
+
+Everything else returns 403, including `/tools`, `/crm`, `/api/pricing`,
+`/api/tokens` and People.
+
+**Whose quotes.** Every quote records `createdBy` and `dealership`. A dealer sees and
+edits only their own dealership's quotes, and anyone else's returns 404. Staff see
+all of them, with a dealer column on the list.
+
+**What is taken out.** `dealer_view.py` is one filter applied to everything a dealer
+is answered with: calculator results, drafts, the quote page, the form and the PDF.
+It copies out an allowlist of fields and then drops any text that still names a
+vendor, a vendor quote number, a cost, a markup or the pricing basis. Specifically:
+- the internal open items are dropped;
+- the sizing audit trail is cleared;
+- the hammer mill pricing multipliers are fixed at MCE's values, whatever the
+  browser sends.
+
+List prices are untouched. `tests/test_dealer_view.py` runs all 15 calculators and
+three full intake quotes as a dealer and as staff. It checks that nothing internal
+survives and that every price is identical. **If you add a vendor, add its name to
+`dealer_view.VENDORS`.**
+
+`docs/dealer-welcome.md` is the one-page note to send a new dealer.
+
+## Voice
+
+A mic button sits at the bottom right of every page. It opens a conversation with
+**MCE Quote Assistant**, an ElevenLabs agent. You talk; it sizes equipment, reads
+back list prices and builds a draft quote on screen for you to review and save.
+You can interrupt it at any time.
+
+**How it is wired.**
+- **Opening a session.** The browser asks `POST /api/voice/session`. The server
+  uses `ELEVENLABS_API_KEY` to get a short-lived conversation token for
+  `ELEVENLABS_AGENT_ID`, and returns it with `user_name`, `user_role` and
+  `dealership`. The key never reaches the browser. Sessions are limited to 30 an
+  hour per person.
+- **Connecting.** The browser connects straight to ElevenLabs over WebRTC, which
+  gives the lowest delay; it falls back to a signed WebSocket URL. The client is
+  vendored at `assets/vendor/elevenlabs-client-1.36.1.js` and loads only when the
+  mic is pressed.
+- **Running the tools.** The agent's four tools are *client tools*: they run in
+  the person's own browser, against this app, with their own session. So there are
+  no public webhooks, and a dealer's assistant gets exactly what the dealer gets.
+  - `list_equipment` → `GET /api/voice/equipment`
+  - `explain_inputs(equipment)` → `GET /api/voice/fields/<key>`
+  - `size_equipment(equipment, inputs)` → `POST /api/voice/size/<key>`, the
+    calculators via `run_with_defaults`
+  - `build_draft(job, said)` → `POST /api/voice/draft`, which is
+    `quote_from_job.build` with no interpret call
+- **What the model sees.** It gets a compact summary (model, key results, priced
+  lines, total, warnings), which keeps replies quick. The full result goes on
+  screen. A draft fills the open quote form, or opens `/quotes/new?voice=1`.
+- **The agent's rules** are in its prompt in ElevenLabs:
+  - every number comes from a tool;
+  - list price only, and nothing about cost or vendors to a dealer;
+  - drafts only, never saved or sent.
+
+  The server-side filter above still applies whatever the model says.
+
+**Setup.** Put `ELEVENLABS_API_KEY` and `ELEVENLABS_AGENT_ID` in `deploy/.env` and
+run `update.sh`. Without them, the mic answers with a clear "not set up" message
+and nothing else breaks. `tests/test_voice.py` covers the session endpoint with
+ElevenLabs stood in for, the rate limit, and the draft tool.
 
 ## One pricing basis
 
