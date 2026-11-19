@@ -190,6 +190,44 @@ MATERIALS["custom"]["cp"] = v(round(cp_wood_dry(), 4), "Generic placeholder (ove
 for _m in MATERIALS.values():
     _m.setdefault("is_wood", False)
 
+# ----------------------------------------------------------------------------- product VOC (lb per oven-dry ton)
+# VOC released by the product itself while it dries (the burner's own VOC is in emissions.py). Screening defaults:
+# AP-42 factors are rated D and site stack tests vary several-fold, so the permit application needs a test or the
+# state's guidance value. status: "factor" (a number is used), "not_detected" (the source found none), "no_factor"
+# (no published factor found: not estimated, flagged).
+_AP42_WOOD = ("AP-42 Sec.10.6.2 Particleboard (6/2002) Table 10.6.2-3: rotary dryer, direct wood-fired, softwood, "
+              "VOC as propane 0.90 lb/ODT, rating D (hardwood rows are lower, about 0.24; weight mixes by species "
+              "share). Green-strand OSB dryers (Sec.10.6.1) and some pellet-plant tests differ several-fold. "
+              "Screening value, " + MCE_CONFIRM + ".")
+_NO_FACTOR = ("No published VOC factor found for this product (AP-42 has none; state permits use site tests). "
+              "Not estimated: enter a stack-test or permit value.")
+PRODUCT_VOC: dict[str, tuple[float, str, str]] = {
+    "wood_shavings": (0.90, "factor", _AP42_WOOD),
+    "sawdust": (0.90, "factor", _AP42_WOOD),
+    "wood_chips": (0.90, "factor", _AP42_WOOD),
+    "bark": (0.90, "factor", "Bark taken as softwood. " + _AP42_WOOD),
+    "alfalfa": (0.0, "not_detected", "AP-42 Sec.9.9.4 Alfalfa Dehydrating (9/96) Table 9.9.4-1: VOC not detected (ND) "
+                                     "on triple-pass dryers, rating D. " + MCE_CONFIRM + "."),
+    "hay": (0.0, "not_detected", "Taken as alfalfa: AP-42 Sec.9.9.4 (9/96) Table 9.9.4-1, VOC not detected (ND). "
+                                 + MCE_CONFIRM + "."),
+    "distillers_grains": (7.9, "factor", "Screening estimate: about 2.1 lb VOC per ton of corn from distillers grains "
+                                         "drying in conventional dry-grind ethanol plants (ethanol-process patents, "
+                                         "e.g. US 7,842,484), divided by about 0.265 oven-dry ton DDGS per ton of "
+                                         "corn (16.5 lb DDGS at 10% MC per 56 lb bushel). Ethanol plants usually "
+                                         "control DDGS dryers with an RTO. " + MCE_CONFIRM + "."),
+    "carrots": (0.0, "no_factor", _NO_FACTOR),
+    "tomato_pomace": (0.0, "no_factor", _NO_FACTOR),
+    "walnut_hulls": (0.0, "no_factor", _NO_FACTOR),
+    "almond_skins": (0.0, "no_factor", _NO_FACTOR),
+    "ag_residue": (0.0, "no_factor", _NO_FACTOR),
+    "petfood": (0.0, "no_factor", _NO_FACTOR + " Fats in pet food can release VOC; kibble lines are often tested."),
+    "custom": (0.0, "no_factor", "Generic placeholder. Enter the product's VOC factor."),
+}
+for _k, (_val, _st, _src) in PRODUCT_VOC.items():
+    MATERIALS[_k]["voc_lb_odt"] = v(_val, _src)
+    MATERIALS[_k]["voc_status"] = _st
+assert set(PRODUCT_VOC) == set(MATERIALS)
+
 # ----------------------------------------------------------------------------- fuel analyses
 # Dry basis mass %, must close to 100 with ash. Moisture is a separate input (wet basis).
 WOOD_DRY_ULTIMATE = {"C": 50.0, "H": 6.0, "O": 43.1, "N": 0.2, "S": 0.02, "ash": 0.68}

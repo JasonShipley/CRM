@@ -97,9 +97,9 @@ class ProcessInputs(_M):
     precise_temperature: bool = F(False, src="selector input", desc="Product needs precise temperature control")
     heat_source: Literal["fuel", "waste_heat", "steam", "electric"] = F(
         "fuel", src="selector input", desc="fuel = direct fired on the fuel pick below")
-    product_voc_lb_odt: float = F(0.0, "lb VOC / oven-dry ton", 0.0, 20.0,
-                                  "0 = not estimated. Enter from AP-42 Ch.10.6 or a stack test (wood dryers)",
-                                  desc="VOC released by the product while drying")
+    product_voc_lb_odt: float | None = F(None, "lb VOC / oven-dry ton", 0.0, 20.0, "material preset",
+                                         preset="voc_lb_odt", desc="VOC released by the product while drying "
+                                         "(per oven-dry ton of product); blank = the product's screening default")
     annual_hours: float = F(7500.0, "hr/yr", 100.0, 8760.0, "SHEET Input H31 (FLOW R19 says 8,000; Input used)",
                             desc="Operating hours per year")
 

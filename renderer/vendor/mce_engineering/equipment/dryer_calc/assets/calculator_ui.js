@@ -159,7 +159,7 @@
       h.push('<tr><td>' + p[1] + '</td><td class="n">' + val('em_' + p[0] + '_lb', p[0] === 'CO2' ? '#,##0' : '0.00') + '</td><td class="n">' +
         val('em_' + p[0] + '_tpy', '#,##0.0') + '</td><td class="n">' + val('em_' + p[0] + '_pte', '#,##0.0') + '</td></tr>');
     });
-    h.push('</table><p class="note">' + esc(String(nm('em_Summary'))) + ' *At ' + val('p_Hours', '#,##0') + ' hr/yr; PTE at 8,760 hr/yr. ' +
+    h.push('</table><p class="note">' + esc(String(nm('em_Summary'))) + ' Product VOC ' + esc(String(nm('em_VOCnote'))) + '. *At ' + val('p_Hours', '#,##0') + ' hr/yr; PTE at 8,760 hr/yr. ' +
       'AP-42 screening factors; details and sources on the Emissions sheet of the Excel workbook.</p>');
     var warn = wb.values(wb.nameRange('ck_All')).filter(function (x) { return x && !isErr(x); });
     h.push('<div class="bar">Warnings (' + warn.length + ')</div>');

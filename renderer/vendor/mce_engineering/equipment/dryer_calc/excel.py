@@ -272,7 +272,8 @@ def build_data(bk: Book):
 # --------------------------------------------------------------------------------------- Products
 PCOLS = ["label", "key", "is_wood", "protein", "fat", "carbohydrate", "fiber", "ash", "cp", "bulk_density_dry",
          "particle_size_in", "particle_density", "sphericity", "ver_min", "ver_max", "residence_target_min",
-         "max_product_temp_F", "product_temp_F", "mc_in", "mc_out", "heat_sensitivity", "fire_risk", "sticky", "source"]
+         "max_product_temp_F", "product_temp_F", "mc_in", "mc_out", "heat_sensitivity", "fire_risk", "sticky",
+         "voc_lb_odt", "voc_status", "source"]
 PHEAD = {"label": "Product", "key": "key", "is_wood": "Wood", "protein": "Protein % dry", "fat": "Fat % dry",
          "carbohydrate": "Carbohydrate % dry", "fiber": "Fiber % dry", "ash": "Ash % dry",
          "cp": "Cp dry solids BTU/lb-F", "bulk_density_dry": "Bulk density dry lb/ft3",
@@ -280,7 +281,8 @@ PHEAD = {"label": "Product", "key": "key", "is_wood": "Wood", "protein": "Protei
          "sphericity": "Sphericity", "ver_min": "VER low", "ver_max": "VER high",
          "residence_target_min": "Residence min", "max_product_temp_F": "Max product F",
          "product_temp_F": "Discharge F", "mc_in": "Typical MC in % wb", "mc_out": "Typical MC out % wb",
-         "heat_sensitivity": "Heat sensitivity", "fire_risk": "Fire risk", "sticky": "Sticky", "source": "Sources"}
+         "heat_sensitivity": "Heat sensitivity", "fire_risk": "Fire risk", "sticky": "Sticky",
+         "voc_lb_odt": "Product VOC lb/ODT", "voc_status": "VOC basis", "source": "Sources"}
 
 
 def build_products(bk: Book):
@@ -333,12 +335,15 @@ def build_products(bk: Book):
                 "max_product_temp_F": m["max_product_temp_F"]["value"], "product_temp_F": m["product_temp_F"]["value"],
                 "mc_in": m["mc_in"]["value"], "mc_out": m["mc_out"]["value"],
                 "heat_sensitivity": m["heat_sensitivity"]["value"], "fire_risk": m["fire_risk"]["value"],
-                "sticky": "Yes" if m["sticky"]["value"] else "No"}
+                "sticky": "Yes" if m["sticky"]["value"] else "No", "voc_lb_odt": m["voc_lb_odt"]["value"],
+                "voc_status": {"factor": "factor", "not_detected": "not detected",
+                               "no_factor": "no published factor"}[m["voc_status"]]}
         for k in ("protein", "fat", "carbohydrate", "fiber", "ash"):
             vals[k] = comp.get(k, 0.0)
         src = [f"cp: {m['cp']['source']}"]
         if comp:
             src.append(f"composition: {m['composition']['source']}")
+        src.append(f"VOC: {m['voc_lb_odt']['source']}")
         src.append("Other properties: MCE assumption, confirm unless noted in presets.py.")
         vals["source"] = " ".join(src)
         for k, val in vals.items():
@@ -478,8 +483,8 @@ def build_inputs(bk: Book, entries: dict[str, Any], job: dict[str, str]):
           "material preset")
     w.add("p_Fire", "Fire risk class", f"=INDEX(m_fire_risk,{mrow})", "", src="material preset", text=True)
     w.add("p_Hours", "Operating hours per year", 7500, "hr/yr", 100, 8760, "SHEET Input H31")
-    w.add("p_VOC", "Product VOC factor", 0, "lb VOC/oven-dry ton", 0, 20,
-          "0 = not estimated; AP-42 Ch.10.6 or a stack test (wood)")
+    w.add("p_VOC", "Product VOC factor", f"=INDEX(m_voc_lb_odt,{mrow})", "lb VOC/oven-dry ton", 0, 20,
+          "product screening default (Products sheet); 0 = not estimated or not detected")
     w.section("Site")
     w.add("s_Tamb", "Ambient temperature", 60, "F", -40, 120, "SHEET Input D4")
     w.add("s_W", "Ambient humidity ratio", 0.002, "lb H2O/lb dry air", 0, 0.03, "SHEET Input D6")
@@ -1733,6 +1738,10 @@ def build_emissions(bk: Book):
           "70 F, 29.92 in. Hg (EPA uses 68 F; 0.4% difference)")
     w.put("em_O2", "Stack O2, dry", "=x_sST_o2", "vol %", "0.0")
     w.put("em_ODT", "Product dry solids", "=d_Solids/2000", "ODT/hr", "0.000")
+    w.put("em_VOCnote", "Product VOC factor used",
+          '=TEXT(p_VOC,"0.00")&" lb/ODT, "&IF(p_VOC=INDEX(m_voc_lb_odt,MATCH(p_Material,m_label,0)),'
+          'IF(p_VOC=0,INDEX(m_voc_status,MATCH(p_Material,m_label,0)),"screening default for "&p_Material),"entered")',
+          "", "@", "product defaults and sources on the Products sheet")
     for k in ("NOx", "CO", "PM", "VOC"):
         w.put(f"em_ef{k}", f"{k} factor used", f"=INDEX(ef_{k},MATCH(em_Key,ef_key,0))", "lb/MMBtu", "0.0000")
     w.put("em_BurnerPM", "Burner PM before the collector", "=em_efPM*em_MMBtu", "lb/hr", "0.000",
@@ -1751,8 +1760,9 @@ def build_emissions(bk: Book):
     basis = {"NOx": "AP-42 factor x fuel fired (HHV)", "CO": "AP-42 factor x fuel fired (HHV)",
              "SO2": "mass balance: all fuel sulfur to SO2",
              "PM": '="collector outlet "&TEXT(a_Grain,"0.000")&" gr/dscf x "&TEXT(em_DSCFM,"#,##0")&" DSCFM"',
-             "VOC": '="burner factor + product "&TEXT(p_VOC,"0.00")&" lb/ODT"&IF(p_VOC=0," (product VOC NOT '
-                    'estimated)","")',
+             "VOC": '="burner factor + product "&TEXT(p_VOC,"0.00")&" lb/ODT"&IF(p_VOC=0," (product VOC: "&'
+                    'INDEX(m_voc_status,MATCH(p_Material,m_label,0))&")",IF(p_VOC=INDEX(m_voc_lb_odt,MATCH(p_Material,'
+                    'm_label,0))," (screening default, see Products sheet)"," (entered)"))',
              "CO2": '="mass balance: all fuel carbon to CO2"&IF(em_Key="biomass"," (biogenic)","")'}
     for k, lab in EM_POLL:
         ws.cell(r, 2, f"{lab} ({k})").font = _font(9)
@@ -1787,7 +1797,8 @@ def build_emissions(bk: Book):
     notes = ["Factors are uncontrolled. Low-NOx burners, a baghouse or an RTO change the result; use vendor guarantees "
              "when available.",
              "Wood and ag dryers release VOC from the product (terpenes, organic acids). It often sets the permit. "
-             "Enter a factor (lb per oven-dry ton) on the Inputs sheet from AP-42 Ch.10.6 or a stack test.",
+             "Each product has a screening default (Products sheet, with its source); override it on the Inputs "
+             "sheet with a stack test or the state's guidance value. Products with no published factor show 0.",
              "Biomass factors are AP-42 Ch.1.6 for dry wood under 20% moisture; wet fuel or ag residue differ.",
              "Hazardous air pollutants (formaldehyde, acetaldehyde, methanol from wood) are not estimated here.",
              "Sulfur in natural gas and propane is taken from the fuel composition (0 unless entered)."]

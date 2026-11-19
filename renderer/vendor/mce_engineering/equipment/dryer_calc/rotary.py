@@ -530,10 +530,16 @@ def calculate(R: Resolved) -> dict:
         ctx.flag("warning", "PTE_MAJOR_SOURCE", f"{k} potential to emit {emis['pollutants'][k]['pte_tpy']:,.0f} tpy is at "
                                                 f"or above {em.MAJOR_SOURCE_TPY:g} tpy: Title V major-source review is "
                                                 f"likely. Check state and nonattainment thresholds.", "emissions")
-    if not emis["product_voc_estimated"]:
-        ctx.flag("info", "VOC_PRODUCT_NOT_ESTIMATED", "VOC released by the product is not included (factor 0 lb/ODT). "
-                                                      "For wood it can set the permit; enter a factor from AP-42 "
-                                                      "Ch.10.6 or a stack test.", "emissions")
+    voc_status = mat.get("voc_status", "no_factor")
+    voc_default = mat.get("voc_lb_odt", {}).get("value")
+    if p["product_voc_lb_odt"] == 0 and (voc_status != "not_detected" or voc_default != 0):
+        ctx.flag("info", "VOC_PRODUCT_NOT_ESTIMATED", "VOC released by the product is not included (0 lb/ODT): no "
+                                                      "published factor for this product. Enter a stack-test or permit "
+                                                      "value; for wood it can set the permit.", "emissions")
+    elif p["product_voc_lb_odt"] > 0 and p["product_voc_lb_odt"] == voc_default:
+        ctx.flag("info", "VOC_PRODUCT_DEFAULT", f"Product VOC uses the screening default {voc_default:g} lb/ODT "
+                                                f"({mat['label']}); confirm with a stack test or the state's guidance "
+                                                f"before a permit application.", "emissions")
     emis_out = {"stack_dscfm": q(stack_dscfm, "SCFM"), "fuel_mmbtu_hr_hhv": q(emis["fuel_mmbtu_hr_hhv"], "MMBtu/hr"),
                 "burner_pm_lb_hr": q(emis["burner_pm_lb_hr"], "lb/hr"), "factor_source": emis["factor_source"],
                 "pollutants": {k: {"lb_hr": q(r["lb_hr"], "lb/hr"), "tpy": q(r["tpy"], "tons/yr"),
