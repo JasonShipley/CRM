@@ -76,3 +76,32 @@ Escalation: 2024 → 2027 build, use +12–15%.
 - The Scherer quote is still to come.
 
 ### Bulk loadout: no ESP bulk loadout quote found in email yet. Ask Jason for the source.
+
+### NEMO Feed (Baring MO) references
+Proposal MCEQ2611NEMOP1R8, Nov 9, 2026, Drive 1nvC-bY7fK9MbODLMLLKCe6y5CRC0dAtk. Straw pellet line at 7–7.5 TPH.
+On NEMO, bought-out items were sold at cost ÷ 0.70 (30% GM). This job uses 2× cost.
+
+Vendor costs:
+- Counterflow cooler CC-8-130-6, SS, with inlet feeder: NEMO sell $54,519 (MCE-built)
+- Cooler fan 6,200 ACFM @ 9" WG, 20 HP: AirPro cost $9,666
+- MCE HE-36 cyclone: sell $13,570
+- 10" airlock: sell $9,730
+- Hot-pellet belt (C3), 18" wide, 21°: NEMO sell $68,950
+  - Belt components from MCOS (Murdock), quote 1020904
+- Belt drive package, 5 HP: about $5,270 sell per belt
+- SMICO 36" x 72" single-deck screener, 7 TPH: AFF cost $25,200 (Oct 2026, 20-week lead)
+- Bucket elevator, 9" 6x4 gentle handling, 60'9" discharge: Lambton cost $14,937 (Sep 2026)
+- 4-way 6" pendulum distributor: Lambton cost $14,949
+- Enclosed drags: Lambton GLID-09X14, 66 fpm, 1.5–3 HP. Not priced yet.
+- Screws (SCC, Nov 2026): $14,450 and $15,650 (both 7 TPH duty), and $16,250 for a 6" x 80 ft fines screw
+- Controls: Craft Automation PLC/MCC with 2 HMIs, cost $142,670 (NEMO sell $203,820)
+  - Commissioning: $13,040 cost
+  - Soft starts: 300 HP $11,300
+- Engineering: NEMO $55,000
+- MCE startup: $1,400/day, trips $3,200 each
+
+April 2026 NEMO budget allowances (sell):
+- 60 ft leg, 1,000 BPH: $26,995
+- 2-way loadout valve: $2,695
+- 2 silos with skirts: $110,000
+- Crumbler, 10x42: $53,132
