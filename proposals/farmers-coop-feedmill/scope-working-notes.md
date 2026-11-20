@@ -105,3 +105,13 @@ April 2026 NEMO budget allowances (sell):
 - 2-way loadout valve: $2,695
 - 2 silos with skirts: $110,000
 - Crumbler, 10x42: $53,132
+
+## Jason's answers (Nov 20)
+- Pellet mill: 7–10 TPH on pellets with a 125 HP motor. The $125k covers the mill, feeder and conditioner only; the motor is priced separately.
+- Steam: in our scope. Check whether the Farmers Rice Clayton 40 BHP Steam Master (1,380 lb/hr, quote 1825B, Jan 2025, about $102k net) is big enough; MCE could resell it.
+- Textured feed: they already have a roller mill, so only storage is needed. Sweet feed bypasses the pellet mill (high-speed molasses blender included). Bagging and palletizer included.
+- Bins: 3–4 days at peak in hopper bins, plus flat storage shared with the tub plant.
+- Loadout bins: for bulk trucks. Bagging has its own surge bins.
+- Mixer: 4 ton, with 15–20 TPH batching. Bob Hamlin (ASI Industrial, Billings MT) has a used 4-ton Hayes & Stolz with surge and conveyor, missing the drag chain and paddles. He also has a 6-ton single paddle. No prices.
+- Installation excluded; start-up services only.
+- ESP #32052 Rev A (Sep 2023): $443,560 list including the Fuji EC-201 at $239,650. Same robot price in June 2024.
