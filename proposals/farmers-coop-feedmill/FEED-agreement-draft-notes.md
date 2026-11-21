@@ -1,4 +1,30 @@
-# Feed mill FEED agreement: draft costs and milestones (internal, Nov 20, 2026)
+# Feed mill FEED agreement: draft costs and milestones (internal)
+
+## R1 lean scope (Nov 21, 2026): current recommendation
+The scope is cut to one site trip, using a 3D laser (metrology) scan for the layout, buildings and traffic flow.
+
+| Task | Role | Hours | Rate | Amount |
+|---|---|---:|---:|---:|
+| Site visit with 3D laser (metrology) scan of the site and Sallisaw mill: 1 trip, scan processing (+$3,200 travel) | Scan tech / designer | 24 | $125 | $6,200 |
+| Basis of design: capacities, product mix, ingredients, storage days (with the nutritionist) | Process engineer | 24 | $165 | $3,960 |
+| Process flow diagrams, mass and steam balance | Process engineer | 40 | $165 | $6,600 |
+| Site master plan and layout from the scan: buildings, bins, truck and rail flow | Designer | 120 | $125 | $15,000 |
+| Equipment list and specifications | Mechanical engineer | 30 | $150 | $4,500 |
+| Vendor RFQs and firm quotes on the major packages | Project manager | 40 | $135 | $5,400 |
+| Structural concept and foundation loads for civil | Structural engineer (PE) | 30 | $185 | $5,550 |
+| Electrical and controls concept: motor list, MCC, I/O count | Electrical / controls engineer | 30 | $160 | $4,800 |
+| Steam sizing (including the Farmers Rice 40 BHP unit) | Mechanical engineer | 8 | $150 | $1,200 |
+| Preliminary dust hazard analysis (NFPA 61/652) | Process engineer | 16 | $165 | $2,640 |
+| Schedule, firm price (+/-10%), FEED report and review meeting | Project manager | 24 | $135 | $3,240 |
+| **Total** | | **386** | | **$59,090** |
+
+- Standalone price: **$59,950**.
+- Price when bought with the tub plant FEED: **$54,950**, because the scan, master plan and steam sizing are shared. Combined total $124,900.
+- Terms are the MCE standard FEED terms: 50% with the signed agreement, balance net 10 on delivery of the FEED package. About 8 weeks.
+- 100% of the fee is credited toward the plant order.
+
+---
+## R0 (superseded): full scope, $129,950
 
 ## Fee
 - **Feed mill FEED: $129,950 fixed price.** About 2.7% of the $4.89M budget.
