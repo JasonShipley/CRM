@@ -13,7 +13,7 @@
 {% if rows %}
 <div class="bar"><span class="t">{{ rows|length }} quote{{ "s" if rows|length != 1 }}</span></div>
 <div class="card" style="padding:0">
-<table>
+<div class="scroll-x"><table>
   <tr><th>Quote</th><th>Ref</th><th>Customer</th>{% if show_dealer %}<th>Dealer</th>{% endif %}<th>Built</th><th>Status</th>
       <th class="num">Total</th><th></th></tr>
   {% for r in rows %}
@@ -27,11 +27,13 @@
     <td class="num money">{{ r._total }}</td>
     <td style="white-space:nowrap">
       <a class="btn btn-ghost btn-sm" href="{{ url_for('builder.edit_quote', quote_id=r.id) }}">Edit</a>
-      <a class="btn btn-ghost btn-sm" href="{{ url_for('builder.quote_pdf', quote_id=r.id) }}">PDF</a>
+      <a class="btn btn-ghost btn-sm browser-only" href="{{ url_for('builder.quote_pdf', quote_id=r.id) }}">PDF</a>
+      {# in the Home Screen app a bare PDF has no way back: open the proposal, which shares it #}
+      <a class="btn btn-ghost btn-sm app-only" href="{{ url_for('builder.quote_view', quote_id=r.id) }}">PDF</a>
     </td>
   </tr>
   {% endfor %}
-</table>
+</table></div>
 </div>
 {% else %}
 <div class="bar"><span class="t">No quotes yet</span></div>

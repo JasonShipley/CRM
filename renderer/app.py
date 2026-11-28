@@ -39,8 +39,10 @@ DEALER_ENDPOINTS, sees only their own dealership's quotes, and gets every answer
 through dealer_view.py. It still binds to localhost and is reached through Caddy.
 """
 import datetime
+import json
 import os
 import pathlib
+import time
 
 from flask import (Flask, abort, g, jsonify, redirect, render_template, request,
                    send_from_directory, session, url_for)
@@ -107,7 +109,10 @@ TOKEN_ENDPOINTS = {"builder.api_interpret", "builder.api_calc", "builder.api_pri
 # Endpoints anyone may reach — the token self-service flow has to work before you
 # hold a token. Both still gate on the work-email domain (tokens.py), and confirm
 # needs a code that was mailed to that address.
-OPEN_ENDPOINTS = {"login", "static", "api_token_request", "api_token_confirm"}
+OPEN_ENDPOINTS = {"login", "static", "api_token_request", "api_token_confirm",
+                  # the Home Screen app's manifest and service worker: no data in
+                  # either, and iOS fetches them before anyone has signed in
+                  "manifest", "service_worker"}
 
 # Everything a dealer may reach. An allowlist on purpose: a page added later is
 # staff-only until someone decides a dealer should see it. Not here, and so
@@ -188,6 +193,48 @@ def _who():
     return {"me": user, "is_staff": bool(user and user.get("role") == "staff")}
 
 
+# --------------------------------------------------------- Home Screen app ---
+
+MANIFEST = {
+    "name": "MCE Quotes",
+    "short_name": "MCE Quotes",
+    "description": "Size, price and quote Midwest Custom Engineering equipment.",
+    "start_url": "/",
+    "scope": "/",
+    "display": "standalone",
+    "orientation": "any",
+    "background_color": "#111111",
+    "theme_color": "#111111",
+    "icons": [
+        {"src": "/assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png"},
+        {"src": "/assets/icons/icon-512.png", "sizes": "512x512", "type": "image/png"},
+        {"src": "/assets/icons/icon-512-maskable.png", "sizes": "512x512",
+         "type": "image/png", "purpose": "maskable"},
+        {"src": "/assets/icons/apple-touch-icon-180.png", "sizes": "180x180",
+         "type": "image/png"},
+    ],
+}
+
+
+@app.route("/manifest.webmanifest")
+def manifest():
+    """What a phone needs to put MCE Quotes on its Home Screen."""
+    r = app.response_class(json.dumps(MANIFEST, indent=1),
+                           mimetype="application/manifest+json")
+    r.headers["Cache-Control"] = "no-cache"
+    return r
+
+
+@app.route("/sw.js")
+def service_worker():
+    """Served from the root so it covers the whole app, and never cached itself so a
+    change reaches every phone on its next launch. It caches no page or data."""
+    r = send_from_directory(app.static_folder, "sw.js", mimetype="text/javascript",
+                            max_age=0)
+    r.headers["Cache-Control"] = "no-cache"
+    return r
+
+
 def _send_code(email, code):
     """Email a one-time code. Falls back to the log when no SMTP is configured."""
     try:
@@ -262,6 +309,14 @@ def login():
     if request.method == "GET":
         if session.get("user") and accounts.get(session["user"]["email"]):
             return redirect(_safe_next(nxt))
+        # Fetching the code from Mail can make iOS restart a Home Screen app at "/".
+        # Pick up where the person left off rather than asking for their email again.
+        pending = session.get("pending_login")
+        if request.args.get("restart"):
+            session.pop("pending_login", None)
+        elif pending and time.time() - pending.get("at", 0) < codes.CODE_TTL_S:
+            return render_template("login.html", step="code", email=pending["email"],
+                                   next=pending.get("next") or nxt)
         return render_template("login.html", step="email", next=nxt)
 
     email = accounts.normalise(request.form.get("email"))
@@ -285,6 +340,9 @@ def login():
         # said for every address alike, so it gives away nothing about who has access
         note = ("Mail is not set up on this server yet, so codes go to the service "
                 "log. Ask MCE for yours.")
+    # kept for every address alike, like the reply itself
+    session["pending_login"] = {"email": email, "next": nxt, "at": time.time()}
+    session.permanent = True
     if accounts.get(email):
         code, error = codes.issue(email, "login", throttle=True)
         if code:

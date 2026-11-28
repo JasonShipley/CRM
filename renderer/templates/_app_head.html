@@ -1,0 +1,25 @@
+{# What makes the site a Home Screen app on an iPhone (and an installable one on
+   Android): the manifest, the icon iOS uses, full-screen launch, and the colour of
+   the status bar. Included in the <head> of every page a person sees. Each page
+   keeps its own viewport tag. #}
+<link rel="manifest" href="{{ url_for('manifest') }}">
+<link rel="apple-touch-icon" href="{{ url_for('static', filename='icons/apple-touch-icon-180.png') }}">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="MCE Quotes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="theme-color" content="#111111">
+<script>
+  /* Launched from the Home Screen: no browser bar, so the pages add their own way
+     back and the install banner stays away. */
+  (function () {
+    var standalone = window.navigator.standalone === true ||
+      (window.matchMedia && matchMedia("(display-mode: standalone)").matches);
+    if (standalone) document.documentElement.classList.add("standalone");
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", function () {
+        navigator.serviceWorker.register("{{ url_for('service_worker') }}").catch(function () {});
+      });
+    }
+  })();
+</script>

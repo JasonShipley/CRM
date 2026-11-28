@@ -119,6 +119,10 @@ def main():
                       for i in f.get("inputs", [])))
     check("the staff answers still carry the basis (the filter is dealer-only)",
           staff_leaky >= 3, staff_leaky)
+    for text, internal in (("Q-25602", True), ("Q117935R1", True), ("Q-20260713-HET", True),
+                           ("q12345abcdef", False)):     # the last is MCE's own quote id
+        check(f"{text} is {'' if internal else 'not '}a vendor quote number",
+              dealer_view.is_internal(text) == internal)
     eq = dealer.get("/api/voice/equipment").get_json()
     check("equipment list has nothing internal", not leaks(eq), leaks(eq))
 
@@ -155,6 +159,8 @@ def main():
               [p.pattern for p in dealer_view._PATTERNS if p.search(form)])
 
     page = dealer.get("/quotes/new").get_data(as_text=True)
+    check("the new-quote form's example names no real MCE customer",
+          not any(n in page for n in ("Fairview", "Heideman")))
     check("the new-quote form has nothing internal", not dealer_view.is_internal(page),
           [p.pattern for p in dealer_view._PATTERNS if p.search(page)])
 

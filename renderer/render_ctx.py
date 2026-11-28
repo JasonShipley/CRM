@@ -145,6 +145,9 @@ BASE_CONTEXT = {
     "subtotal": "", "total": "", "net_subtotal": "", "has_net": False,
     "total_discount": "", "has_discount": False,
     "discount_percent": 0, "project_discount": "",
+    # the on-screen page's own bar in the Home Screen app (back, Edit, Share PDF);
+    # set by the page views only, so a PDF never carries it
+    "app_bar": None,
 }
 
 

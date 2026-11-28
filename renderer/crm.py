@@ -7,7 +7,7 @@ routes render those quotes with the same branded template the builder uses.
 
 When the CRM tie-in lands, the builder will write into Twenty through here.
 """
-from flask import Blueprint, abort, render_template
+from flask import Blueprint, abort, render_template, url_for
 
 import render_ctx
 from twenty_api import TwentyError, fmt_date, fmt_money, m2d, query
@@ -111,7 +111,10 @@ def quote_view(quote_id):
     ctx = from_twenty(quote_id)
     if not ctx:
         abort(404)
-    return render_template("quote.html", **ctx)
+    app_bar = {"back": url_for("crm.index"), "back_label": "CRM", "edit": None,
+               "pdf": url_for("crm.quote_pdf", quote_id=quote_id),
+               "filename": f"MCE Proposal {quote_id}.pdf"}
+    return render_template("quote.html", **{**ctx, "app_bar": app_bar})
 
 
 @bp.route("/quotes/<quote_id>/pdf")

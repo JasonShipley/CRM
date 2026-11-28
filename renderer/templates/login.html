@@ -2,12 +2,14 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>MCE Quoting — sign in</title>
+{% include "_app_head.html" %}
 <style>
   body { font-family: Helvetica, Arial, sans-serif; background: #111; color: #fff;
     display: flex; align-items: center; justify-content: center; min-height: 100vh;
-    margin: 0; padding: 20px; }
+    margin: 0; padding: max(20px, env(safe-area-inset-top)) 20px
+      max(20px, env(safe-area-inset-bottom)); box-sizing: border-box; }
   .box { width: 100%; max-width: 340px; }
   img { width: 100%; max-width: 260px; display: block; margin: 0 auto 26px; }
   h1 { font-size: 15px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase;
@@ -39,7 +41,7 @@
            pattern="[0-9]{6}" maxlength="6" placeholder="000000" autofocus required>
     <button type="submit">Sign in</button>
     {% if note %}<div class="err">{{ note }}</div>{% endif %}
-    <a class="alt" href="{{ url_for('login', next=next) }}">Use a different email</a>
+    <a class="alt" href="{{ url_for('login', next=next, restart=1) }}">Use a different email</a>
     <span class="alt">No code? Check spam, or ask your MCE contact to add you.</span>
   {% else %}
     <input type="email" name="email" placeholder="Work email" autofocus

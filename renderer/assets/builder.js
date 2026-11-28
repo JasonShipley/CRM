@@ -550,7 +550,15 @@ async function save() {
 $("#save").addEventListener("click", save);
 $("#save-pdf").addEventListener("click", async () => {
   const data = await save();
-  if (data) window.open(data.pdfUrl, "_blank", "noopener");
+  if (!data) return;
+  if (document.documentElement.classList.contains("standalone")) {
+    // the Home Screen app: no second window, and a bare PDF has no way back.
+    // The proposal page has Share PDF and a way back to the quotes.
+    dirty = false;
+    location.href = data.url;
+  } else {
+    window.open(data.pdfUrl, "_blank", "noopener");
+  }
 });
 
 /* Warn before losing unsaved work. */

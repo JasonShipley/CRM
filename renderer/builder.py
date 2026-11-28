@@ -170,10 +170,21 @@ def edit_quote(quote_id):
         default_terms=DEFAULT_TERMS)
 
 
+def _pdf_name(quote, quote_id):
+    ref = quote.get("quoteNumber") or quote_id
+    return f"MCE Proposal {ref} - {quote.get('name') or 'Quote'}"
+
+
 @bp.route("/quotes/<quote_id>")
 def quote_view(quote_id):
     quote = for_viewer(_load(quote_id))
-    return render_template("quote.html", **render_ctx.from_store(quote))
+    # the on-screen page only: in the Home Screen app it has no browser bar, so it
+    # carries its own way back, Edit and Share PDF. The PDF render leaves it out.
+    app_bar = {"back": url_for("builder.index"), "back_label": "Quotes",
+               "edit": url_for("builder.edit_quote", quote_id=quote_id),
+               "pdf": url_for("builder.quote_pdf", quote_id=quote_id),
+               "filename": _pdf_name(quote, quote_id) + ".pdf"}
+    return render_template("quote.html", **{**render_ctx.from_store(quote), "app_bar": app_bar})
 
 
 @bp.route("/quotes/<quote_id>/pdf")
@@ -181,10 +192,8 @@ def quote_pdf(quote_id):
     quote = for_viewer(_load(quote_id))
     html = render_template("quote.html", **render_ctx.from_store(quote))
     pdf = render_ctx.to_pdf(html)
-    ref = quote.get("quoteNumber") or quote_id
-    name = f"MCE Proposal {ref} - {quote.get('name') or 'Quote'}"
     return current_app.response_class(pdf, mimetype="application/pdf",
-                                      headers=render_ctx.pdf_headers(name))
+                                      headers=render_ctx.pdf_headers(_pdf_name(quote, quote_id)))
 
 
 # --------------------------------------------------------------------- API ---

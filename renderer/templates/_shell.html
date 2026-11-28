@@ -2,9 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>{% block title %}MCE Quoting{% endblock %}</title>
 <link rel="icon" href="{{ url_for('static', filename='favicon.svg') }}">
+{% include "_app_head.html" %}
 <style>
   @font-face { font-family: "Oswald"; font-weight: 400 700; font-style: normal;
     src: url("{{ url_for('static', filename='fonts/oswald.woff2') }}") format("woff2");
@@ -30,8 +31,15 @@
 
   /* ---- brand header ---- */
   header.brand { background: var(--black); border-bottom: 4px solid var(--orange);
-    padding: 12px 24px; display: flex; align-items: center; gap: 24px;
-    flex-wrap: wrap; }
+    padding: 12px max(24px, env(safe-area-inset-right)) 12px max(24px, env(safe-area-inset-left));
+    padding-top: max(12px, env(safe-area-inset-top));
+    display: flex; align-items: center; gap: 24px; flex-wrap: wrap; }
+  @media (max-width: 600px) {
+    header.brand { gap: 10px; padding-left: max(14px, env(safe-area-inset-left));
+      padding-right: max(14px, env(safe-area-inset-right)); }
+    header.brand nav { margin-left: 0; }
+    header.brand nav a { padding: 7px 9px; }
+  }
   header.brand .mark { background: #fff; border-radius: 2px; padding: 7px 11px;
     display: flex; line-height: 0; }
   header.brand img { height: 30px; width: auto; }
@@ -42,7 +50,23 @@
   header.brand nav a:hover { color: #fff; background: #262626; }
   header.brand nav a.on { color: #fff; background: var(--orange); }
 
-  main { max-width: 1120px; margin: 0 auto; padding: 22px 20px 80px; }
+  main { max-width: 1120px; margin: 0 auto;
+    padding: 22px max(20px, env(safe-area-inset-right))
+      calc(80px + env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left)); }
+
+  /* ---- "add to Home Screen", iPhone Safari only, until dismissed ---- */
+  #install-tip { background: #fff4ec; border-bottom: 1px solid #ffd9bf; color: var(--ink);
+    font-size: 13px; padding: 9px 14px; display: flex; gap: 10px; align-items: center; }
+  #install-tip b { color: #b04900; }
+  #install-tip .share { display: inline-block; width: 14px; height: 17px; vertical-align: -3px; }
+  #install-tip button { margin-left: auto; background: none; border: 0; font-size: 20px;
+    line-height: 1; color: var(--ink-soft); padding: 0 4px; cursor: pointer; }
+  html.standalone #install-tip { display: none !important; }
+  /* a wide table scrolls inside itself on a phone instead of widening the page */
+  .scroll-x { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .app-only { display: none !important; }
+  html.standalone .app-only { display: inline-block !important; }
+  html.standalone .browser-only { display: none !important; }
   .wide { max-width: 1320px; }
 
   h1 { font-family: "Oswald", sans-serif; font-weight: 600; font-size: 25px;
@@ -147,6 +171,28 @@
     {% if me %}<a href="{{ url_for('logout') }}" title="{{ me.email }}">Sign out</a>{% endif %}
   </nav>
 </header>
+<div id="install-tip" hidden>
+  <span>Put <b>MCE Quotes</b> on your Home Screen: tap
+    <svg class="share" viewBox="0 0 14 17" aria-label="Share"><path fill="none"
+      stroke="#b04900" stroke-width="1.4" d="M7 1v10M3.5 4.5 7 1l3.5 3.5M4.5 7H1.5v9h11V7h-3"/></svg>
+    then <b>Add to Home Screen</b>.</span>
+  <button type="button" aria-label="Dismiss">&times;</button>
+</div>
+<script>
+  (function () {
+    var tip = document.getElementById("install-tip");
+    var iphone = /iPhone|iPad|iPod/.test(navigator.userAgent) ||
+      (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    var seen = false;
+    try { seen = localStorage.getItem("mce.installTip") === "no"; } catch (e) {}
+    if (!iphone || seen || document.documentElement.classList.contains("standalone")) return;
+    tip.hidden = false;
+    tip.querySelector("button").addEventListener("click", function () {
+      tip.hidden = true;
+      try { localStorage.setItem("mce.installTip", "no"); } catch (e) {}
+    });
+  })();
+</script>
 <main class="{% block mainclass %}{% endblock %}">
 {% block body %}{% endblock %}
 </main>

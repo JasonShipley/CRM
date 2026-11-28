@@ -3,6 +3,26 @@
 <head>
 <meta charset="utf-8">
 <title>{{ q.name }}</title>
+{% if app_bar %}
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+{% include "_app_head.html" %}
+<style>
+  /* The Home Screen app has no browser bar: this is its way back, and its PDF.
+     On screen only, in the app only; the PDF render never gets app_bar at all. */
+  .appbar { display: none; }
+  html.standalone .appbar { display: flex; position: sticky; top: 0; z-index: 20;
+    align-items: center; gap: 8px; background: #111; border-bottom: 3px solid #ff6602;
+    padding: max(8px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right))
+      8px max(12px, env(safe-area-inset-left));
+    font: 600 14px/1 Helvetica, Arial, sans-serif; }
+  .appbar a, .appbar button { color: #fff; text-decoration: none; background: #262626;
+    border: 0; border-radius: 3px; padding: 10px 14px; font: inherit; letter-spacing: .02em; }
+  .appbar .share { margin-left: auto; background: #ff6602; }
+  .appbar .share[disabled] { opacity: .6; }
+  html.standalone .sheet { margin-top: 12px; }
+  @media print { .appbar { display: none !important; } .sheet { zoom: 1 !important; } }
+</style>
+{% endif %}
 <style>
   @font-face { font-family: "Oswald"; font-weight: 400 700; font-style: normal;
     src: url(data:font/woff2;base64,{{ fonts.oswald }}) format("woff2"); }
@@ -152,6 +172,13 @@
 </style>
 </head>
 <body>
+{% if app_bar %}
+<div class="appbar">
+  <a href="{{ app_bar.back }}">&larr; {{ app_bar.back_label }}</a>
+  {% if app_bar.edit %}<a href="{{ app_bar.edit }}">Edit</a>{% endif %}
+  <button type="button" class="share" id="share-pdf">Share PDF</button>
+</div>
+{% endif %}
 <div class="sheet">
 
   <div class="bhead">
@@ -359,5 +386,58 @@
   </div>
 
 </div>
+{% if app_bar %}
+<script>
+  /* Fit the letter-size sheet to a phone's width. */
+  (function () {
+    var sheet = document.querySelector(".sheet");
+    function fit() {
+      var w = document.documentElement.clientWidth;
+      sheet.style.zoom = w < 880 ? String((w - 16) / 850) : "";
+    }
+    fit();
+    window.addEventListener("resize", fit);
+  })();
+
+  /* Share PDF: the iOS share sheet (Mail, Messages, AirDrop, Files) with the PDF
+     attached. iOS lets a page share only during a tap, so in the app the PDF is
+     fetched when the page opens, and the tap shares it straight away. */
+  (function () {
+    var btn = document.getElementById("share-pdf");
+    if (!btn) return;
+    var url = {{ app_bar.pdf | tojson }}, name = {{ app_bar.filename | tojson }};
+    var file = null, loading = null;
+    function load() {
+      if (!loading) {
+        loading = fetch(url, { credentials: "same-origin" })
+          .then(function (r) { if (!r.ok) throw new Error(r.status); return r.blob(); })
+          .then(function (b) { file = new File([b], name, { type: "application/pdf" }); return file; })
+          .catch(function (e) { loading = null; throw e; });
+      }
+      return loading;
+    }
+    function canShareFiles(f) {
+      return !!(navigator.canShare && navigator.share && navigator.canShare({ files: [f] }));
+    }
+    function share(f) {
+      if (!canShareFiles(f)) { location.href = url; return; }
+      navigator.share({ files: [f], title: name }).catch(function (e) {
+        if (e && e.name === "NotAllowedError") btn.textContent = "Tap again to share";
+      });
+    }
+    if (document.documentElement.classList.contains("standalone")) load().catch(function () {});
+    btn.addEventListener("click", function () {
+      if (file) { btn.textContent = "Share PDF"; share(file); return; }
+      btn.disabled = true; btn.textContent = "Preparing PDF…";
+      load().then(function (f) {
+        btn.disabled = false; btn.textContent = "Share PDF"; share(f);
+      }, function () {
+        btn.disabled = false; btn.textContent = "Share PDF";
+        location.href = url;
+      });
+    });
+  })();
+</script>
+{% endif %}
 </body>
 </html>

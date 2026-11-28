@@ -12,6 +12,17 @@ at **https://quotes.usemce.com**. Prices you see are MCE list prices.
 No password to remember. If the code doesn't arrive, check your spam folder, or ask
 MCE to confirm the address we have for you.
 
+## Put it on your iPhone
+
+1. Open **quotes.usemce.com** in **Safari**.
+2. Tap the **Share** button (the square with an arrow), then **Add to Home Screen**.
+3. Open **MCE Quotes** from your Home Screen and sign in once. The app keeps its
+   own sign-in, separate from Safari.
+
+It opens full screen like any other app. If you switch to Mail to get your code,
+it will still be waiting for the code when you come back. On a quote, **Share PDF**
+sends the proposal by Mail, Messages or AirDrop, or saves it to Files.
+
 ## Building a quote
 
 - **New quote**: describe the job in plain words, for example "4430 with a 200 HP

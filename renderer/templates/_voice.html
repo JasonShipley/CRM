@@ -2,7 +2,8 @@
    The behaviour is in assets/voice.js; the ElevenLabs client loads only when
    the button is pressed. #}
 <style>
-  #mce-voice-btn { position: fixed; right: 20px; bottom: 20px; z-index: 50;
+  #mce-voice-btn { position: fixed; right: 20px; z-index: 50;
+    bottom: calc(20px + env(safe-area-inset-bottom));
     width: 60px; height: 60px; border-radius: 50%; padding: 0; border: 0;
     background: var(--orange); box-shadow: 0 6px 18px rgba(0,0,0,.28);
     display: flex; align-items: center; justify-content: center; }
@@ -14,7 +15,8 @@
     animation: mce-pulse 1.6s ease-out infinite; }
   @keyframes mce-pulse { from { transform: scale(.9); opacity: .8 }
                          to { transform: scale(1.25); opacity: 0 } }
-  #mce-voice { position: fixed; right: 20px; bottom: 92px; z-index: 50;
+  #mce-voice { position: fixed; right: 20px; z-index: 50;
+    bottom: calc(92px + env(safe-area-inset-bottom));
     width: min(420px, calc(100vw - 32px)); max-height: min(620px, calc(100vh - 120px));
     background: #fff; border: 1px solid var(--rule); border-top: 4px solid var(--orange);
     border-radius: 3px; box-shadow: 0 12px 34px rgba(0,0,0,.25);
@@ -42,11 +44,11 @@
     border-top: 1px solid var(--rule); }
   #mce-voice footer .hint { font-size: 11.5px; color: var(--ink-soft); align-self: center; }
   /* clear the quote form's sticky save bar */
-  body:has(.savebar) #mce-voice-btn { bottom: 84px; }
-  body:has(.savebar) #mce-voice { bottom: 156px; }
+  body:has(.savebar) #mce-voice-btn { bottom: calc(84px + env(safe-area-inset-bottom)); }
+  body:has(.savebar) #mce-voice { bottom: calc(156px + env(safe-area-inset-bottom)); }
   @media (max-width: 600px) {
-    #mce-voice { right: 8px; left: 8px; width: auto; bottom: 88px; }
-    #mce-voice-btn { right: 14px; bottom: 14px; }
+    #mce-voice { right: 8px; left: 8px; width: auto; bottom: calc(88px + env(safe-area-inset-bottom)); }
+    #mce-voice-btn { right: 14px; bottom: calc(14px + env(safe-area-inset-bottom)); }
   }
 </style>
 <button id="mce-voice-btn" type="button" title="Talk to the MCE quote assistant"

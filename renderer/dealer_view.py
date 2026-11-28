@@ -29,7 +29,9 @@ VENDORS = ["AirPro", "Air Pro", "Airlanco", "Prater", "Boss Products", "Boss",
 _PATTERNS = [re.compile(r"\b" + re.escape(v) + r"\b", re.I) for v in VENDORS] + [
     re.compile(p, re.I) for p in (
         r"\bKT\d{6,}",                 # Prater quote numbers
-        r"\bQ-?\d{5,}",                # AirPro / Boss quote numbers
+        # AirPro / Boss quote numbers (Q-25602, Q117935R1). A capital Q only: MCE's
+        # own quote ids are a lowercase q and hex (q12345ab…) and are the dealer's
+        r"(?-i:\bQ)-?\d{5,}",
         r"\bEst\.? ?\d{3,}",           # estimate numbers
         r"\bquote \d{4,}",             # "quote 024350"
         r"\bPO \d{4,}",

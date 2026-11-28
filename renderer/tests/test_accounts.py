@@ -48,7 +48,8 @@ def main():
 
     # 1. nothing without a session ---------------------------------------
     anon = app.test_client()
-    open_rules = {"login", "static", "api_token_request", "api_token_confirm"}
+    open_rules = {"login", "static", "api_token_request", "api_token_confirm",
+                  "manifest", "service_worker"}
     for rule in app.url_map.iter_rules():
         if rule.endpoint in open_rules or "GET" not in rule.methods:
             continue

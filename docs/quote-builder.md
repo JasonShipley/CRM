@@ -468,6 +468,57 @@ run `update.sh`. Without them, the mic answers with a clear "not set up" message
 and nothing else breaks. `tests/test_voice.py` covers the session endpoint with
 ElevenLabs stood in for, the rate limit, and the draft tool.
 
+## iPhone app
+
+The quote builder installs on an iPhone as a Home Screen app. Open
+**quotes.usemce.com** in Safari, tap **Share**, then **Add to Home Screen**. It
+launches full screen with the MCE icon, keeps its own sign-in for 30 days, and the
+mic works. There is no App Store, no Apple account and no review. Every deploy
+reaches every phone the next time the app opens. iPhone Safari shows a small
+banner saying how to add it, until it is dismissed.
+
+**What makes it work:**
+- `templates/_app_head.html`, included on every page a person sees, carries:
+  - the manifest link;
+  - the touch icon;
+  - the full-screen and status-bar settings;
+  - a few lines that mark `html.standalone` when the app is launched from the
+    Home Screen.
+- **`/manifest.webmanifest` and `/sw.js`** are in `OPEN_ENDPOINTS`, because a
+  phone fetches them before anyone signs in. Neither holds any data.
+- **The service worker** (`assets/sw.js`) does one thing. When a page can't load
+  for lack of signal, it shows `assets/offline.html` with a **Try again** button,
+  because a full-screen app has no reload button. **It caches no page, quote,
+  price or API answer.** `tests/test_app_install.py` holds it to that.
+- **No browser bar.** Inside the app:
+  - the proposal page carries its own bar: back to the quotes, Edit, and
+    **Share PDF**. Share PDF opens the iPhone share sheet with the PDF attached,
+    for Mail, Messages, AirDrop or Files.
+  - the list's PDF button and the form's Save & open PDF go to that page, because
+    a bare PDF would leave you stuck with no way back.
+  - none of this is in the rendered PDF.
+- **The sign-in survives a trip to Mail.** iOS can restart the app while you fetch
+  the code. The session remembers the code step for the code's own 15 minutes,
+  for every address alike, so it gives nothing away.
+- **Spacing for the notch and home bar** (`env(safe-area-inset-*)`) keeps the
+  header, save bar and mic clear of them. Wide tables scroll inside themselves.
+
+**Icons** are in `assets/icons/`, drawn from the favicon mark by
+`python3 renderer/assets/icons/make_icons.py`. Re-run it if the mark changes.
+
+### Later: the App Store
+
+The same app can be wrapped for the App Store when it is worth it. Nothing above
+is thrown away.
+1. **Enroll MCE in the Apple Developer Program** as an organization ($99 a year).
+   This needs a D-U-N-S number and can take a week or two, so start it first.
+2. Wrap the site with Capacitor, pointing at quotes.usemce.com, and build it in
+   Xcode on MCE's Mac.
+3. Hand it out through TestFlight first. Then use an **Unlisted** App Store app,
+   or an Apple Business Manager custom app, which suits dealers.
+4. Add something a website can't do, such as notifications when a quote is
+   opened or saved. Apple turns down apps that are only a website (guideline 4.2).
+
 ## One pricing basis
 
 MCE prices its own equipment off one model, which the calculator states on its own

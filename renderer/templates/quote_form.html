@@ -17,7 +17,7 @@
   <span class="hint">type it the way you'd say it — everything below gets filled in</span></div>
 <div class="card">
   <div class="field">
-    <textarea id="describe" rows="3" placeholder="quote Dennis Heideman at Fairview Mills a 4430 with 200hp for grinding a grain ration pet food 15tph on a 6/64&quot; screen, including an SS round cup 10&quot; auto selfclean feeder, plenum chamber, screw, and air system"></textarea>
+    <textarea id="describe" rows="3" placeholder="quote Pat Jones at Acme Feed a 4430 with 200hp for grinding a grain ration pet food 15tph on a 6/64&quot; screen, including an SS round cup 10&quot; auto selfclean feeder, plenum chamber, screw, and air system"></textarea>
   </div>
   <div class="row" style="margin-top:12px">
     <button type="button" class="btn-primary" id="describe-go">Build the quote</button>
@@ -209,7 +209,7 @@
 <!-- 4 ---------------------------------------------------------- line items -->
 <div class="bar"><span class="t">4. Line items</span>
   <span class="hint">leave Line total blank to compute qty &times; (unit &minus; discount)</span></div>
-<div class="card" style="padding:0">
+<div class="card scroll-x" style="padding:0">
   <table id="lines">
     <thead>
       <tr>
@@ -308,7 +308,8 @@
     cursor: pointer; padding: 4px 7px; border-radius: 2px; }
   .rm:hover { background: #fdf1f1; color: var(--err); }
 
-  .savebar { position: sticky; bottom: 0; margin: 22px -20px 0; padding: 12px 20px;
+  .savebar { position: sticky; bottom: 0; margin: 22px -20px 0;
+    padding: 12px 20px calc(12px + env(safe-area-inset-bottom));
     background: #fff; border-top: 3px solid var(--orange);
     box-shadow: 0 -2px 14px rgba(0,0,0,.09); display: flex; gap: 18px;
     align-items: center; justify-content: space-between; flex-wrap: wrap; }
